@@ -1,4 +1,4 @@
-EXEC     := zos-dev-build-${shell date +%Y%m%d}.img
+EXEC     := zos-dev-build.img
 FULLEXEC := ${BUILD_DIR}/${EXEC}
 
 .PHONY: all build boot kernel clean always
