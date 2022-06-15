@@ -1,0 +1,12 @@
+# Debug
+*.bxrc
+*.ini
+
+# Dirs
+build/
+.vscode/
+.idea/
+.vs/
+
+# Compile commands
+compile_commands.json
