@@ -11,7 +11,7 @@ bios_parameter_block:
     .oem:                   db  'MSWIN4.1'
     .bytes_per_sector:      dw  512
     .sectors_per_cluster:   db  1
-    .reserved_sectors:      dw  16
+    .reserved_sectors:      dw  1
     .fats:                  db  2
     .root_dir_entries:      dw  224
     .total_sectors:         dw  2880
@@ -45,36 +45,65 @@ _start: ; fix regs
         sti
 
         mov     [extended_boot_record.drive_number], dl
+        xor     ax, ax
+        xor     bx, bx
+        xor     cx, cx
+        xor     dx, dx
+        xor     si, si
+        xor     di, di
 
         jmp     0x0000:main ; fix CS if not at 0x0000
 
-%include "chs.inc"
-%include "print.inc"
-%include "disk.inc"
+%include "convutils.inc"
+%include "diskutils.inc"
+%include "vgautils.inc"
 
-main:   mov     ax, 1
-        mov     bx, 0x7E00
-        mov     cl, 1
+main:   mov     cx, [bios_parameter_block.reserved_sectors]
+        mov     ax, [bios_parameter_block.sectors_per_fat]
+        mul     byte [bios_parameter_block.fats]                ; AX == sectors_per_fat * fats
+        mov     [variables.fat_size], ax
+
+        add     cx, ax                                          ; CX += AX
+        mov     [variables.root_dir_start], cx
+
+        mov     ax, [bios_parameter_block.root_dir_entries]
+        shl     ax, 5                                           ; AX *= 32
+        xor     dx, dx                                          ; just to be sure; some PCs crash when DX isn't clear
+        div     word [bios_parameter_block.bytes_per_sector]    ; AX /= bytes_per_sector
+        mov     [variables.root_dir_size], ax
+
+        mov     ax, [bios_parameter_block.reserved_sectors]
+        mov     cx, [variables.fat_size]                        ; word size
         mov     dl, [extended_boot_record.drive_number]
-        call    read_sectors
+        mov     bx, [variables.fat_buffer]
 
-        jc      print_error_and_reboot
-
-        mov     si, bx
-        call    print
+        call    diskutils.read_sectors
+        mov     ax, cx
+        mul     word [bios_parameter_block.bytes_per_sector]
+        add     [variables.general_buffer], ax
 
         jmp     $
 
-print_error_and_reboot: mov     si, ERROR
-                        call    print
+print_error_and_reboot: mov     si, constants.DISKUTILS_ERROR
+                        call    vgautils.print
 
                         xor     ax, ax
                         int     0x16
 
                         jmp     0xFFFF:0x0000   ; jmp to 0xFFFF0 (reboot)
 
-KERNEL_FILE:        db `ZS         `
-ERROR:              db `An error occurred. Press any key to reboot...\0`
+variables:
+    .root_dir_start:    dw      0
+    .root_dir_size:     dw      0
+    .fat_size:          dw      0
+    .fat_buffer:        dw      BUFFER
+    .general_buffer:    dw      BUFFER
 
-times 510-($-$$)    db 0    ; fill remaining with 0s
-dw                  0xAA55  ; signature
+constants:
+    .KERNEL_FILE:       db      `ZS         `
+    .DISKUTILS_ERROR:   db      `DISKUTILS error!\0`
+
+times 510-($-$$)        db      0    ; fill remaining with 0s
+dw                      0xAA55       ; signature
+
+BUFFER:

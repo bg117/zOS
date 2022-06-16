@@ -1,6 +1,7 @@
 # Debug
 *.bxrc
 *.ini
+*.bios
 
 # Dirs
 build/
