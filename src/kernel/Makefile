@@ -1,16 +1,17 @@
 ASM      := nasm
 ASMFLAGS := -f obj
 
-CC := owcc
+CC := wcc
 LD := wlink
 
-CFLAGS := -Wall \
-          -Wextra \
-          -mcmodel=t \
-          -mabi=cdecl \
-          -fno-rtti \
-          -O0 \
-          -g2
+CFLAGS := -3 \
+          -d3 \
+          -s \
+          -wx \
+          -ms \
+          -zl \
+          -zq \
+          -oneaszxhmpl+
 
 SRCS_ASM := ${wildcard ${CURDIR}/*.asm}
 SRCS_C   := ${wildcard ${CURDIR}/*.c}
@@ -31,9 +32,16 @@ clean:
 	${RM} ${OBJS_ASM} ${OBJS_C}
 
 ${FULLEXEC}: ${OBJS_ASM} ${OBJS_C}
+	${LD} \
+		NAME $@ \
+		FILE { $^ } \
+		OPTION \
+			MAP=${BUILD_DIR}/stage2.map, \
+			NOEXTENSION \
+		@linker.wlink
 
 ${OBJ_DIR}/%.c.obj: ${CURDIR}/%.c
-	${CC} ${CFLAGS} ${CPPFLAGS} -c -o $@ $<
+	${CC} ${CFLAGS} ${CPPFLAGS} -fo=$@ $<
 
 ${OBJ_DIR}/%.asm.obj: ${CURDIR}/%.asm
 	${ASM} ${ASMFLAGS} -o $@ $<

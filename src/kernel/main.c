@@ -1,11 +1,7 @@
 #include <stdint.h>
 
-typedef int (*entry_fn_t)(void *);
-
-static int entry_local(void *any)
+int _cdecl cstart_(void *any)
 {
-    (void)any;
+    any = (void *)0;
     return 1;
 }
-
-entry_fn_t main = &entry_local;

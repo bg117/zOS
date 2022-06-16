@@ -54,10 +54,7 @@ _start: ; fix regs
 %include "print.inc"
 %include "disk.inc"
 
-main:   mov     si, HELLO
-        call    print
-
-        mov     ax, 1
+main:   mov     ax, 1
         mov     bx, 0x7E00
         mov     cl, 1
         mov     dl, [extended_boot_record.drive_number]
@@ -78,6 +75,7 @@ print_error_and_reboot: mov     si, ERROR
 
                         jmp     0xFFFF:0x0000   ; jmp to 0xFFFF0 (reboot)
 
+KERNEL_FILE:        db `ZS         `
 ERROR:              db `An error occurred. Press any key to reboot...\0`
 
 times 510-($-$$)    db 0    ; fill remaining with 0s
