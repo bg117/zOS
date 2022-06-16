@@ -1,3 +1,5 @@
+export ROOT_DIR=${CURDIR}
+
 export BUILD_DIR=${CURDIR}/build
 
 export BIN_DIR=${BUILD_DIR}/bin

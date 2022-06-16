@@ -4,7 +4,7 @@ ASMFLAGS := -f bin
 SRCS := ${CURDIR}/boot.asm
 INCS := ${wildcard ${CURDIR}/*.inc}
 
-EXEC     := zboot
+EXEC     := ldr.z
 FULLEXEC := ${BIN_DIR}/${EXEC}
 
 .PHONY: all build clean

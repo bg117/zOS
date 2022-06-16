@@ -23,4 +23,5 @@ ${FULLEXEC}: always
 	dd if=/dev/zero of=$@ bs=1474560 count=1
 	mkfs.vfat -F12 $@
 
-	dd if=${BIN_DIR}/zboot of=$@ count=1 conv=notrunc
+	dd if=${BIN_DIR}/ldr.z of=$@ count=1 conv=notrunc
+	dd if=${ROOT_DIR}/text.bios of=$@ count=1 seek=1 conv=notrunc

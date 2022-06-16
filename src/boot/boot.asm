@@ -29,7 +29,7 @@ extended_boot_record:
     .flags:                 db  0
     .signature:             db  0x29
     .volume_serial_number:  dd  0x40008FCE
-    .volume_label:          db  'NONAME     '
+    .volume_label:          db  'NO NAME    '
     .system_identifier:     db  'FAT12   '
 
 _start: ; fix regs
@@ -63,12 +63,22 @@ main:   mov     si, HELLO
         mov     dl, [extended_boot_record.drive_number]
         call    read_sectors
 
+        jc      print_error_and_reboot
+
         mov     si, bx
         call    print
 
-        jmp $
+        jmp     $
 
-HELLO:              db `Hello, world!\0`
+print_error_and_reboot: mov     si, ERROR
+                        call    print
+
+                        xor     ax, ax
+                        int     0x16
+
+                        jmp     0xFFFF:0x0000   ; jmp to 0xFFFF0 (reboot)
+
+ERROR:              db `An error occurred. Press any key to reboot...\0`
 
 times 510-($-$$)    db 0    ; fill remaining with 0s
 dw                  0xAA55  ; signature

@@ -7,11 +7,11 @@
 ; \param[in]        CL  Number of sectors to read.
 ; \param[in]        DL  Index of drive to read from.
 ; \param[in]        ES  Segment for BX.
-; \param[in,out]    BX  Memory location to store read data from sector(s).
+; \param[in]        BX  Memory location to store read data from sector(s).
 ; \remarks              Assumes that the symbol lba_to_chs is defined.
 ;                       Also, clears CF if succeeded, and sets it if failed.
 ; --
-read_sectors:   pusha
+read_sectors:   push    di
                 push    cx
                 call    lba_to_chs
                 pop     ax
@@ -19,10 +19,18 @@ read_sectors:   pusha
                 mov     ah, 0x02
 
                 pusha
-                int     0x13
-                popa
-                popa
+                mov     di, 3
 
-                ret
+                .retry: stc             ; some BIOSes are stupid and doesn't set the CF
+                        int     0x13
+                        jnc     .end
+
+                        test    di, di
+                        jz      .end
+                        jmp     .retry
+
+                .end:   popa
+                        pop      di
+                        ret
 
 %endif

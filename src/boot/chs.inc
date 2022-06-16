@@ -14,14 +14,12 @@ lba_to_chs: ; save clobbered registers
             push    ax
             push    dx      ; save DL
 
-            push    ax
             div     word [bios_parameter_block.sectors_per_track]   ; tmp = lba / spt
             inc     dx                                              ; sec = lba % spt + 1
             mov     cx, dx
 
-            pop     ax
-            mov     bx, [bios_parameter_block.heads]
-            div     bx                                  ; head = tmp % heads
+            xor     dx, dx
+            div     word [bios_parameter_block.heads]   ; head = tmp % heads
                                                         ; cyl  = tmp / heads
             mov     dh, dl      ; head
             mov     ch, al      ; lower 8 bits of track
