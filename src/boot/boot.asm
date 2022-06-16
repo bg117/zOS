@@ -1,7 +1,5 @@
 ; zOS boot loader
 ; version 0.01
-; ---
-; Modified on 2022-06-09
 
 org     0x7C00
 bits    16

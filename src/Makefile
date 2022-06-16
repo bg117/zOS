@@ -24,4 +24,5 @@ ${FULLEXEC}: always
 	mkfs.vfat -F12 $@
 
 	dd if=${BIN_DIR}/ldr.z of=$@ count=1 conv=notrunc
-	dd if=${ROOT_DIR}/text.bios of=$@ count=1 seek=1 conv=notrunc
+
+	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::
