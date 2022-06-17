@@ -1,13 +1,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "include/disk.h"
+#include "include/video.h"
 
 // _cstart_
 __declspec(__cdecl) int cstart_(void *any)
 {
-    uint8_t *disk_ptr = (uint8_t *)any;
-
-    struct Disk *i = getDisk(*disk_ptr);
-
+    char hi[] = "Hello world from kernel!!!";
+    printString(hi);
     return 1;
 }
