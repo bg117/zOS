@@ -3,6 +3,9 @@
 *.ini
 *.bios
 
+*.obj
+*.o
+
 # Dirs
 build/
 .vscode/
@@ -11,3 +14,9 @@ build/
 
 # Compile commands
 compile_commands.json
+
+*.err
+*.warn
+*.99
+
+*.i

@@ -1,7 +1,7 @@
 ASM      := nasm
 ASMFLAGS := -f bin
 
-SRCS := ${CURDIR}/boot.asm
+SRCS := ${CURDIR}/_start.asm
 INCS := ${wildcard ${CURDIR}/*.inc}
 
 EXEC     := ldr.z

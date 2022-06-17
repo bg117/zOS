@@ -25,4 +25,11 @@ vgautils:
 
                     ret
 
+; --
+; \brief    Clears the console.
+; --
+.clear: mov     ax, 0x0003  ; AH=0x00, AL=0x03
+        int     0x10
+        ret
+
 %endif
