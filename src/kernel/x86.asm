@@ -3,7 +3,7 @@ bits 16
 section _TEXT class=CODE
 
 global _clearScreen
-_clearScreen:   push    bp,
+_clearScreen:   push    bp
                 mov     bp, sp
 
                 mov     ah, 0x00

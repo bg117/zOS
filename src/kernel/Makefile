@@ -11,6 +11,7 @@ CFLAGS := -3 \
           -ms \
           -zl \
           -zq \
+		  -za99 \
           -oaehl+mnpsxz
 
 SRCS_ASM := ${wildcard ${CURDIR}/*.asm}

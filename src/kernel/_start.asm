@@ -5,21 +5,21 @@ section _ENTRY class=CODE
 global _start
 extern _cstart_
 
-_start: xor     ax, ax
-        mov     ds, ax
-        mov     es, ax
-        mov     fs, ax
-        mov     gs, ax
-        mov     ss, ax
-
+_start: ; initial setup (same as in bootloader)
         cli
-        mov     sp, bx
-        mov     bp, sp
+        xor bx, bx
+        mov ds, bx
+        mov es, bx
+        mov fs, bx
+        mov gs, bx
+        mov ss, bx
+
+        mov sp, ax
+        mov bp, sp
         sti
 
         xor     dh, dh
         push    dx          ; push drive number to stack
-        push    sp          ; push address of drive number to stack
 
         call    _cstart_    ; pass the address to main
 

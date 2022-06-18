@@ -7,3 +7,8 @@ __declspec(__cdecl) void printString(const char *s)
         ++s;
     }
 }
+
+__declspec(__cdecl) void printFmtString(const char *restrict fmt, ...)
+{
+    printString(fmt);
+}

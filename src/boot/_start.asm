@@ -77,16 +77,16 @@ main:   call    vgautils.clear
         mov     ax, [bios_parameter_block.reserved_sectors]
         mov     cx, [variables.fat_size]                    ; word size
         mov     dl, [extended_boot_record.drive_number]
-        mov     bx, [variables.fat_buffer]
+        mov     bx, [variables.buffer1]
         call    diskutils.read_sectors
 
         mov ax, cx
         mul word [bios_parameter_block.bytes_per_sector]
-        add [variables.general_buffer], ax
+        add [variables.buffer2], ax
 
         mov     ax, [variables.root_dir_start]
         mov     cx, [variables.root_dir_size]
-        mov     bx, [variables.general_buffer]
+        mov     bx, [variables.buffer2]
         call    diskutils.read_sectors
 
         mov di, bx
@@ -118,17 +118,24 @@ main:   call    vgautils.clear
         mul cx
         mov [variables.cluster_size_bytes], ax
 
-        mov ax, [di + 26]
-        mov [variables.cluster], ax
-        mov si, [variables.fat_buffer]
+        ; set up ES and BX for read operation
+        mov ax, KERNEL_SEGMENT
+        mov es, ax              ; ES=KERNEL_SEGMENT (0)
+        mov bx, KERNEL_BUFFER   ; BX=KERNEL_BUFFER
+
+        ; extract first cluster
+        mov ax, [di + 26]           ; first cluster is the 26th element in file info
+        mov [variables.cluster], ax ; store first cluster number
+        mov si, [variables.buffer1] ; point to start of FAT
 
         .load_kernel:   mov ax, [variables.cluster]
                         add ax, [variables.root_dir_start]  ; ax += root_dir_start
                         add ax, [variables.root_dir_size]   ; ax += root_dir_size
                         sub ax, 2                           ; ax -= 2 (cluster starts at 2 for some reason)
 
-                        mov     cl, 1
-                        mov     dl, [extended_boot_record.drive_number]
+                        ; read to KERNEL_SEGMENT:KERNEL_BUFFER
+                        mov     cl, [bios_parameter_block.sectors_per_cluster]  ; read sectors_per_cluster sectors
+                        mov     dl, [extended_boot_record.drive_number]         ; into drive drive_number
                         call    diskutils.read_sectors
 
                         mov ax, [variables.cluster]
@@ -156,12 +163,14 @@ main:   call    vgautils.clear
                             mov [variables.cluster], ax
                             jmp .load_kernel
 
-        .loaded_kernel:     ; base register = base address of kernel
-                            mov bx, [variables.general_buffer]
+        .loaded_kernel:     mov ax, KERNEL_SEGMENT
+                            mov es, ax
+                            mov bx, KERNEL_BUFFER
 
-                            push    cs
-                            push    word [variables.general_buffer]
+                            push    es
+                            push    bx
 
+                            mov ax, KERNEL_BUFFER
                             retf
 
         jmp $
@@ -181,8 +190,8 @@ variables:
     .fat_size:              dw  0
     .cluster:               dw  0
     .cluster_size_bytes:    dw  0
-    .fat_buffer:            dw  BUFFER
-    .general_buffer:        dw  BUFFER
+    .buffer1:               dw  BUFFER
+    .buffer2:               dw  BUFFER
 
 constants:
     .KERNEL_FILE:           db  `ZS         `
@@ -192,4 +201,6 @@ constants:
 times 510-($-$$)    db  0       ; fill remaining with 0s
 dw  0xAA55                      ; signature
 
+KERNEL_SEGMENT  equ 0
+KERNEL_BUFFER   equ 0x1000
 BUFFER:
