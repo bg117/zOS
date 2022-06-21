@@ -114,7 +114,8 @@ main:   call    vgautils.clear
                         call    vgautils.print
 
         mov ax, [bios_parameter_block.bytes_per_sector]
-        mov cx, [bios_parameter_block.sectors_per_cluster]
+        mov cl, [bios_parameter_block.sectors_per_cluster]
+        xor ch, ch
         mul cx
         mov [variables.cluster_size_bytes], ax
 
@@ -144,8 +145,10 @@ main:   call    vgautils.clear
                         mov cx, 2
                         div cx      ; ax /= 2
 
-                        add si, ax
-                        mov ax, [ds:si]
+                        push    si
+                        add     si, ax
+                        mov     ax, [ds:si]
+                        pop     si
 
                         add bx, [variables.cluster_size_bytes]
 
@@ -170,7 +173,11 @@ main:   call    vgautils.clear
                             push    es
                             push    bx
 
+                            ; BX=BIOS parameter block, SI=extended boot record
+                            mov bx, bios_parameter_block
+                            mov si, extended_boot_record
                             mov ax, KERNEL_BUFFER
+                            mov dl, [extended_boot_record.drive_number]
                             retf
 
         jmp $

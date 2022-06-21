@@ -7,9 +7,16 @@
 extern "C" {
 #endif
 
-struct Disk;
+struct Disk {
+    uint8_t index;
 
-__declspec(__cdecl) struct Disk *getDisk(uint8_t index);
+    uint16_t cylinders;
+    uint16_t heads;
+    uint16_t sectors;
+};
+
+void diskGetInfo(struct Disk *disk, uint8_t index);
+void diskReset(struct Disk *disk);
 
 #ifdef __cplusplus
 }

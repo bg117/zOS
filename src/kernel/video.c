@@ -1,14 +1,14 @@
 #include "include/video.h"
 
-__declspec(__cdecl) void printString(const char *s)
+void screenWriteString(const char *s)
 {
     while (*s) {
-        printChar(*s);
+        screenWriteChar(*s);
         ++s;
     }
 }
 
-__declspec(__cdecl) void printFmtString(const char *restrict fmt, ...)
+void screenWriteFmtString(const char *restrict fmt, ...)
 {
-    printString(fmt);
+    screenWriteString(fmt);
 }

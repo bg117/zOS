@@ -1,16 +1,14 @@
 #ifndef quuxVIDEOHxuuq
 #define quuxVIDEOHxuuq
 
-#include "priv/xhdr.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-__declspec(__cdecl) void clearScreen(void);
-__declspec(__cdecl) void printChar(char c);
-__declspec(__cdecl) void printString(const char *s);
-__declspec(__cdecl) void printFmtString(const char *restrict fmt, ...);
+void screenClear(void);
+void screenWriteChar(char c);
+void screenWriteString(const char *s);
+void screenWriteFmtString(const char *__restrict__ fmt, ...);
 
 #ifdef __cplusplus
 }

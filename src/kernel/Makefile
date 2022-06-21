@@ -1,27 +1,29 @@
-ASM      := nasm
-ASMFLAGS := -f obj
+ASM      := ia16-elf-as
+ASMFLAGS :=
 
-CC := wcc
-LD := wlink
+CC := ia16-elf-gcc
+LD := ia16-elf-ld
 
-CFLAGS := -3 \
-          -d3 \
-          -s \
-          -wx \
-          -ms \
-          -zl \
-          -zq \
-		  -za99 \
-          -oaehl+mnpsxz
+CFLAGS  := -std=c99 \
+		   -Wall \
+		   -Wextra \
+		   -g \
+		   -O0 \
+		   -fno-omit-frame-pointer \
+		   -fno-stack-check \
+		   -nostdlib
+LDFLAGS := --oformat binary
 
-SRCS_ASM := ${wildcard ${CURDIR}/*.asm}
-SRCS_C   := ${wildcard ${CURDIR}/*.c}
+SRCS_S := ${wildcard ${CURDIR}/*.S}
+SRCS_C := ${wildcard ${CURDIR}/*.c}
 
-OBJS_ASM := ${subst ${CURDIR},${OBJ_DIR},${SRCS_ASM:.asm=.asm.obj}}
-OBJS_C   := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.c.obj}}
+OBJS_S := ${subst ${CURDIR},${OBJ_DIR},${SRCS_S:.S=.S.o}}
+OBJS_C := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.c.o}}
 
 EXEC     := zs
 FULLEXEC := ${BIN_DIR}/${EXEC}
+
+${info ${SRCS_S}}
 
 .PHONY: all build clean
 
@@ -30,19 +32,26 @@ all: build
 build: ${FULLEXEC}
 
 clean:
-	${RM} ${OBJS_ASM} ${OBJS_C}
+	${RM} ${OBJS_S} ${OBJS_C}
 
-${FULLEXEC}: ${OBJS_ASM} ${OBJS_C}
+${FULLEXEC}: ${OBJS_S} ${OBJS_C}
 	${LD} \
-		NAME $@ \
-		FILE { $^ } \
-		OPTION \
-			MAP=${BUILD_DIR}/stage2.map, \
-			NOEXTENSION \
-		@linker.wlink
+		${LDFLAGS} \
+		-Map=${BUILD_DIR}/stage2.map \
+		-T linker.ld \
+		-o $@ \
+		$^
 
-${OBJ_DIR}/%.c.obj: ${CURDIR}/%.c
-	${CC} ${CFLAGS} ${CPPFLAGS} -fo=$@ $<
+${OBJ_DIR}/%.c.o: ${CURDIR}/%.c
+	${CC} \
+		${CFLAGS} \
+		${CPPFLAGS} \
+		-c \
+		-o $@ \
+		$<
 
-${OBJ_DIR}/%.asm.obj: ${CURDIR}/%.asm
-	${ASM} ${ASMFLAGS} -o $@ $<
+${OBJ_DIR}/%.S.o: ${CURDIR}/%.S
+	${ASM} \
+		${ASMFLAGS} \
+		-o $@ \
+		$<
