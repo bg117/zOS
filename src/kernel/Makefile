@@ -2,17 +2,18 @@ ASM      := ia16-elf-as
 ASMFLAGS :=
 
 CC := ia16-elf-gcc
-LD := ia16-elf-ld
+LD := ia16-elf-gcc
 
-CFLAGS  := -std=c99 \
-		   -Wall \
-		   -Wextra \
-		   -g \
-		   -O0 \
-		   -fno-omit-frame-pointer \
-		   -fno-stack-check \
-		   -nostdlib
-LDFLAGS := --oformat binary
+CFLAGS   := -std=gnu99 \
+			-Wall \
+			-Wextra \
+			-g \
+			-O0 \
+			-fno-omit-frame-pointer \
+			-fno-stack-check
+CPPFLAGS := -I${CURDIR}/include
+LDFLAGS  := -lgcc \
+			-nostartfiles
 
 SRCS_S := ${wildcard ${CURDIR}/*.S}
 SRCS_C := ${wildcard ${CURDIR}/*.c}
@@ -37,8 +38,8 @@ clean:
 ${FULLEXEC}: ${OBJS_S} ${OBJS_C}
 	${LD} \
 		${LDFLAGS} \
-		-Map=${BUILD_DIR}/stage2.map \
-		-T linker.ld \
+		-Wl,-Map=${BUILD_DIR}/stage2.map \
+		-Wl,-T -Wl,linker.ld \
 		-o $@ \
 		$^
 

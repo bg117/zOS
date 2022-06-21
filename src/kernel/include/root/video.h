@@ -7,7 +7,7 @@ extern "C" {
 
 void screenClear(void);
 void screenWriteChar(char c);
-void screenWriteString(const char *s);
+void screenWriteString(const char *__restrict__ s);
 void screenWriteFmtString(const char *__restrict__ fmt, ...);
 
 #ifdef __cplusplus

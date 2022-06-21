@@ -1,12 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
-#include "include/disk.h"
-#include "include/fat.h"
-#include "include/num.h"
-#include "include/video.h"
 
-#define NL          "\r\n"
-#define _CAST(a, x) ((a)(x))
+#include <root/disk.h>
+#include <root/fat.h>
+#include <root/i.h>
+#include <root/num.h>
+#include <root/video.h>
 
 // main
 int main(int argc, char **argv)
@@ -16,24 +15,21 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    uint8_t                    driveNumber = _CAST(uint8_t *, argv)[0];
-    struct BiosParameterBlock *realBpb     = _CAST(struct BiosParameterBlock **, argv)[1];
-    struct ExtendedBootRecord *realEbr     = _CAST(struct ExtendedBootRecord **, argv)[2];
+    struct BiosParameterBlock *bpb = CAST(struct BiosParameterBlock **, argv)[1];
+    struct ExtendedBootRecord *ebr = CAST(struct ExtendedBootRecord **, argv)[2];
     struct Disk                disk;
 
-    char number[30];
-    int  i = 100;
+    const int i = 100, j = 254;
 
-
-    diskGetInfo(&disk, driveNumber);
+    diskGetInfo(&disk, ebr->driveNumber);
 
     screenClear();
-
-    intToString(number, i, 10);
-    screenWriteString(number);
-
     screenWriteString("Loaded kernel." NL);
+    screenWriteFmtString("Test for %s functions: " NL, NAME(screenWriteFmtString));
+
+    screenWriteFmtString("    %xh %dd %oo \"%s\" %lloo" NL, i, i, i, "foo", 0xFFF27D);
+    screenWriteFmtString("    %xh %dd %oo \"%s\" %llxh" NL NL, j, j, j, "bar", 0xCAB01F);
+
     screenWriteFmtString("Booting from drive index: %hhu" NL, disk.index);
-    screenWriteFmtString("%s" NL, realEbr->systemIdentifier);
     return 1;
 }

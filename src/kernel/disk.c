@@ -1,4 +1,4 @@
-#include "include/disk.h"
+#include <root/disk.h>
 
 void diskGetInfo(struct Disk *disk, uint8_t index)
 {
