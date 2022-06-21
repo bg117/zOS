@@ -152,8 +152,8 @@ main:   call    vgautils.clear
 
                         add bx, [variables.cluster_size_bytes]
 
-                        or  dx, dx
-                        jz  .lk_even
+                        test    dl, 1
+                        jz      .lk_even
 
                         .lk_odd:    shr ax, 4
                                     jmp .after_load_kernel
