@@ -1,5 +1,5 @@
-ASM      := ia16-elf-as
-ASMFLAGS :=
+ASM      := nasm
+ASMFLAGS := -f elf
 
 CC := ia16-elf-gcc
 LD := ia16-elf-gcc
@@ -16,14 +16,15 @@ CFLAGS   := -std=gnu99 \
 CPPFLAGS := -I${CURDIR}/include \
 			-MMD
 LDFLAGS  := -nostartfiles \
+			-flto \
 			-Wl,-Map=${BUILD_DIR}/stage2.map \
 			-Wl,-T${CURDIR}/linker.ld
 
-SRCS_S := ${wildcard ${CURDIR}/*.S}
-SRCS_C := ${wildcard ${CURDIR}/*.c}
+SRCS_ASM := ${wildcard ${CURDIR}/*.asm}
+SRCS_C   := ${wildcard ${CURDIR}/*.c}
 
-OBJS_S := ${subst ${CURDIR},${OBJ_DIR},${SRCS_S:.S=.S.o}}
-OBJS_C := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.c.o}}
+OBJS_ASM := ${subst ${CURDIR},${OBJ_DIR},${SRCS_ASM:.asm=.asm.o}}
+OBJS_C   := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.c.o}}
 
 HDRS := ${OBJS_C:.o=.d}
 
@@ -37,9 +38,9 @@ all: build
 build: ${FULLEXEC}
 
 clean:
-	${RM} ${OBJS_S} ${OBJS_C}
+	${RM} ${OBJS_ASM} ${OBJS_C}
 
-${FULLEXEC}: ${OBJS_S} ${OBJS_C}
+${FULLEXEC}: ${OBJS_ASM} ${OBJS_C}
 	${LD} \
 		${LDFLAGS} \
 		-o $@ \
@@ -55,7 +56,7 @@ ${OBJ_DIR}/%.c.o: ${CURDIR}/%.c
 		-o $@ \
 		$<
 
-${OBJ_DIR}/%.S.o: ${CURDIR}/%.S
+${OBJ_DIR}/%.asm.o: ${CURDIR}/%.asm
 	${ASM} \
 		${ASMFLAGS} \
 		-o $@ \

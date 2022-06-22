@@ -68,5 +68,7 @@ int main(int argc, char **argv)
                          disk.Heads,
                          disk.Sectors);
 
+    screenWriteFmtString("%s", bpb->Oem);
+
     return 1;
 }

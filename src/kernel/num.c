@@ -28,9 +28,7 @@ char *longLongToString(char *buffer, long long l, int base)
     rc = ptr = buffer;
     // Set '-' for negative decimals.
     if (l < 0 && base == 10)
-    {
         *ptr++ = '-';
-    }
 
     // The actual conversion.
     do
