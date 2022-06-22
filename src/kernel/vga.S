@@ -6,16 +6,18 @@
  *                         *
  ***************************
  *
- * Filename: x86.S
- * Description: Helper routines for use with x86 (interrupt-based)
+ * Filename: vga.S
+ * Description: VGA helper routines for use with x86
  *
- * Date created: 200617DDMMYY1441HHmm
+ * Date created: 200621DDMMYY1723HHmm
  *
  */
 
 .section .text
 
-#### section "VGA functions"
+/**
+ * \brief Clears the screen.
+ */
 .globl screenClear
 screenClear:    pushw   %bp
                 movw    %sp, %bp
@@ -27,6 +29,10 @@ screenClear:    pushw   %bp
                 popw    %bp
                 ret
 
+/**
+ * \brief Writes a single character to the screen.
+ * \param[in] bp+4 The character to write.
+ */
 .globl screenWriteChar
 screenWriteChar:    pushw   %bp
                     movw    %sp, %bp
@@ -38,4 +44,3 @@ screenWriteChar:    pushw   %bp
                     movw    %bp, %sp
                     popw    %bp
                     ret
-#### endsection

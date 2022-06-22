@@ -10,26 +10,58 @@
 // main
 int main(int argc, char **argv)
 {
-    if (argc != 3) {
+    screenClear();
+    screenWriteString("Loaded kernel." NL);
+
+    if (argc != 3)
+    {
         screenWriteFmtString("Wrong amount of arguments passed: %d" NL, argc);
         return -1;
     }
 
-    struct BiosParameterBlock *bpb = CAST(struct BiosParameterBlock **, argv)[1];
-    struct ExtendedBootRecord *ebr = CAST(struct ExtendedBootRecord **, argv)[2];
-    struct Disk                disk;
+    struct BiosParameterBlock *bpb
+        = CAST(struct BiosParameterBlock **, argv)[1];
+    struct ExtendedBootRecord *ebr
+        = CAST(struct ExtendedBootRecord **, argv)[2];
+    struct Disk disk;
 
-    const int i = 100, j = 254;
+    USE(bpb);
 
-    diskGetInfo(&disk, ebr->driveNumber);
+    screenWriteFmtString("Test for %s functions: " NL,
+                         NAME(screenWriteFmtString));
 
-    screenClear();
-    screenWriteString("Loaded kernel." NL);
-    screenWriteFmtString("Test for %s functions: " NL, NAME(screenWriteFmtString));
+    screenWriteFmtString("    %xh %dd %oo \"%s\" '%c' %lloo %lbb" NL,
+                         100,
+                         100,
+                         100,
+                         "foo",
+                         'B',
+                         (long long)07001342,
+                         (long)257);
+    screenWriteFmtString("    %xh %dd %oo \"%s\" '%c' %llxh %lbb" NL NL,
+                         0xFE,
+                         0xFE,
+                         0xFE,
+                         "bar",
+                         'A',
+                         (long long)0xCAB01F,
+                         (long)0xF);
 
-    screenWriteFmtString("    %xh %dd %oo \"%s\" %lloo" NL, i, i, i, "foo", 0xFFF27D);
-    screenWriteFmtString("    %xh %dd %oo \"%s\" %llxh" NL NL, j, j, j, "bar", 0xCAB01F);
+    screenWriteFmtString("Booting from drive index: %hhu" NL, disk.Type);
 
-    screenWriteFmtString("Booting from drive index: %hhu" NL, disk.index);
+    if (!diskGetInfo(&disk, ebr->DriveNumber))
+    {
+        screenWriteFmtString(
+            "Unable to obtain parameters from drive: %hhu. Aborting...",
+            ebr->DriveNumber);
+        return -2;
+    }
+
+    screenWriteFmtString("With parameters:" NL "    cyl: %hhu" NL
+                         "    head: %hhu" NL "    sec: %hhu" NL,
+                         disk.Cylinders,
+                         disk.Heads,
+                         disk.Sectors);
+
     return 1;
 }

@@ -1,7 +1,8 @@
 #include <root/i.h>
 #include <root/num.h>
 
-static const char POSSIBLE_CHARS[] = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
+static const char POSSIBLE_CHARS[]
+    = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
 
 char *intToString(char *buffer, int i, int base)
 {
@@ -19,24 +20,26 @@ char *longLongToString(char *buffer, long long l, int base)
     char *ptr;
 
     // Check for supported base.
-    if (base < 2 || base > 36) {
+    if (base < 2 || base > 36)
+    {
         *buffer = '\0';
         return buffer;
     }
     rc = ptr = buffer;
     // Set '-' for negative decimals.
-    if (l < 0 && base == 10) {
+    if (l < 0 && base == 10)
+    {
         *ptr++ = '-';
     }
 
     // The actual conversion.
-    do {
+    do
+    {
         // Modulo is negative for negative value. This trick makes abs()
         // unnecessary.
         *ptr++ = POSSIBLE_CHARS[35 + l % base];
         l /= base;
-    }
-    while (l);
+    } while (l);
 
     // Terminate the string.
     *ptr-- = '\0';
@@ -50,7 +53,8 @@ char *longLongToString(char *buffer, long long l, int base)
         q++;
 
     q--;
-    while (p < q) {
+    while (p < q)
+    {
         tmp  = *p;
         *p++ = *q;
         *q-- = tmp;
@@ -75,20 +79,21 @@ char *ulongLongToString(char *buffer, unsigned long long l, int base)
     char *ptr;
 
     // Check for supported base.
-    if (base < 2 || base > 36) {
+    if (base < 2 || base > 36)
+    {
         *buffer = '\0';
         return buffer;
     }
     rc = ptr = buffer;
 
     // The actual conversion.
-    do {
+    do
+    {
         // Modulo is negative for negative value. This trick makes abs()
         // unnecessary.
         *ptr++ = POSSIBLE_CHARS[35 + l % base];
         l /= base;
-    }
-    while (l);
+    } while (l);
 
     // Terminate the string.
     *ptr-- = '\0';
@@ -102,7 +107,8 @@ char *ulongLongToString(char *buffer, unsigned long long l, int base)
         q++;
 
     q--;
-    while (p < q) {
+    while (p < q)
+    {
         tmp  = *p;
         *p++ = *q;
         *q-- = tmp;

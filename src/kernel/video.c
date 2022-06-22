@@ -1,69 +1,76 @@
 #include <stdarg.h>
+#include <stddef.h>
 
 #include <root/i.h>
 #include <root/num.h>
 #include <root/video.h>
 
-#define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
-    do {                                                                                                               \
-        switch (len) {                                                                                                 \
-        case LENGTH_NORMAL:                                                                                            \
-            intToString(buf, va_arg(ap, int), base);                                                                   \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_SHORT:                                                                                             \
-            intToString(buf, CAST(short, va_arg(ap, int)), base);                                                      \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_VERY_SHORT:                                                                                        \
-            intToString(buf, CAST(char, va_arg(ap, int)), base);                                                       \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_LONG:                                                                                              \
-            longToString(buf, va_arg(ap, long), base);                                                                 \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_VERY_LONG:                                                                                         \
-            longLongToString(buf, va_arg(ap, long long), base);                                                        \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        }                                                                                                              \
-    }                                                                                                                  \
-    while (0)
+#define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                               \
+    do                                                                         \
+    {                                                                          \
+        switch (len)                                                           \
+        {                                                                      \
+        case LENGTH_NORMAL:                                                    \
+            intToString(buf, va_arg(ap, int), base);                           \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_SHORT:                                                     \
+            intToString(buf, CAST(short, va_arg(ap, int)), base);              \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_VERY_SHORT:                                                \
+            intToString(buf, CAST(char, va_arg(ap, int)), base);               \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_LONG:                                                      \
+            longToString(buf, va_arg(ap, long), base);                         \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_VERY_LONG:                                                 \
+            longLongToString(buf, va_arg(ap, long long), base);                \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        }                                                                      \
+    } while (0)
 
-#define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                                                                     \
-    do {                                                                                                               \
-        switch (len) {                                                                                                 \
-        case LENGTH_NORMAL:                                                                                            \
-            uintToString(buf, va_arg(ap, unsigned int), base);                                                         \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_SHORT:                                                                                             \
-            uintToString(buf, CAST(unsigned short, va_arg(ap, unsigned int)), base);                                   \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_VERY_SHORT:                                                                                        \
-            uintToString(buf, CAST(unsigned char, va_arg(ap, unsigned int)), base);                                    \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_LONG:                                                                                              \
-            ulongToString(buf, va_arg(ap, unsigned long), base);                                                       \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        case LENGTH_VERY_LONG:                                                                                         \
-            ulongLongToString(buf, va_arg(ap, unsigned long long), base);                                              \
-            screenWriteFmtString("%s", buf);                                                                           \
-            break;                                                                                                     \
-        }                                                                                                              \
-    }                                                                                                                  \
-    while (0)
+#define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                             \
+    do                                                                         \
+    {                                                                          \
+        switch (len)                                                           \
+        {                                                                      \
+        case LENGTH_NORMAL:                                                    \
+            uintToString(buf, va_arg(ap, unsigned int), base);                 \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_SHORT:                                                     \
+            uintToString(                                                      \
+                buf, CAST(unsigned short, va_arg(ap, unsigned int)), base);    \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_VERY_SHORT:                                                \
+            uintToString(                                                      \
+                buf, CAST(unsigned char, va_arg(ap, unsigned int)), base);     \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_LONG:                                                      \
+            ulongToString(buf, va_arg(ap, unsigned long), base);               \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        case LENGTH_VERY_LONG:                                                 \
+            ulongLongToString(buf, va_arg(ap, unsigned long long), base);      \
+            screenWriteFmtString("%s", buf);                                   \
+            break;                                                             \
+        }                                                                      \
+    } while (0)
 
-enum PrintfState {
+enum PrintfState
+{
     //
     STATE_NORMAL,
     STATE_SPECIFIER
 };
-enum PrintfLengthState {
+enum PrintfLengthState
+{
     //
     LENGTH_NORMAL,
     LENGTH_SHORT,
@@ -74,7 +81,8 @@ enum PrintfLengthState {
 
 void screenWriteString(const char *__restrict__ s)
 {
-    while (*s) {
+    while (*s)
+    {
         screenWriteChar(*s);
         ++s;
     }
@@ -90,14 +98,21 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
 
     char numBuf[30];
 
-    while (*fmt) {
-        if (*fmt == '%') {
+    while (*fmt)
+    {
+        for (size_t i = 0; i < sizeof numBuf; i++)
+            numBuf[i] = 0;
+
+        if (*fmt == '%')
+        {
             ++fmt;
             state = STATE_SPECIFIER;
         }
 
-        if (state == STATE_SPECIFIER) {
-            switch (*fmt) {
+        if (state == STATE_SPECIFIER)
+        {
+            switch (*fmt)
+            {
             case '%': screenWriteChar('%'); break;
             case 's': screenWriteString(va_arg(ap, const char *)); break;
             case 'c': screenWriteChar(CAST(char, va_arg(ap, int))); break;
@@ -106,7 +121,8 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
                 ++fmt;
                 continue;
             case 'h':
-                length = length == LENGTH_SHORT ? LENGTH_VERY_SHORT : LENGTH_SHORT;
+                length
+                    = length == LENGTH_SHORT ? LENGTH_VERY_SHORT : LENGTH_SHORT;
                 ++fmt;
                 continue;
             case 'i':
@@ -115,11 +131,12 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
             case 'x': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 16); break;
             case 'p': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 16); break;
             case 'o': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 8); break;
-            case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 2);
+            case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 2); break;
             default: screenWriteFmtString("%%%c", *fmt);
             }
         }
-        else {
+        else
+        {
             screenWriteChar(*fmt);
         }
 

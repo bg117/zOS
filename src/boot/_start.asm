@@ -147,7 +147,7 @@ main:   call    vgautils.clear
 
                         push    si
                         add     si, ax
-                        mov     ax, [ds:si]
+                        mov     ax, ds:[si]
                         pop     si
 
                         add bx, [variables.cluster_size_bytes]
