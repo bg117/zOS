@@ -18,6 +18,6 @@ clean:
 
 ${FULLEXEC}: ${SRCS} ${INCS}
 	${ASM} \
-	${ASMFLAGS} \
-	-o $@ \
-	$<
+		${ASMFLAGS} \
+		-o $@ \
+		$<

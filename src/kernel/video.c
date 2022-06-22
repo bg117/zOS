@@ -79,6 +79,8 @@ enum PrintfLengthState
     LENGTH_VERY_LONG
 };
 
+extern void *memset(void *ptr, int c, size_t n);
+
 void screenWriteString(const char *__restrict__ s)
 {
     while (*s)
@@ -96,13 +98,11 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
     enum PrintfState       state  = STATE_NORMAL;
     enum PrintfLengthState length = LENGTH_NORMAL;
 
-    char numBuf[30];
+    char numBuf[30] = { 0 };
 
     while (*fmt)
     {
-        for (size_t i = 0; i < sizeof numBuf; i++)
-            numBuf[i] = 0;
-
+        memset(numBuf, 0, sizeof numBuf);
         if (*fmt == '%')
         {
             ++fmt;
@@ -129,7 +129,10 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
             case 'd': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 10); break;
             case 'u': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 10); break;
             case 'x': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 16); break;
-            case 'p': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 16); break;
+            case 'p':
+                screenWriteString("0x");
+                SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 16);
+                break;
             case 'o': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 8); break;
             case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 2); break;
             default: screenWriteFmtString("%%%c", *fmt);

@@ -1,7 +1,7 @@
 ; zOS boot loader
 ; version 0.01
 
-org     0x7C00
+org     0x1000
 bits    16
 
 jmp short _start
@@ -11,7 +11,7 @@ bios_parameter_block:
     .oem:                   db  'MSWIN4.1'
     .bytes_per_sector:      dw  512
     .sectors_per_cluster:   db  1
-    .reserved_sectors:      dw  1
+    .reserved_sectors:      dw  5
     .fats:                  db  2
     .root_dir_entries:      dw  224
     .total_sectors:         dw  2880
@@ -40,9 +40,16 @@ _start: ; fix regs
 
         ; stack
         cli
-        mov     sp, 0x7C00
-        mov     bp, 0x7C00
+        mov     sp, 0x1000
+        mov     bp, sp
         sti
+
+        ; relocate to lower memory address
+        mov     ecx, 512 / 4    ; we'll use MOVSD that moves 4 bytes, so divide the bootloader size by 4
+        mov     edi, 0x1000     ; new address
+        mov     esi, 0x7C00     ; old address
+        cld
+        rep     movsd
 
         mov     [extended_boot_record.drive_number], dl
         xor     ax, ax
@@ -60,7 +67,37 @@ _start: ; fix regs
 
 main:   call    vgautils.clear
 
-        mov cx, [bios_parameter_block.reserved_sectors]
+        ; load second-stage bootloader (2048 bytes)
+        mov     ax, 1
+        mov     bx, real
+        mov     cl, 4
+        mov     dl, [extended_boot_record.drive_number]
+        call    diskutils.read_sectors
+
+        jc  unsuccessful_boot
+        jmp real
+
+        jmp $
+
+wait_key_and_reboot:    xor ax, ax
+                        int 0x16
+
+                        jmp 0xFFFF:0x0000   ; jmp to 0xFFFF0 (reboot)
+
+unsuccessful_boot:  mov     si, constants.UNABLE_TO_BOOT_MSG
+                    call    vgautils.print
+                    jmp     wait_key_and_reboot
+
+constants:
+    .UNABLE_TO_BOOT_MSG:    db  `Unable to boot\0`
+    .FAIL_READ_FAT_MSG:     db  `Could not read next FAT sector\0`
+    .KERNEL_FILE:           db  `ZS         `
+    .LOAD_KERNEL_MSG:       db  `Found kernel, loading\0`
+
+times 510-($-$$)    db  0       ; fill remaining with 0s
+dw  0xAA55                      ; signature
+
+real:   mov cx, [bios_parameter_block.reserved_sectors]
         mov ax, [bios_parameter_block.sectors_per_fat]
         mul byte [bios_parameter_block.fats]                ; AX == sectors_per_fat * fats
         mov [variables.fat_size], ax
@@ -74,14 +111,9 @@ main:   call    vgautils.clear
         div word [bios_parameter_block.bytes_per_sector]    ; AX /= bytes_per_sector
         mov [variables.root_dir_size], ax
 
-        mov     ax, [bios_parameter_block.reserved_sectors]
-        mov     cx, [variables.fat_size]                    ; word size
-        mov     dl, [extended_boot_record.drive_number]
-        mov     bx, [variables.buffer1]
-        call    diskutils.read_sectors
+        call load_next_fat
 
-        mov ax, cx
-        mul word [bios_parameter_block.bytes_per_sector]
+        mov ax, word [bios_parameter_block.bytes_per_sector]
         add [variables.buffer2], ax
 
         mov     ax, [variables.root_dir_start]
@@ -146,19 +178,48 @@ main:   call    vgautils.clear
                         div cx      ; ax /= 2
 
                         push    si
+
+                        push    ax
+                        mov     ax, [bios_parameter_block.bytes_per_sector]
+                        mov     cx, [variables.current_fat]
+                        dec     cx
+                        mul     cx
+                        mov     cx, ax
+                        pop     ax
+
+                        push cx
+
+                        push    ax
+                        mov     ax, [bios_parameter_block.bytes_per_sector]
+                        mul     word [variables.current_fat]
+                        mov     cx, ax
+                        pop     ax
+
+                        cmp     ax, cx
+                        ja      .lk_load_next_fat
+
+                        .lk_fat_check_continue:
+
+                        pop cx
+
+                        sub     ax, cx
                         add     si, ax
-                        mov     ax, ds:[si]
+                        mov     ax, [si]
                         pop     si
 
                         add bx, [variables.cluster_size_bytes]
 
-                        test    dl, 1
+                        test    al, 1
                         jz      .lk_even
 
-                        .lk_odd:    shr ax, 4
+                        .lk_odd:    and ax, 0xFFF
                                     jmp .after_load_kernel
 
-                        .lk_even:   and ax, 0xFFF
+                        .lk_even:   shr ax, 4
+                                    jmp .after_load_kernel
+
+                        .lk_load_next_fat:  call    load_next_fat
+                                            jmp     .lk_fat_check_continue
 
         .after_load_kernel: cmp ax, 0xFF8
                             jae .loaded_kernel  ; if ax >= 0x0FF8, no more clusters
@@ -178,16 +239,27 @@ main:   call    vgautils.clear
                             mov si, extended_boot_record
                             mov ax, KERNEL_BUFFER
                             mov dl, [extended_boot_record.drive_number]
-                            retf
+                            retf    ; hack
 
         jmp $
 
-wait_key_and_reboot:    xor ax, ax
-                        int 0x16
+load_next_fat:  pusha
 
-                        jmp 0xFFFF:0x0000   ; jmp to 0xFFFF0 (reboot)
+                mov ax, [bios_parameter_block.reserved_sectors]
+                add ax, [variables.current_fat]
+                inc word [variables.current_fat]
 
-unsuccessful_boot:  mov     si, constants.UNABLE_TO_BOOT_MSG
+                mov bx, [variables.buffer1]
+                mov cl, 1
+                mov dl, [extended_boot_record.drive_number]
+
+                call    diskutils.read_sectors
+                jc      unable_to_read_fat
+
+                popa
+                ret
+
+unable_to_read_fat: mov     si, constants.FAIL_READ_FAT_MSG
                     call    vgautils.print
                     jmp     wait_key_and_reboot
 
@@ -197,17 +269,13 @@ variables:
     .fat_size:              dw  0
     .cluster:               dw  0
     .cluster_size_bytes:    dw  0
+    .current_fat:           dw  0
     .buffer1:               dw  BUFFER
     .buffer2:               dw  BUFFER
 
-constants:
-    .KERNEL_FILE:           db  `ZS         `
-    .LOAD_KERNEL_MSG:       db  `Found kernel, loading\0`
-    .UNABLE_TO_BOOT_MSG:    db  `Unable to boot\0`
-
-times 510-($-$$)    db  0       ; fill remaining with 0s
-dw  0xAA55                      ; signature
+times 2046-($-real) db 0
+dw                  0x55AA
 
 KERNEL_SEGMENT  equ 0
-KERNEL_BUFFER   equ 0x1000
+KERNEL_BUFFER   equ 0x1FC0
 BUFFER:

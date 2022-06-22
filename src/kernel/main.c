@@ -7,6 +7,8 @@
 #include <root/num.h>
 #include <root/video.h>
 
+extern void *memset(void *ptr, int c, size_t n);
+
 // main
 int main(int argc, char **argv)
 {
@@ -19,13 +21,13 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    screenWriteString(NL);
+
     struct BiosParameterBlock *bpb
         = CAST(struct BiosParameterBlock **, argv)[1];
     struct ExtendedBootRecord *ebr
         = CAST(struct ExtendedBootRecord **, argv)[2];
     struct Disk disk;
-
-    USE(bpb);
 
     screenWriteFmtString("Test for %s functions: " NL,
                          NAME(screenWriteFmtString));
@@ -46,6 +48,9 @@ int main(int argc, char **argv)
                          'A',
                          (long long)0xCAB01F,
                          (long)0xF);
+
+    screenWriteFmtString(
+        "BPB located at: %p" NL "EBR located at: %p" NL NL, bpb, ebr);
 
     screenWriteFmtString("Booting from drive index: %hhu" NL, disk.Type);
 

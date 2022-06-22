@@ -12,8 +12,7 @@ CFLAGS   := -std=gnu99 \
 			-Os \
 			-fno-omit-frame-pointer \
 			-fno-stack-check \
-			-ffreestanding \
-			-nostdlib
+			-ffreestanding
 CPPFLAGS := -I${CURDIR}/include \
 			-MMD
 LDFLAGS  := -nostartfiles \

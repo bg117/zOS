@@ -21,8 +21,8 @@ always:
 
 ${FULLEXEC}: always
 	dd if=/dev/zero of=$@ bs=1474560 count=1
-	mkfs.vfat -F12 $@
+	mformat -t 80 -h 2 -s 18 -R 5 -i $@ ::
 
-	dd if=${BIN_DIR}/ldr.z of=$@ count=1 conv=notrunc
+	dd if=${BIN_DIR}/ldr.z of=$@ conv=notrunc
 
 	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::
