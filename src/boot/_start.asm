@@ -1,11 +1,12 @@
 ; zOS boot loader
-; version 0.01
 
 org     0x1000
 bits    16
 
 jmp short _start
 nop
+
+fat_info:
 
 bios_parameter_block:
     .oem:                   db  'MSWIN4.1'
@@ -61,11 +62,25 @@ _start: ; fix regs
 
         jmp     0x0000:main ; fix CS if not at 0x0000
 
-%include "convutils.inc"
-%include "diskutils.inc"
-%include "vgautils.inc"
-
 main:   call    vgautils.clear
+
+        ; get drive parameters
+        push    es  ; ES is modified
+        mov     ah, 0x08
+        mov     dl, [extended_boot_record.drive_number]
+        int     0x13
+        pop     es
+
+        ; heads
+        xchg    dl, dh
+        xor     dh, dh
+        inc     dx
+        mov     [bios_parameter_block.heads], dx
+
+        ; sectors
+        xor     ch, ch
+        and     cl, 0x3F    ; lower 6 bits
+        mov     [bios_parameter_block.sectors_per_track], cx
 
         ; load second-stage bootloader (2048 bytes)
         mov     ax, 1
@@ -79,6 +94,10 @@ main:   call    vgautils.clear
 
         jmp $
 
+%include "convutils.inc"
+%include "diskutils.inc"
+%include "vgautils.inc"
+
 wait_key_and_reboot:    xor ax, ax
                         int 0x16
 
@@ -90,11 +109,12 @@ unsuccessful_boot:  mov     si, constants.UNABLE_TO_BOOT_MSG
 
 constants:
     .UNABLE_TO_BOOT_MSG:    db  `Unable to boot\0`
+    .KERNEL_NOT_FOUND_MSG:  db  `Kernel not found\0`
     .FAIL_READ_FAT_MSG:     db  `Could not read next FAT sector\0`
     .KERNEL_FILE:           db  `ZS         `
     .LOAD_KERNEL_MSG:       db  `Found kernel, loading\0`
 
-times 510-($-$$)    db  0       ; fill remaining with 0s
+times 510-($-$$)    db  0xCC    ; fill remaining with INT3
 dw  0xAA55                      ; signature
 
 real:   mov     cx, [bios_parameter_block.reserved_sectors]
@@ -139,7 +159,7 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
                         loop    .find_kernel
 
         ; intermediate (if kernel not found)
-        jmp unsuccessful_boot
+        jmp kernel_not_found
 
         .found_kernel:  ; test
                         mov     si, constants.LOAD_KERNEL_MSG
@@ -231,14 +251,13 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
                             mov     es, ax
                             mov     bx, KERNEL_BUFFER
 
-                            push    es
-                            push    bx
-
-                            ; DI=BIOS parameter block, SI=extended boot record
-                            mov     di, bios_parameter_block
-                            mov     si, extended_boot_record
+                            ; DI=FAT info
+                            mov     di, fat_info
                             mov     ax, KERNEL_BUFFER
                             mov     dl, [extended_boot_record.drive_number]
+
+                            push    es
+                            push    bx
                             retf    ; hack
 
         jmp $
@@ -263,6 +282,10 @@ unable_to_read_fat: mov     si, constants.FAIL_READ_FAT_MSG
                     call    vgautils.print
                     jmp     wait_key_and_reboot
 
+kernel_not_found:   mov     si, constants.KERNEL_NOT_FOUND_MSG
+                    call    vgautils.print
+                    jmp     wait_key_and_reboot
+
 variables:
     .root_dir_start:        dw  0
     .root_dir_size:         dw  0
@@ -273,7 +296,7 @@ variables:
     .buffer1:               dw  BUFFER
     .buffer2:               dw  BUFFER
 
-times 2046-($-real) db 0
+times 2046-($-real) db 0xCC ; INT3
 dw                  0x55AA
 
 KERNEL_SEGMENT  equ 0

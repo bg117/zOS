@@ -19,30 +19,28 @@ char *longLongToString(char *buffer, long long l, int base)
     char *rc;
     char *ptr;
 
-    // Check for supported base.
+    // check for supported base
     if (base < 2 || base > 36)
     {
         *buffer = '\0';
         return buffer;
     }
     rc = ptr = buffer;
-    // Set '-' for negative decimals.
+    // set '-' for negative decimals
     if (l < 0 && base == 10)
         *ptr++ = '-';
 
-    // The actual conversion.
+    // the actual conversion
     do
     {
-        // Modulo is negative for negative value. This trick makes abs()
-        // unnecessary.
         *ptr++ = POSSIBLE_CHARS[35 + l % base];
         l /= base;
     } while (l);
 
-    // Terminate the string.
+    // terminate the string
     *ptr-- = '\0';
 
-    // Invert the numbers.
+    // invert the numbers
     char *p = buffer;
     char *q = buffer;
     char  tmp;
@@ -76,7 +74,7 @@ char *ulongLongToString(char *buffer, unsigned long long l, int base)
     char *rc;
     char *ptr;
 
-    // Check for supported base.
+    // check for supported base
     if (base < 2 || base > 36)
     {
         *buffer = '\0';
@@ -84,19 +82,17 @@ char *ulongLongToString(char *buffer, unsigned long long l, int base)
     }
     rc = ptr = buffer;
 
-    // The actual conversion.
+    // the actual conversion
     do
     {
-        // Modulo is negative for negative value. This trick makes abs()
-        // unnecessary.
         *ptr++ = POSSIBLE_CHARS[35 + l % base];
         l /= base;
     } while (l);
 
-    // Terminate the string.
+    // terminate the string
     *ptr-- = '\0';
 
-    // Invert the numbers.
+    // invert the numbers
     char *p = buffer;
     char *q = buffer;
     char  tmp;

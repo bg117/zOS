@@ -6,7 +6,7 @@ bits 16
 ;                         *
 ;**************************
 ;
-; Filename: vga.S
+; Filename: vga.asm
 ; Description: VGA helper routines for use with x86
 ;
 ; Date created: 200621DDMMYY1723HHmm

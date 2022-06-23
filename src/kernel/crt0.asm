@@ -6,7 +6,7 @@ bits 16
 ;                            *
 ;*****************************
 ;
-; Filename: crt0.S
+; Filename: crt0.asm
 ; Description: Custom startup code for kernel
 ;
 ; Date created: 200622DDMMYY1905HHmm
@@ -33,38 +33,38 @@ _start: ; initial setup (same as in bootloader)
         mov     ss, ax
         sti
 
-        push    di
+        ; clear .bss
+        push    edi
         mov     ecx, __end
         mov     edi, __bss_start
 
-        sub     ecx, edi    ; subtract EDI from ECX (giving the total size of the bss section)
+        sub     ecx, edi        ; subtract EDI from ECX (giving the total size of the bss section)
         cld
 
         rep     stosb
-        pop     di
+        pop     edi
 
-        push    dx          ; save data register
+        push    dx              ; save data register
 
         ; __cdecl passes args from right to left
         xor     dh, dh
-        mov     bx, ARGV
-        mov     [bx], dx
-        mov     [bx + 2], di
-        mov     [bx + 4], si
+        mov     bx, ARGV        ; base register
+        mov     [bx], dx        ; index 0
+        mov     [bx + 2], di    ; index 1
 
-        push    ARGV        ; push argv to stack
+        push    ARGV            ; push argv to stack
 
-        mov     cx, 3
-        push    cx          ; lastly, push argc
+        mov     cx, 2
+        push    cx              ; lastly, push argc
 
         call    main
 
-        pop     dx          ; pop args count
-        pop     dx          ; pop drive number
-        pop     dx          ; pop BPB
-        pop     dx          ; pop EBR
+        pop     dx              ; pop args count
+        pop     dx              ; pop drive number
+        pop     dx              ; pop BPB
+        pop     dx              ; pop EBR
 
-        pop     dx          ; bring back original value of DX
+        pop     dx              ; bring back original value of DX
 
         jmp     $
 
