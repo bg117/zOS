@@ -114,10 +114,45 @@ constants:
     .KERNEL_FILE:           db  `ZS         `
     .LOAD_KERNEL_MSG:       db  `Found kernel, loading\0`
 
+global_descriptor_table:
+    dq  0
+    .code:
+    .data:  dw  0xFFFF
+            dw  0x0000
+            db  0x00
+            db  0x92
+            db  11001111b
+            db  0x00
+
+    .load:  dw  .load - global_descriptor_table - 1
+            dd  global_descriptor_table
+
 times 510-($-$$)    db  0xCC    ; fill remaining with INT3
 dw  0xAA55                      ; signature
 
-real:   mov     cx, [bios_parameter_block.reserved_sectors]
+real:   ; switch to unreal mode (big)
+        cli
+        push    ds
+
+        lgdt    [global_descriptor_table.load]
+        mov     eax, cr0
+        or      al, 1
+        mov     cr0, eax
+
+        jmp     $ + 2
+
+        mov     bx, 0x08
+        mov     ds, bx
+
+        and     al, ~1
+        mov     cr0, eax
+
+        jmp     $ + 2
+
+        pop     ds
+        sti
+
+        mov     cx, [bios_parameter_block.reserved_sectors]
         mov     ax, [bios_parameter_block.sectors_per_fat]
         mul     byte [bios_parameter_block.fats]                ; AX == sectors_per_fat * fats
         mov     [variables.fat_size], ax
