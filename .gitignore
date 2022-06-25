@@ -2,6 +2,7 @@
 *.bxrc
 *.ini
 *.bios
+*.img
 
 *.obj
 *.o

@@ -1,4 +1,3 @@
-OUTPUT_FORMAT(binary)
 ENTRY(_start)
 . = 0x1FC0;
 

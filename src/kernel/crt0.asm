@@ -1,4 +1,4 @@
-bits 16
+bits 32
 
 ;*****************************
 ;                            *
@@ -21,17 +21,8 @@ extern __end
 extern main
 
 _start: ; initial setup (same as in bootloader)
-        cli
-        mov     sp, ax
-        mov     bp, sp
-
-        xor     ax, ax
-        mov     ds, ax
-        mov     es, ax
-        mov     fs, ax
-        mov     gs, ax
-        mov     ss, ax
-        sti
+        mov     esp, eax
+        mov     ebp, esp
 
         ; clear .bss
         push    edi
@@ -44,27 +35,32 @@ _start: ; initial setup (same as in bootloader)
         rep     stosb
         pop     edi
 
-        push    dx              ; save data register
+        mov     eax, 0xB8000
+        mov     byte [eax], 'A'
+        inc     eax
+        mov     byte [eax], 0x0F
+
+        push    edx             ; save data register
 
         ; __cdecl passes args from right to left
         xor     dh, dh
-        mov     bx, ARGV        ; base register
-        mov     [bx], dx        ; index 0
-        mov     [bx + 2], di    ; index 1
+        mov     ebx, ARGV       ; base register
+        mov     [ebx], edx      ; index 0
+        mov     [ebx + 4], edi  ; index 1
 
         push    ARGV            ; push argv to stack
 
-        mov     cx, 2
-        push    cx              ; lastly, push argc
+        mov     ecx, 2
+        push    ecx             ; lastly, push argc
 
         call    main
 
-        pop     dx              ; pop args count
-        pop     dx              ; pop drive number
-        pop     dx              ; pop BPB
-        pop     dx              ; pop EBR
+        pop     edx             ; pop args count
+        pop     edx             ; pop drive number
+        pop     edx             ; pop BPB
+        pop     edx             ; pop EBR
 
-        pop     dx              ; bring back original value of DX
+        pop     edx             ; bring back original value of DX
 
         jmp     $
 

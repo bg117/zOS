@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include <root/i.h>
 #include <root/num.h>
@@ -63,15 +64,20 @@
         }                                                                      \
     } while (0)
 
+static const uint8_t VGA_WIDTH  = 80;
+static const uint8_t VGA_LENGTH = 25;
+
+static uint8_t *const VGA_BUFFER = CAST(uint8_t *const, 0xB8000);
+static uint16_t       position   = 0;
+
 enum PrintfState
 {
-    //
     STATE_NORMAL,
     STATE_SPECIFIER
 };
+
 enum PrintfLengthState
 {
-    //
     LENGTH_NORMAL,
     LENGTH_SHORT,
     LENGTH_VERY_SHORT,
@@ -146,4 +152,26 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
     }
 
     va_end(ap);
+}
+
+void screenWriteChar(char c)
+{
+    VGA_BUFFER[position]     = c;
+    VGA_BUFFER[position + 1] = 0x0F;
+
+    position += 2;
+}
+
+void screenClear()
+{
+    position = 0;
+
+    for (int i = 0; i < VGA_LENGTH; i++)
+    {
+        for (int j = 0; j < VGA_WIDTH; j += 2)
+        {
+            VGA_BUFFER[i * VGA_WIDTH + j]     = '\0';
+            VGA_BUFFER[i * VGA_WIDTH + j + 1] = 0x0F;
+        }
+    }
 }
