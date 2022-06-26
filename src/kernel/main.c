@@ -14,8 +14,10 @@
 #include <syslvl/num.h>
 #include <syslvl/video.h>
 #include "syslvl/gdt.h"
+#include "syslvl/mem.h"
 
-void hexDump(const void *ptr, size_t n);
+static void hexDump(const void *ptr, size_t n);
+static void testVga(void);
 
 // main
 int main(int argc, char **argv)
@@ -29,11 +31,45 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    struct FatInfo fi;
+    struct Disk    disk;
+
     screenWriteString(NL);
 
-    struct FatInfo *fi = CAST(struct FatInfo **, argv)[1];
-    struct Disk     disk;
+    // works!
+    memoryCopy(&fi, argv[1], sizeof fi);
 
+    testVga();
+    screenWriteFmtString("BPB located at: %p" NL "EBR located at: %p" NL NL,
+                         CAST(void *, &fi.Bpb),
+                         CAST(void *, &fi.Ebr));
+    hexDump(&fi, sizeof fi);
+    screenWriteFmtString("Booting from drive index: %hhu" NL, disk.Type);
+
+    return 1;
+}
+
+void hexDump(const void *ptr, size_t n)
+{
+    const int      WIDTH = 8;
+    const uint8_t *blk   = ptr;
+
+    size_t i = 0;
+
+    for (i = 0; i < n; i++)
+    {
+        // hex representation
+        screenWriteFmtString("%s%hhx ", blk[i] < 0x10 ? "0" : "", blk[i]);
+        if (i % WIDTH == WIDTH - 1)
+            screenWriteString(NL);
+    }
+
+    if (i % WIDTH != WIDTH - 1)
+        screenWriteString(NL);
+}
+
+void testVga(void)
+{
     screenWriteFmtString("Test for %s functions: " NL,
                          NAME(screenWriteFmtString));
 
@@ -54,47 +90,4 @@ int main(int argc, char **argv)
                          'A',
                          CAST(char, 0xE0),
                          GDT_AX_ACCESSED);
-
-    screenWriteFmtString("BPB located at: %p" NL "EBR located at: %p" NL NL,
-                         (void *)&fi->Bpb,
-                         (void *)&fi->Ebr);
-
-    hexDump(fi, sizeof *fi);
-
-    screenWriteFmtString("Booting from drive index: %hhu" NL, disk.Type);
-
-    if (!diskGetInfo(&disk, fi->Ebr.DriveNumber))
-    {
-        screenWriteFmtString(
-            "Unable to obtain parameters from drive: %hhu. Aborting...",
-            fi->Ebr.DriveNumber);
-        return -2;
-    }
-
-    screenWriteFmtString("With parameters:" NL "    cyl: %u" NL
-                         "    head: %hhu" NL "    sec: %hhu" NL,
-                         disk.Cylinders,
-                         disk.Heads,
-                         disk.Sectors);
-
-    screenWriteFmtString("%c", fi->Bpb.Oem[0]);
-
-    return 1;
-}
-
-void hexDump(const void *ptr, size_t n)
-{
-    uint8_t  *blk   = CAST(uint8_t *, ptr);
-    const int WIDTH = 8;
-    size_t    i     = 0;
-    for (i = 0; i < n; i++)
-    {
-        // hex representation
-        screenWriteFmtString("%s%hhx ", blk[i] < 0x10 ? "0" : "", blk[i]);
-        if (i % WIDTH == WIDTH - 1)
-            screenWriteString(NL);
-    }
-
-    if (i % WIDTH != WIDTH - 1)
-        screenWriteString(NL);
 }
