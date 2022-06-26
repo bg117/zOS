@@ -1,3 +1,8 @@
+; Copyright (c) 2022 iusearchbtw
+;
+; This software is released under the MIT License.
+; https://opensource.org/licenses/MIT
+
 bits 32
 
 ;*****************************
@@ -34,11 +39,6 @@ _start: ; initial setup (same as in bootloader)
 
         rep     stosb
         pop     edi
-
-        mov     eax, 0xB8000
-        mov     byte [eax], 'A'
-        inc     eax
-        mov     byte [eax], 0x0F
 
         push    edx             ; save data register
 

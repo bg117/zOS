@@ -1,3 +1,8 @@
+; Copyright (c) 2022 iusearchbtw
+;
+; This software is released under the MIT License.
+; https://opensource.org/licenses/MIT
+
 ; zOS boot loader
 
 org     0x1000

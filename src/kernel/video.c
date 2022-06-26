@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2022 iusearchbtw
+ *
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
+ */
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -64,11 +71,14 @@
         }                                                                      \
     } while (0)
 
+#define GET_VGA_POSITION_XY(x, y) (((y) * (VGA_WIDTH) + (x)) * 2)
+
 static const uint8_t VGA_WIDTH  = 80;
 static const uint8_t VGA_LENGTH = 25;
 
 static uint8_t *const VGA_BUFFER = CAST(uint8_t *const, 0xB8000);
-static uint16_t       position   = 0;
+static uint8_t        g_X        = 0;
+static uint8_t        g_Y        = 0;
 
 enum PrintfState
 {
@@ -156,15 +166,29 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
 
 void screenWriteChar(char c)
 {
+    switch (c)
+    {
+    case '\n': ++g_Y; return;
+    case '\r': g_X = 0; return;
+    }
+
+    int position             = GET_VGA_POSITION_XY(g_X, g_Y);
     VGA_BUFFER[position]     = c;
     VGA_BUFFER[position + 1] = 0x0F;
 
-    position += 2;
+    ++g_X;
+
+    if (g_X >= VGA_WIDTH)
+    {
+        g_X = 0;
+        ++g_Y;
+    }
 }
 
 void screenClear()
 {
-    position = 0;
+    g_X = 0;
+    g_Y = 0;
 
     for (int i = 0; i < VGA_LENGTH; i++)
     {

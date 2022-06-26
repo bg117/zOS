@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2022 iusearchbtw
+ *
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
+ */
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -6,6 +13,7 @@
 #include <syslvl/i.h>
 #include <syslvl/num.h>
 #include <syslvl/video.h>
+#include "syslvl/gdt.h"
 
 void hexDump(const void *ptr, size_t n);
 
@@ -36,7 +44,8 @@ int main(int argc, char **argv)
                          "foo",
                          'B',
                          CAST(long long, 07001342),
-                         CAST(long, 257));
+                         GDT_AX_PRESENT | GDT_AX_PRIV_RING1
+                             | GDT_AX_CODE_DIRECTION);
     screenWriteFmtString("    %xh %dd %oo \"%s\" '%c' %hhxh %lbb" NL NL,
                          0xFE,
                          0xFE,
@@ -44,7 +53,7 @@ int main(int argc, char **argv)
                          "bar",
                          'A',
                          CAST(char, 0xE0),
-                         CAST(long, 0xF));
+                         GDT_AX_ACCESSED);
 
     screenWriteFmtString("BPB located at: %p" NL "EBR located at: %p" NL NL,
                          (void *)&fi->Bpb,

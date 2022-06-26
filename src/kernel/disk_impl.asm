@@ -1,3 +1,8 @@
+; Copyright (c) 2022 iusearchbtw
+;
+; This software is released under the MIT License.
+; https://opensource.org/licenses/MIT
+
 ; bits 16
 
 ; ;**************************
@@ -81,4 +86,3 @@
 ;                                 mov     sp, bp          ; stack frame end
 ;                                 pop     bp
 ;                                 ret
-

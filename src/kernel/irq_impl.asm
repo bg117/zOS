@@ -1,3 +1,8 @@
+; Copyright (c) 2022 iusearchbtw
+;
+; This software is released under the MIT License.
+; https://opensource.org/licenses/MIT
+
 bits 32
 
 ;**************************
@@ -20,7 +25,7 @@ inByte: push    ebp
         mov     dx, [ebp + 8]
         in      al, dx
 
-        and     0xFF, eax       ; retrieve only the lower 8 bits
+        and     eax, 0xFF       ; retrieve only the lower 8 bits
 
         mov     esp, ebp
         pop     ebp
@@ -33,7 +38,7 @@ inWord: push    ebp
         mov     dx, [ebp + 8]
         in      ax, dx
 
-        and     0xFFFF, eax       ; retrieve only the lower 8 bits
+        and     eax, 0xFFFF     ; retrieve only the lower 8 bits
 
         mov     esp, ebp
         pop     ebp
@@ -60,3 +65,7 @@ outWord:    push    ebp
             mov     esp, ebp
             pop     ebp
             ret
+
+global __defExcept
+__defExcept:    cli
+                jmp     $

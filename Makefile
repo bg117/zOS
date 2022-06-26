@@ -1,3 +1,8 @@
+# Copyright (c) 2022 iusearchbtw
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 export ROOT_DIR=${CURDIR}
 
 export BUILD_DIR=${CURDIR}/build
