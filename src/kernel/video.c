@@ -2,9 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <root/i.h>
-#include <root/num.h>
-#include <root/video.h>
+#include <syslvl/i.h>
+#include <syslvl/num.h>
+#include <syslvl/video.h>
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                               \
     do                                                                         \

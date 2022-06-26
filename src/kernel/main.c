@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <root/disk.h>
-#include <root/fat.h>
-#include <root/i.h>
-#include <root/num.h>
-#include <root/video.h>
+#include <syslvl/disk.h>
+#include <syslvl/fat.h>
+#include <syslvl/i.h>
+#include <syslvl/num.h>
+#include <syslvl/video.h>
 
 void hexDump(const void *ptr, size_t n);
 
