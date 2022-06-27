@@ -4,7 +4,11 @@ ENTRY(_start)
 SECTIONS
 {
     __text_start = .;
-    .text : { *(.text) }
+    .text :
+    {
+        *(.ld)
+        *(.text)
+    }
 
     __rodata_start = .;
     .rodata : { *(.rodata) }

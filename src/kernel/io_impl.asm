@@ -11,13 +11,18 @@ bits 32
 ;                         *
 ;**************************
 ;
-; Filename: irq_impl.asm
-; Description: Interrupt & interrupt request helper routines for use with x86
+; Filename: io_impl.asm
+; Description: Input and output helper routines for use with x86
 ;
 ; Date created: 250621DDMMYY1400HHmm
 ;
 ;
 
+; --
+; \brief Calls the IN instruction (byte). Gets data from the port specified.
+; \param[in] ebp+8 The port to retrieve data from.
+; \return The data received from the port.
+; --
 global inByte
 inByte: push    ebp
         mov     ebp, esp
@@ -31,6 +36,11 @@ inByte: push    ebp
         pop     ebp
         ret
 
+; --
+; \brief Calls the IN instruction (word). Gets data from the port specified.
+; \param[in] ebp+8 The port to retrieve data from.
+; \return The data received from the port.
+; --
 global inWord
 inWord: push    ebp
         mov     ebp, esp
@@ -44,22 +54,36 @@ inWord: push    ebp
         pop     ebp
         ret
 
+; --
+; \brief Calls the OUT instruction (byte). Writes data to the port specified.
+; \param[in] ebp+8  The port to write data to.
+; \param[in] ebp+12 The data to write to the port.
+; \return The data received from the port.
+; --
 global outByte
 outByte:    push    ebp
             mov     ebp, esp
 
             mov     dx, [ebp + 8]
+            mov     ax, [ebp + 12]
             out     dx, al
 
             mov     esp, ebp
             pop     ebp
             ret
 
+; --
+; \brief Calls the OUT instruction (word). Writes data to the port specified.
+; \param[in] ebp+8  The port to write data to.
+; \param[in] ebp+12 The data to write to the port.
+; \return The data received from the port.
+; --
 global outWord
 outWord:    push    ebp
             mov     ebp, esp
 
             mov     dx, [ebp + 8]
+            mov     ax, [ebp + 12]
             out     dx, ax
 
             mov     esp, ebp

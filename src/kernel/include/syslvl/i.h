@@ -12,5 +12,6 @@
 #define USE(x)     ((void)(x))
 #define NL         "\r\n"
 #define NAME(x)    #x
+#define ISPRINT(x) ((x) >= ' ' && (x) <= '~')
 
 #endif

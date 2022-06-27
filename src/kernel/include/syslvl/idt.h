@@ -26,14 +26,16 @@ struct __attribute__((packed)) IdtEntry
     uint16_t OffsetUpper16;
 };
 
-void idtSetDescriptor(
-    uint8_t idx, void *isr, uint8_t gateType, uint8_t dpl, uint8_t present);
+struct __attribute__((packed)) IdtDescriptor
+{
+    uint16_t Offset;
+    uint32_t Address;
+};
 
-uint8_t inByte(uint8_t port);
-void    outByte(uint8_t port);
-
-uint16_t inWord(uint16_t port);
-void     outWord(uint16_t port);
+struct IdtEntry idtCreateEntry(void   *isr,
+                               uint8_t gateType,
+                               uint8_t dpl,
+                               uint8_t present);
 
 #if defined(__cplusplus)
 }

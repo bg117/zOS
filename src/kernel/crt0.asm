@@ -18,7 +18,7 @@ bits 32
 ;
 ;
 
-section .text
+section .ld
 
 global _start
 extern __bss_start
@@ -64,4 +64,5 @@ _start: ; initial setup (same as in bootloader)
 
         jmp     $
 
+section .data
 ARGV:

@@ -170,6 +170,10 @@ void screenWriteChar(char c)
     {
     case '\n': ++g_Y; return;
     case '\r': g_X = 0; return;
+    case '\b':
+        if (g_X > 0)
+            --g_X;
+        return;
     }
 
     int position             = GET_VGA_POSITION_XY(g_X, g_Y);
