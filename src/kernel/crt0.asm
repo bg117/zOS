@@ -66,3 +66,5 @@ _start: ; initial setup (same as in bootloader)
 
 section .data
 ARGV:
+
+resb    255 * 4
