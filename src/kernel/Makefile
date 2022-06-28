@@ -24,7 +24,7 @@ CFLAGS       := -Wall \
 				-ffreestanding \
 				-nostdlib
 
-CPPFLAGS     := -I${CURDIR}/include \
+CPPFLAGS     := -I${CURDIR}/c/include \
 				-Wno-unknown-pragmas
 
 LDFLAGS      := -Map=${OBJ_DIR}/${EXEC}.map \
@@ -35,11 +35,11 @@ LDFLAGS      := -Map=${OBJ_DIR}/${EXEC}.map \
 OBJCOPYFLAGS := -O binary \
 				--strip-unneeded
 
-SRCS_ASM := ${wildcard ${CURDIR}/*.asm}
-SRCS_C   := ${wildcard ${CURDIR}/*.c}
+SRCS_ASM := ${wildcard ${CURDIR}/asm/*.asm}
+SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
 
-OBJS_ASM := ${subst ${CURDIR},${OBJ_DIR},${SRCS_ASM:.asm=.o}}
-OBJS_C   := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.o}}
+OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.o}}
+OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.o}}
 
 .PHONY: all build clean
 
@@ -63,7 +63,7 @@ ${FULLEXEC}: ${OBJS_ASM} ${OBJS_C}
 		$@
 
 
-${OBJ_DIR}/%.o: ${CURDIR}/%.c
+${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
 	${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \
@@ -71,7 +71,7 @@ ${OBJ_DIR}/%.o: ${CURDIR}/%.c
 		-o $@ \
 		$<
 
-${OBJ_DIR}/%.o: ${CURDIR}/%.asm
+${OBJ_DIR}/%.o: ${CURDIR}/asm/%.asm
 	${ASM} \
 		${ASMFLAGS} \
 		-o $@ \
