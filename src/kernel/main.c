@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <syslvl/core.h>
 #include <syslvl/disk.h>
 #include <syslvl/fat.h>
 #include <syslvl/gdt.h>
@@ -35,8 +36,6 @@ static struct gdt_descriptor _gdt_desc;
 
 static struct idt_entry      _idt[256];
 static struct idt_descriptor _idt_desc;
-
-static volatile int _lock = 1;
 
 #pragma endregion
 
@@ -82,8 +81,7 @@ int main(int argc, char **argv)
 
     dumpgdt();
 
-    while (_lock)
-        ;
+    corehlt();
 
     return 1;
 }
