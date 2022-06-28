@@ -9,7 +9,7 @@
 
 #include <syslvl/gdt.h>
 
-#include <misc/define.h>
+#include <misc/type_macros.h>
 
 struct gdt_entry gdtmkentry(uint32_t limit,
                             uint32_t base,

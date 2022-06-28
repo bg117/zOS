@@ -9,7 +9,7 @@
 
 #include <syslvl/mem.h>
 
-#include <misc/define.h>
+#include <misc/type_macros.h>
 
 void *memcopy(void *__restrict__ dest, const void *__restrict__ src, size_t len)
 {

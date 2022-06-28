@@ -9,7 +9,7 @@
 
 #include <syslvl/idt.h>
 
-#include <misc/define.h>
+#include <misc/type_macros.h>
 
 extern void __defexcept(void) __attribute__((noreturn));
 

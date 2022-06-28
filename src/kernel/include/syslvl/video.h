@@ -17,6 +17,7 @@ void scrputc(char c);
 void scrputs(const char *__restrict__ s);
 void scrputsf(const char *__restrict__ fmt, ...);
 void scrscroll(void);
+void scrmvcur(int x, int y);
 
 #ifdef __cplusplus
 }

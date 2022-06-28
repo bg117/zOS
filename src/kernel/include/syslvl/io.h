@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
-uint8_t __attribute__((cdecl)) inb(uint8_t port);
-void __attribute__((cdecl)) outb(uint8_t port, uint8_t byte);
+uint8_t __attribute__((cdecl)) inb(uint16_t port);
+void __attribute__((cdecl)) outb(uint16_t port, uint8_t byte);
 
 uint16_t __attribute__((cdecl)) inw(uint16_t port);
 void __attribute__((cdecl)) outw(uint16_t port, uint16_t word);

@@ -7,7 +7,7 @@
 
 #include <syslvl/disk.h>
 
-#include <misc/define.h>
+#include <misc/type_macros.h>
 
 // extern int __diskReset_internal_impl(uint8_t index);
 

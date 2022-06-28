@@ -5,16 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxDEFINEHxuuq
-#define quuxDEFINEHxuuq
-
-#define CAST(t, x) ((t)(x))
-#define USE(x)     ((void)(x))
-
-#define NL      "\r\n"
-#define NAME(x) #x
-
-#define ISPRINT(x) ((x) >= ' ' && (x) <= '~')
+#ifndef quuxBIT_MACROSHxuuq
+#define quuxBIT_MACROSHxuuq
 
 #define SETBIT(x, bit)   ((x) | (bit))
 #define UNSETBIT(x, bit) ((x) & ~(bit))

@@ -5,9 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <syslvl/num.h>
-
-#include <misc/define.h>
+#include <misc/num.h>
+#include <misc/type_macros.h>
 
 static const char POSSIBLE_CHARS[]
     = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
