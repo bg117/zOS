@@ -14,6 +14,7 @@
 #include <syslvl/gdt.h>
 #include <syslvl/hal.h>
 #include <syslvl/idt.h>
+#include <syslvl/irq.h>
 #include <syslvl/mem.h>
 #include <syslvl/video.h>
 
@@ -33,14 +34,17 @@ int main(int argc, char **argv)
 
     scrputs("---------------- KERNEL LOG ----------------\r\n");
 
-    scrputs("Initializing hardware abstraction layer (HAL)... ");
+    scrputs("Initializing the hardware abstraction layer... ");
     halinit();
     scrputs("Done.\r\n");
 
-    __asm__ __volatile__("int $0x03"); // test!!
+    scrputs("Remapping the Programmable Interrupt Controller... ");
+    irqinit(0x20,
+            0x28); // master PIC from offset 0x20-0x27; slave from 0x28-0x2F
+    scrputs("Done.\r\n");
 
-    scrputs("Halting system...");
-    corehlt();
+    while (1)
+        ;
 
     return 1;
 }

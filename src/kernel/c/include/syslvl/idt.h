@@ -5,8 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxIRQHxuuq
-#define quuxIRQHxuuq
+#ifndef quuxIDTHxuuq
+#define quuxIDTHxuuq
 
 #include <stddef.h>
 #include <stdint.h>

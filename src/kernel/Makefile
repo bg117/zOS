@@ -50,18 +50,18 @@ build: ${FULLEXEC}
 clean:
 	${RM} ${OBJS_ASM} ${OBJS_C}
 
-${FULLEXEC}: ${OBJS_ASM} ${OBJS_C}
-	${LD} \
-		${LDFLAGS} \
-		-o $@.elf \
-		$^ \
-		-lgcc
-
+${FULLEXEC}: ${FULLEXEC}.elf
 	${OBJCOPY} \
 		${OBJCOPYFLAGS} \
-		$@.elf \
+		$< \
 		$@
 
+${FULLEXEC}.elf: ${OBJS_ASM} ${OBJS_C}
+	${LD} \
+		${LDFLAGS} \
+		-o $@ \
+		$^ \
+		-lgcc
 
 ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
 	${CC} \

@@ -22,7 +22,7 @@ static struct idt_descriptor _idt_desc;
 static void _halinitgdt(void);
 static void _halinitisr(void);
 
-struct exception
+struct exception_info
 {
     uint32_t data_segment;
     uint32_t destination;
@@ -44,7 +44,7 @@ struct exception
     uint32_t stack_segment;
 };
 
-void __defexcept(struct exception *regs) __attribute__((noreturn));
+void __defexcept(struct exception_info *regs) __attribute__((noreturn));
 
 // auto-generated
 #pragma region ISR stubs
@@ -855,7 +855,7 @@ void _halinitisr()
     idtdescinit(&_idt_desc, _idt, sizeof _idt / sizeof *_idt);
 }
 
-void __defexcept(struct exception *regs)
+void __defexcept(struct exception_info *regs)
 {
     scrputs("--------------- SYSTEM ERROR ---------------\r\n");
     scrputs(

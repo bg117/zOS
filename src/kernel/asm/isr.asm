@@ -302,7 +302,7 @@ _isr_ind:   pusha
             mov     fs, ax
             mov     gs, ax
 
-            push    esp
+            push    esp ; pass exception_info struct
             call    __defexcept
             add     esp, 4
 
