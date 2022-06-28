@@ -11,4 +11,7 @@
 #define SETBIT(x, bit)   ((x) | (bit))
 #define UNSETBIT(x, bit) ((x) & ~(bit))
 
+#define SETBITVAR(x, bit)   ((x) = SETBIT(x, bit))
+#define UNSETBITVAR(x, bit) ((x) = UNSETBIT(x, bit))
+
 #endif

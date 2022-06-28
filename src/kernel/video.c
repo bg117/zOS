@@ -110,7 +110,7 @@ void scrputsf(const char *__restrict__ fmt, ...)
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
-    char num_buf[30];
+    char num_buf[65];
 
     while (*fmt)
     {

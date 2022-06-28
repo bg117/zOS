@@ -11,8 +11,6 @@
 
 #include <misc/type_macros.h>
 
-extern void __defexcept(void) __attribute__((noreturn));
-
 struct idt_entry idtmkentry(void    *isr,
                             uint16_t code_segment,
                             uint8_t  access_byte)
@@ -43,4 +41,12 @@ void idtmodentry(struct idt_entry *entry,
     entry->segment_selector = code_segment; // code segment offset in GDT
     entry->access_byte      = access_byte;
     entry->reserved         = 0;
+}
+
+void idtdescinit(struct idt_descriptor *desc,
+                 struct idt_entry      *idt,
+                 size_t                 entry_count)
+{
+    desc->offset  = CAST(uint16_t, sizeof *idt * entry_count - 1);
+    desc->address = CAST(uint32_t, idt);
 }

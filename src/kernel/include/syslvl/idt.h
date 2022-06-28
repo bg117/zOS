@@ -59,7 +59,7 @@ void idtdescinit(struct idt_descriptor *desc,
                  struct idt_entry      *idt,
                  size_t                 entry_count);
 
-void __attribute__((cdecl)) idtLoadDescriptor(struct idt_descriptor *desc);
+void __attribute__((cdecl)) idtdescld(struct idt_descriptor *desc);
 
 #if defined(__cplusplus)
 }

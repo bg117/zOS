@@ -37,6 +37,8 @@ int main(int argc, char **argv)
     halinit();
     scrputs("Done.\r\n");
 
+    __asm__ __volatile__("int $0x03"); // test!!
+
     scrputs("Halting system...");
     corehlt();
 

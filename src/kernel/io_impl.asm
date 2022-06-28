@@ -89,7 +89,3 @@ outw:       push    ebp
             mov     esp, ebp
             pop     ebp
             ret
-
-global __defexcept
-__defexcept:    cli
-                jmp     $
