@@ -46,6 +46,7 @@ struct exception
 
 void __defexcept(struct exception *regs) __attribute__((noreturn));
 
+// auto-generated
 #pragma region ISR stubs
 extern void __attribute__((cdecl)) __isr_stub_0(void);
 extern void __attribute__((cdecl)) __isr_stub_1(void);
