@@ -6,26 +6,41 @@
  */
 
 #include <stdint.h>
-#include <syslvl/i.h>
+
 #include <syslvl/idt.h>
 
-static struct IdtEntry g_idt[256];
+#include <misc/define.h>
 
-// for lidt instruction
-static struct IdtDescriptor g_Lidt;
+extern void __defexcept(void) __attribute__((noreturn));
 
-extern void __defExcept(void) __attribute__((noreturn));
-
-void idtSetDescriptor(
-    uint8_t idx, void *isr, uint8_t gateType, uint8_t dpl, uint8_t present)
+struct idt_entry idtmkentry(void    *isr,
+                            uint16_t code_segment,
+                            uint8_t  access_byte)
 {
-    struct IdtEntry *ent    = &g_idt[idx];
+    struct idt_entry ent;
     uint32_t         offset = CAST(uint32_t, isr);
 
-    ent->OffsetLower16   = offset & 0xFFFF; // get lower 16 bits of ISR
-    ent->OffsetUpper16   = offset >> 16;    // shift upper 16 bits to lower
-    ent->SegmentSelector = 0x08;            // data in GDT
-    ent->GateType        = gateType;
-    ent->Dpl             = dpl;
-    ent->Present         = present;
+    ent.offset_lower_16 = offset & 0xFFFF; // get lower 16 bits of ISR
+    ent.offset_upper_16
+        = (offset >> 16) & 0xFFFF;       // shift upper 16 bits to lower
+    ent.segment_selector = code_segment; // code segment offset in GDT
+    ent.access_byte      = access_byte;
+    ent.reserved         = 0;
+
+    return ent;
+}
+
+void idtmodentry(struct idt_entry *entry,
+                 void             *isr,
+                 uint16_t          code_segment,
+                 uint8_t           access_byte)
+{
+    uint32_t offset = CAST(uint32_t, isr);
+
+    entry->offset_lower_16 = offset & 0xFFFF; // get lower 16 bits of ISR
+    entry->offset_upper_16
+        = (offset >> 16) & 0xFFFF;          // shift upper 16 bits to lower
+    entry->segment_selector = code_segment; // code segment offset in GDT
+    entry->access_byte      = access_byte;
+    entry->reserved         = 0;
 }

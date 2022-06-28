@@ -14,7 +14,7 @@ bits 32
 ; Filename: io_impl.asm
 ; Description: Input and output helper routines for use with x86
 ;
-; Date created: 250621DDMMYY1400HHmm
+; Date created: 250622DDMMYY1400HHmm
 ;
 ;
 
@@ -23,8 +23,8 @@ bits 32
 ; \param[in] ebp+8 The port to retrieve data from.
 ; \return The data received from the port.
 ; --
-global inByte
-inByte: push    ebp
+global inb
+inb:    push    ebp
         mov     ebp, esp
 
         mov     dx, [ebp + 8]
@@ -41,8 +41,8 @@ inByte: push    ebp
 ; \param[in] ebp+8 The port to retrieve data from.
 ; \return The data received from the port.
 ; --
-global inWord
-inWord: push    ebp
+global inw
+inw:    push    ebp
         mov     ebp, esp
 
         mov     dx, [ebp + 8]
@@ -60,8 +60,8 @@ inWord: push    ebp
 ; \param[in] ebp+12 The data to write to the port.
 ; \return The data received from the port.
 ; --
-global outByte
-outByte:    push    ebp
+global outb
+outb:       push    ebp
             mov     ebp, esp
 
             mov     dx, [ebp + 8]
@@ -78,8 +78,8 @@ outByte:    push    ebp
 ; \param[in] ebp+12 The data to write to the port.
 ; \return The data received from the port.
 ; --
-global outWord
-outWord:    push    ebp
+global outw
+outw:       push    ebp
             mov     ebp, esp
 
             mov     dx, [ebp + 8]
@@ -90,6 +90,6 @@ outWord:    push    ebp
             pop     ebp
             ret
 
-global __defExcept
-__defExcept:    cli
+global __defexcept
+__defexcept:    cli
                 jmp     $

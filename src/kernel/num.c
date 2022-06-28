@@ -5,23 +5,24 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <syslvl/i.h>
 #include <syslvl/num.h>
+
+#include <misc/define.h>
 
 static const char POSSIBLE_CHARS[]
     = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
 
-char *intToString(char *buffer, int i, int base)
+char *inttos(char *buffer, int i, int base)
 {
-    return longToString(buffer, CAST(long, i), base);
+    return longtos(buffer, CAST(long, i), base);
 }
 
-char *longToString(char *buffer, long l, int base)
+char *longtos(char *buffer, long l, int base)
 {
-    return longLongToString(buffer, CAST(long long, l), base);
+    return llongtos(buffer, CAST(long long, l), base);
 }
 
-char *longLongToString(char *buffer, long long l, int base)
+char *llongtos(char *buffer, long long l, int base)
 {
     char *rc;
     char *ptr;
@@ -66,17 +67,17 @@ char *longLongToString(char *buffer, long long l, int base)
     return rc;
 }
 
-char *uintToString(char *buffer, unsigned int i, int base)
+char *uinttos(char *buffer, unsigned int i, int base)
 {
-    return ulongToString(buffer, CAST(unsigned long, i), base);
+    return ulongtos(buffer, CAST(unsigned long, i), base);
 }
 
-char *ulongToString(char *buffer, unsigned long l, int base)
+char *ulongtos(char *buffer, unsigned long l, int base)
 {
-    return ulongLongToString(buffer, CAST(unsigned long long, l), base);
+    return ullongtos(buffer, CAST(unsigned long long, l), base);
 }
 
-char *ulongLongToString(char *buffer, unsigned long long l, int base)
+char *ullongtos(char *buffer, unsigned long long l, int base)
 {
     char *rc;
     char *ptr;

@@ -14,19 +14,19 @@
 extern "C" {
 #endif
 
-struct Disk
+struct disk
 {
-    uint8_t Index;
+    uint8_t index;
 
-    uint16_t Cylinders;
-    uint8_t  Heads;
-    uint8_t  Sectors;
+    uint16_t cylinders;
+    uint8_t  heads;
+    uint8_t  sectors;
 
-    uint8_t Type;
+    uint8_t type;
 };
 
-int diskGetInfo(struct Disk *disk, uint8_t index);
-int diskReset(struct Disk *disk);
+int diskqueryinfo(struct disk *disk, uint8_t index);
+int diskreset(struct disk *disk);
 
 #ifdef __cplusplus
 }

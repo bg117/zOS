@@ -14,7 +14,7 @@ bits 32
 ; Filename: gdt_impl.asm
 ; Description: Global descriptor table helper routines for use with x86
 ;
-; Date created: 270621DDMMYY1852HHmm
+; Date created: 270622DDMMYY1852HHmm
 ;
 ;
 
@@ -25,27 +25,27 @@ bits 32
 ; \param[in] ebp+16 The offset to the data segment in the GDT.
 ; \return The pointer.
 ; --
-global gdtLoadDescriptor
-gdtLoadDescriptor:  push    ebp
-                    mov     ebp, esp
+global gdtdescld
+gdtdescld:  push    ebp
+            mov     ebp, esp
 
-                    mov     eax, [ebp + 8]
-                    lgdt    [eax]
+            mov     eax, [ebp + 8]
+            lgdt    [eax]
 
-                    mov     eax, [ebp + 12]
-                    push    eax
-                    push    .reload_cs
-                    retf
+            mov     eax, [ebp + 12]
+            push    eax
+            push    .reload_cs
+            retf
 
-                    .reload_cs:
+            .reload_cs:
 
-                    mov     eax, [ebp + 16]
-                    mov     ds, ax
-                    mov     es, ax
-                    mov     fs, ax
-                    mov     gs, ax
-                    mov     ss, ax
+            mov     eax, [ebp + 16]
+            mov     ds, ax
+            mov     es, ax
+            mov     fs, ax
+            mov     gs, ax
+            mov     ss, ax
 
-                    mov     esp, ebp
-                    pop     ebp
-                    ret
+            mov     esp, ebp
+            pop     ebp
+            ret

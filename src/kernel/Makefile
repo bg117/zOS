@@ -24,7 +24,8 @@ CFLAGS       := -Wall \
 				-ffreestanding \
 				-nostdlib
 
-CPPFLAGS     := -I${CURDIR}/include
+CPPFLAGS     := -I${CURDIR}/include \
+				-Wno-unknown-pragmas
 
 LDFLAGS      := -Map=${OBJ_DIR}/${EXEC}.map \
 				-T${CURDIR}/linker.ld \

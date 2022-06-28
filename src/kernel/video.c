@@ -9,9 +9,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <syslvl/i.h>
 #include <syslvl/num.h>
 #include <syslvl/video.h>
+
+#include <misc/define.h>
+#include <syslvl/mem.h>
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                               \
     do                                                                         \
@@ -19,24 +21,24 @@
         switch (len)                                                           \
         {                                                                      \
         case LENGTH_NORMAL:                                                    \
-            intToString(buf, va_arg(ap, int), base);                           \
-            screenWriteFmtString("%s", buf);                                   \
+            inttos(buf, va_arg(ap, int), base);                                \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_SHORT:                                                     \
-            intToString(buf, CAST(short, va_arg(ap, int)), base);              \
-            screenWriteFmtString("%s", buf);                                   \
+            inttos(buf, CAST(short, va_arg(ap, int)), base);                   \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_VERY_SHORT:                                                \
-            intToString(buf, CAST(char, va_arg(ap, int)), base);               \
-            screenWriteFmtString("%s", buf);                                   \
+            inttos(buf, CAST(char, va_arg(ap, int)), base);                    \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_LONG:                                                      \
-            longToString(buf, va_arg(ap, long), base);                         \
-            screenWriteFmtString("%s", buf);                                   \
+            longtos(buf, va_arg(ap, long), base);                              \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_VERY_LONG:                                                 \
-            longLongToString(buf, va_arg(ap, long long), base);                \
-            screenWriteFmtString("%s", buf);                                   \
+            llongtos(buf, va_arg(ap, long long), base);                        \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         }                                                                      \
     } while (0)
@@ -47,26 +49,24 @@
         switch (len)                                                           \
         {                                                                      \
         case LENGTH_NORMAL:                                                    \
-            uintToString(buf, va_arg(ap, unsigned int), base);                 \
-            screenWriteFmtString("%s", buf);                                   \
+            uinttos(buf, va_arg(ap, unsigned int), base);                      \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_SHORT:                                                     \
-            uintToString(                                                      \
-                buf, CAST(unsigned short, va_arg(ap, unsigned int)), base);    \
-            screenWriteFmtString("%s", buf);                                   \
+            uinttos(buf, va_arg(ap, unsigned int), base);                      \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_VERY_SHORT:                                                \
-            uintToString(                                                      \
-                buf, CAST(unsigned char, va_arg(ap, unsigned int)), base);     \
-            screenWriteFmtString("%s", buf);                                   \
+            uinttos(buf, va_arg(ap, unsigned int), base);                      \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_LONG:                                                      \
-            ulongToString(buf, va_arg(ap, unsigned long), base);               \
-            screenWriteFmtString("%s", buf);                                   \
+            ulongtos(buf, va_arg(ap, unsigned long), base);                    \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         case LENGTH_VERY_LONG:                                                 \
-            ulongLongToString(buf, va_arg(ap, unsigned long long), base);      \
-            screenWriteFmtString("%s", buf);                                   \
+            ullongtos(buf, va_arg(ap, unsigned long long), base);              \
+            scrputsf("%s", buf);                                               \
             break;                                                             \
         }                                                                      \
     } while (0)
@@ -80,13 +80,13 @@ static uint8_t *const VGA_BUFFER = CAST(uint8_t *const, 0xB8000);
 static uint8_t        g_X        = 0;
 static uint8_t        g_Y        = 0;
 
-enum PrintfState
+enum printf_state
 {
     STATE_NORMAL,
     STATE_SPECIFIER
 };
 
-enum PrintfLengthState
+enum printf_length_state
 {
     LENGTH_NORMAL,
     LENGTH_SHORT,
@@ -95,24 +95,24 @@ enum PrintfLengthState
     LENGTH_VERY_LONG
 };
 
-void screenWriteString(const char *__restrict__ s)
+void scrputs(const char *__restrict__ s)
 {
     while (*s)
     {
-        screenWriteChar(*s);
+        scrputc(*s);
         ++s;
     }
 }
 
-void screenWriteFmtString(const char *__restrict__ fmt, ...)
+void scrputsf(const char *__restrict__ fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
 
-    enum PrintfState       state  = STATE_NORMAL;
-    enum PrintfLengthState length = LENGTH_NORMAL;
+    enum printf_state        state  = STATE_NORMAL;
+    enum printf_length_state length = LENGTH_NORMAL;
 
-    char numBuf[30];
+    char num_buf[30];
 
     while (*fmt)
     {
@@ -126,9 +126,9 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
         {
             switch (*fmt)
             {
-            case '%': screenWriteChar('%'); break;
-            case 's': screenWriteString(va_arg(ap, const char *)); break;
-            case 'c': screenWriteChar(CAST(char, va_arg(ap, int))); break;
+            case '%': scrputc('%'); break;
+            case 's': scrputs(va_arg(ap, const char *)); break;
+            case 'c': scrputc(CAST(char, va_arg(ap, int))); break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;
@@ -139,21 +139,21 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
                 ++fmt;
                 continue;
             case 'i':
-            case 'd': SWITCH_LENGTH_SIGNED(ap, length, numBuf, 10); break;
-            case 'u': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 10); break;
-            case 'x': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 16); break;
+            case 'd': SWITCH_LENGTH_SIGNED(ap, length, num_buf, 10); break;
+            case 'u': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 10); break;
+            case 'x': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16); break;
             case 'p':
-                screenWriteString("0x");
-                SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 16);
+                scrputs("0x");
+                SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16);
                 break;
-            case 'o': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 8); break;
-            case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, numBuf, 2); break;
-            default: screenWriteFmtString("%%%c", *fmt);
+            case 'o': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 8); break;
+            case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 2); break;
+            default: scrputsf("%%%c", *fmt);
             }
         }
         else
         {
-            screenWriteChar(*fmt);
+            scrputc(*fmt);
         }
 
         state  = STATE_NORMAL;
@@ -164,7 +164,7 @@ void screenWriteFmtString(const char *__restrict__ fmt, ...)
     va_end(ap);
 }
 
-void screenWriteChar(char c)
+void scrputc(char c)
 {
     switch (c)
     {
@@ -175,6 +175,9 @@ void screenWriteChar(char c)
             --g_X;
         return;
     }
+
+    if (g_Y >= VGA_LENGTH)
+        scrscroll();
 
     int position             = GET_VGA_POSITION_XY(g_X, g_Y);
     VGA_BUFFER[position]     = c;
@@ -189,7 +192,7 @@ void screenWriteChar(char c)
     }
 }
 
-void screenClear()
+void scrclr()
 {
     g_X = 0;
     g_Y = 0;
@@ -202,4 +205,14 @@ void screenClear()
             VGA_BUFFER[i * VGA_WIDTH + j + 1] = 0x0F;
         }
     }
+}
+
+void scrscroll()
+{
+    memcopyovlp(
+        VGA_BUFFER, VGA_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
+    memfill(VGA_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
+
+    if (g_Y > 0)
+        --g_Y;
 }

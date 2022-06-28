@@ -14,7 +14,7 @@ bits 32
 ; Filename: mem_impl.asm
 ; Description: Memory helper routines for use with x86
 ;
-; Date created: 220621DDMMYY1502HHmm
+; Date created: 220622DDMMYY1502HHmm
 ;
 ;
 
@@ -27,11 +27,12 @@ section .text
 ; \param[in] ebp+16 The length.
 ; \return The pointer.
 ; --
-global memoryFill
-memoryFill: push    ebp
+global memfill
+memfill:    push    ebp
             mov     ebp, esp        ; stack frame begin
 
             push    edi
+            push    ebx
 
             mov     ecx, [ebp + 16] ; get length
             and     ecx, 0xFFFF     ; some garbage values are on the upper 16 bits of EC
@@ -39,12 +40,18 @@ memoryFill: push    ebp
             ; first iteration: 4-byte STOS (fast)
             mov     eax, ecx
             mov     ecx, 4          ; divide first the length by 4
+            xor     edx, edx
             div     ecx             ; remainder stored in EDX, which we'll (probably)
                                     ; use later
             mov     ecx, eax        ; move result back to ECX, for STOSD
 
             mov     eax, [ebp + 12] ; get fill character
             and     eax, 0xFF       ; clear upper 24 bits
+            mov     ah, al
+            mov     bx, ax
+            shl     ebx, 16
+            and     ebx, 0xFFFF0000
+            or      eax, ebx
             mov     edi, [ebp + 8]  ; get pointer to operate on
 
             cld
@@ -57,6 +64,7 @@ memoryFill: push    ebp
 
             mov     eax, [ebp + 8]  ; return value (ptr)
 
+            pop     ebx
             pop     edi
 
             mov     esp, ebp        ; stack frame end

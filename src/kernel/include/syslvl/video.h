@@ -12,10 +12,11 @@
 extern "C" {
 #endif
 
-void screenClear(void);
-void screenWriteChar(char c);
-void screenWriteString(const char *__restrict__ s);
-void screenWriteFmtString(const char *__restrict__ fmt, ...);
+void scrclr(void);
+void scrputc(char c);
+void scrputs(const char *__restrict__ s);
+void scrputsf(const char *__restrict__ fmt, ...);
+void scrscroll(void);
 
 #ifdef __cplusplus
 }

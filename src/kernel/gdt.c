@@ -8,28 +8,29 @@
 #include <stdint.h>
 
 #include <syslvl/gdt.h>
-#include <syslvl/i.h>
 
-struct GdtEntry gdtCreateEntry(uint32_t limit,
-                               uint32_t base,
-                               uint8_t  accessByte,
-                               uint8_t  flags)
+#include <misc/define.h>
+
+struct gdt_entry gdtmkentry(uint32_t limit,
+                            uint32_t base,
+                            uint8_t  access_byte,
+                            uint8_t  flags)
 {
-    struct GdtEntry entry;
-    entry.LimitLower16        = limit & 0xFFFF;
-    entry.BaseLower16         = base & 0xFFFF;
-    entry.BaseMiddle8         = (base >> 16) & 0xFF;
-    entry.AccessByte          = accessByte;
-    entry.FlagsAndLimitUpper4 = (flags << 4) | ((limit >> 16) & 0xF);
-    entry.BaseUpper8          = (base >> 24) & 0xFF;
+    struct gdt_entry entry;
+    entry.limit_lower_16      = limit & 0xFFFF;
+    entry.base_lower_16       = base & 0xFFFF;
+    entry.base_middle_8       = (base >> 16) & 0xFF;
+    entry.access_byte         = access_byte;
+    entry.flags_limit_upper_4 = (flags << 4) | ((limit >> 16) & 0xF);
+    entry.base_upper_8        = (base >> 24) & 0xFF;
 
     return entry;
 }
 
-void gdtInitializeDescriptor(struct GdtDescriptor *desc,
-                             struct GdtEntry      *gdt,
-                             size_t                gdtEntryCount)
+void gdtdescinit(struct gdt_descriptor *desc,
+                 struct gdt_entry      *gdt,
+                 size_t                 entry_count)
 {
-    desc->Offset  = CAST(uint16_t, sizeof *gdt * gdtEntryCount - 1);
-    desc->Address = CAST(uint32_t, gdt);
+    desc->offset  = CAST(uint16_t, sizeof *gdt * entry_count - 1);
+    desc->address = CAST(uint32_t, gdt);
 }

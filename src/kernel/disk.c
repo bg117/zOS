@@ -6,7 +6,8 @@
  */
 
 #include <syslvl/disk.h>
-#include <syslvl/i.h>
+
+#include <misc/define.h>
 
 // extern int __diskReset_internal_impl(uint8_t index);
 
@@ -16,7 +17,7 @@
 //                                        uint8_t  *heads,
 //                                        uint8_t  *sectors);
 
-int diskGetInfo(struct Disk *disk, uint8_t index)
+int diskqueryinfo(struct disk *disk, uint8_t index)
 {
     USE(disk);
     USE(index);
@@ -29,7 +30,7 @@ int diskGetInfo(struct Disk *disk, uint8_t index)
     return 1;
 }
 
-int diskReset(struct Disk *disk)
+int diskreset(struct disk *disk)
 {
     USE(disk);
     // return __diskReset_internal_impl(disk->Index);

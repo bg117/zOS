@@ -14,7 +14,7 @@
 ; ; Filename: disk.asm
 ; ; Description: Disk drive helper routines for use with x86
 ; ;
-; ; Date created: 200621DDMMYY1723HHmm
+; ; Date created: 200622DDMMYY1723HHmm
 ; ;
 ; ;
 
