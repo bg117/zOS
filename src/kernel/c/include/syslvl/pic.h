@@ -5,8 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxIRQHxuuq
-#define quuxIRQHxuuq
+#ifndef quuxPICHxuuq
+#define quuxPICHxuuq
 
 #include <stdint.h>
 
@@ -14,8 +14,8 @@
 extern "C" {
 #endif
 
-void irqinit(uint8_t master_offset, uint8_t slave_offset);
-void irqsendeoi(uint8_t irq);
+void picinit(uint8_t master_offset, uint8_t slave_offset);
+void picsendeoi(uint8_t irq);
 
 #ifdef __cplusplus
 }

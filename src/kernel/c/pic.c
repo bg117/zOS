@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include <syslvl/io.h>
-#include <syslvl/irq.h>
+#include <syslvl/pic.h>
 
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0
@@ -29,7 +29,7 @@
 
 #define IOWAIT() outb(UNUSED_PORT, 0)
 
-void irqinit(uint8_t master_offset, uint8_t slave_offset)
+void picinit(uint8_t master_offset, uint8_t slave_offset)
 {
     uint8_t master = inb(PIC1_DAT);
     uint8_t slave  = inb(PIC2_DAT);
@@ -62,7 +62,7 @@ void irqinit(uint8_t master_offset, uint8_t slave_offset)
     outb(PIC2_DAT, slave);
 }
 
-void irqsendeoi(uint8_t irq)
+void picsendeoi(uint8_t irq)
 {
     if (irq >= 8)
         outb(PIC2_CMD, PIC_EOI);

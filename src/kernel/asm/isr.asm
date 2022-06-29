@@ -18,7 +18,7 @@ bits 32
 ;
 ;
 
-extern __defexcept
+extern __dispatch_exception
 
 %macro isr_errcode_stub 1
 global __isr_stub_%+%1
@@ -303,7 +303,7 @@ _isr_ind:   pusha
             mov     gs, ax
 
             push    esp ; pass exception_info struct
-            call    __defexcept
+            call    __dispatch_exception
             add     esp, 4
 
             pop     eax
