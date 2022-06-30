@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-struct exception_info
+struct __attribute__((packed)) exception_info
 {
     uint32_t ds;
     uint32_t edi;

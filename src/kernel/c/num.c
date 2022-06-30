@@ -11,17 +11,17 @@
 static const char POSSIBLE_CHARS[]
     = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz";
 
-char *inttos(char *buffer, int i, int base)
+char *int_to_string(char *buffer, int i, int base)
 {
-    return longtos(buffer, CAST(long, i), base);
+    return long_to_string(buffer, CAST(long, i), base);
 }
 
-char *longtos(char *buffer, long l, int base)
+char *long_to_string(char *buffer, long l, int base)
 {
-    return llongtos(buffer, CAST(long long, l), base);
+    return long_long_to_string(buffer, CAST(long long, l), base);
 }
 
-char *llongtos(char *buffer, long long l, int base)
+char *long_long_to_string(char *buffer, long long l, int base)
 {
     char *rc;
     char *ptr;
@@ -66,17 +66,17 @@ char *llongtos(char *buffer, long long l, int base)
     return rc;
 }
 
-char *uinttos(char *buffer, unsigned int i, int base)
+char *uint_to_string(char *buffer, unsigned int i, int base)
 {
-    return ulongtos(buffer, CAST(unsigned long, i), base);
+    return ulong_to_string(buffer, CAST(unsigned long, i), base);
 }
 
-char *ulongtos(char *buffer, unsigned long l, int base)
+char *ulong_to_string(char *buffer, unsigned long l, int base)
 {
-    return ullongtos(buffer, CAST(unsigned long long, l), base);
+    return ulong_long_to_string(buffer, CAST(unsigned long long, l), base);
 }
 
-char *ullongtos(char *buffer, unsigned long long l, int base)
+char *ulong_long_to_string(char *buffer, unsigned long long l, int base)
 {
     char *rc;
     char *ptr;

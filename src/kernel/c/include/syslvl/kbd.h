@@ -5,15 +5,23 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxSTRINGSHxuuq
-#define quuxSTRINGSHxuuq
+#ifndef quuxKBDHxuuq
+#define quuxKBDHxuuq
+
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-char *str_to_upper(char *str);
-char *str_to_lower(char *str);
+struct get_char
+{
+    char scancode;
+    char key;
+};
+
+void            kbd_init();
+struct get_char kbd_get_char();
 
 #ifdef __cplusplus
 }

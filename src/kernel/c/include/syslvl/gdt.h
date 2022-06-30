@@ -61,18 +61,18 @@ struct __attribute__((packed)) gdt_descriptor
     uint32_t address;
 };
 
-struct gdt_entry gdtmkentry(uint32_t limit,
-                            uint32_t base,
-                            uint8_t  access_byte,
-                            uint8_t  flags);
+struct gdt_entry gdt_make_entry(uint32_t limit,
+                                uint32_t base,
+                                uint8_t  access_byte,
+                                uint8_t  flags);
 
-void gdtdescinit(struct gdt_descriptor *desc,
-                 struct gdt_entry      *gdt,
-                 size_t                 entry_count);
+void gdt_descriptor_init(struct gdt_descriptor *desc,
+                         struct gdt_entry      *gdt,
+                         size_t                 entry_count);
 
-void __attribute__((cdecl)) gdtdescld(struct gdt_descriptor *desc,
-                                      uint16_t               code_offset,
-                                      uint16_t               data_offset);
+void __attribute__((cdecl)) gdt_descriptor_load(struct gdt_descriptor *desc,
+                                                uint16_t code_offset,
+                                                uint16_t data_offset);
 
 #if defined(__cplusplus)
 }

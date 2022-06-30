@@ -8,7 +8,7 @@
 #include <misc/char_macros.h>
 #include <misc/strings.h>
 
-char *strtoupper(char *str)
+char *str_to_upper(char *str)
 {
     char *p = str;
     while (*p)
@@ -22,7 +22,7 @@ char *strtoupper(char *str)
     return str;
 }
 
-char *strtolower(char *str)
+char *str_to_lower(char *str)
 {
     char *p = str;
     while (*p)

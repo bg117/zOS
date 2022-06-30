@@ -12,12 +12,14 @@
 extern "C" {
 #endif
 
-void scrclr(void);
-void scrputc(char c);
-void scrputs(const char *__restrict__ s);
-void scrputsf(const char *__restrict__ fmt, ...);
-void scrscroll(void);
-void scrmvcur(int x, int y);
+void screen_clear(void);
+void screen_clear_line(int y);
+void screen_print_char(char c);
+void screen_print_string(const char *__restrict__ s);
+void screen_print_format_string(const char *__restrict__ fmt, ...);
+void screen_scroll(void);
+void screen_move_cursor(int x, int y);
+void screen_get_cursor_position(int *x, int *y);
 
 #ifdef __cplusplus
 }

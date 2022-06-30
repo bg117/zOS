@@ -12,13 +12,13 @@
 extern "C" {
 #endif
 
-char *inttos(char *buffer, int i, int base);
-char *longtos(char *buffer, long l, int base);
-char *llongtos(char *buffer, long long l, int base);
+char *int_to_string(char *buffer, int i, int base);
+char *long_to_string(char *buffer, long l, int base);
+char *long_long_to_string(char *buffer, long long l, int base);
 
-char *uinttos(char *buffer, unsigned int i, int base);
-char *ulongtos(char *buffer, unsigned long l, int base);
-char *ullongtos(char *buffer, unsigned long long l, int base);
+char *uint_to_string(char *buffer, unsigned int i, int base);
+char *ulong_to_string(char *buffer, unsigned long l, int base);
+char *ulong_long_to_string(char *buffer, unsigned long long l, int base);
 
 #ifdef __cplusplus
 }

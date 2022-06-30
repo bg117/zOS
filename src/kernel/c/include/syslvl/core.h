@@ -12,11 +12,9 @@
 extern "C" {
 #endif
 
-void __attribute__((cdecl)) corehlt(void) __attribute__((noreturn));
-void __attribute__((cdecl)) coresetint(void);
-void __attribute__((cdecl)) coreclrint(void);
-void __attribute__((cdecl)) coresetcarry(void);
-void __attribute__((cdecl)) coreclrcarry(void);
+void core_halt(void);
+void core_set_interrupt_flag(void);
+void core_clear_interrupt_flag(void);
 
 #ifdef __cplusplus
 }

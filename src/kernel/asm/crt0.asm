@@ -44,11 +44,10 @@ _start: ; initial setup (same as in bootloader)
 
         ; __cdecl passes args from right to left
         xor     dh, dh
-        mov     ebx, ARGV       ; base register
-        mov     [ebx], edx      ; index 0
-        mov     [ebx + 4], edi  ; index 1
+        push    edx             ; index 0
+        push    edi             ; index 1
 
-        push    ARGV            ; push argv to stack
+        push    esp             ; push argv to stack
 
         mov     ecx, 2
         push    ecx             ; lastly, push argc
@@ -63,8 +62,3 @@ _start: ; initial setup (same as in bootloader)
         pop     edx             ; bring back original value of DX
 
         jmp     $
-
-section .data
-ARGV:
-
-resb    255 * 4

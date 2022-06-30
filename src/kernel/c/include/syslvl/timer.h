@@ -5,15 +5,16 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxSTRINGSHxuuq
-#define quuxSTRINGSHxuuq
+#ifndef quuxTIMERHxuuq
+#define quuxTIMERHxuuq
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-char *str_to_upper(char *str);
-char *str_to_lower(char *str);
+void timer_init(void);
+void timer_set_cycle(int hz);
+void timer_wait(int ms);
 
 #ifdef __cplusplus
 }

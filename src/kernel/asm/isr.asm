@@ -290,7 +290,8 @@ isr_noerrcode_stub 253
 isr_noerrcode_stub 254
 isr_noerrcode_stub 255
 
-_isr_ind:   pusha
+_isr_ind:   pushad
+            cld
 
             xor     eax, eax
             mov     ax, ds
@@ -312,7 +313,7 @@ _isr_ind:   pusha
             mov     fs, ax
             mov     gs, ax
 
-            popa
+            popad
 
             add     esp, 8
             iret

@@ -20,43 +20,61 @@
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                               \
     switch (len)                                                               \
     {                                                                          \
-    case LENGTH_NORMAL: inttos(buf, va_arg(ap, int), base); break;             \
-    case LENGTH_SHORT: inttos(buf, CAST(short, va_arg(ap, int)), base); break; \
-    case LENGTH_VERY_SHORT:                                                    \
-        inttos(buf, CAST(char, va_arg(ap, int)), base);                        \
+    case LENGTH_NORMAL: int_to_string(buf, va_arg(ap, int), base); break;      \
+    case LENGTH_SHORT:                                                         \
+        int_to_string(buf, CAST(short, va_arg(ap, int)), base);                \
         break;                                                                 \
-    case LENGTH_LONG: longtos(buf, va_arg(ap, long), base); break;             \
-    case LENGTH_VERY_LONG: llongtos(buf, va_arg(ap, long long), base); break;  \
+    case LENGTH_VERY_SHORT:                                                    \
+        int_to_string(buf, CAST(char, va_arg(ap, int)), base);                 \
+        break;                                                                 \
+    case LENGTH_LONG: long_to_string(buf, va_arg(ap, long), base); break;      \
+    case LENGTH_VERY_LONG:                                                     \
+        long_long_to_string(buf, va_arg(ap, long long), base);                 \
+        break;                                                                 \
     }                                                                          \
-    scrputsf("%s", buf)
+    screen_print_format_string("%s", buf)
 
 #define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                             \
     switch (len)                                                               \
     {                                                                          \
-    case LENGTH_NORMAL: uinttos(buf, va_arg(ap, unsigned int), base); break;   \
-    case LENGTH_SHORT: uinttos(buf, va_arg(ap, unsigned int), base); break;    \
-    case LENGTH_VERY_SHORT: uinttos(buf, va_arg(ap, unsigned int), base);      \
+    case LENGTH_NORMAL:                                                        \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
         break;                                                                 \
-    case LENGTH_LONG: ulongtos(buf, va_arg(ap, unsigned long), base); break;   \
+    case LENGTH_SHORT:                                                         \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_VERY_SHORT:                                                    \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_LONG:                                                          \
+        ulong_to_string(buf, va_arg(ap, unsigned long), base);                 \
+        break;                                                                 \
     case LENGTH_VERY_LONG:                                                     \
-        ullongtos(buf, va_arg(ap, unsigned long long), base);                  \
+        ulong_long_to_string(buf, va_arg(ap, unsigned long long), base);       \
         break;                                                                 \
     }                                                                          \
-    scrputsf("%s", buf)
+    screen_print_format_string("%s", buf)
 
 #define SWITCH_LENGTH_UNSIGNED_UPR(ap, len, buf, base)                         \
     switch (len)                                                               \
     {                                                                          \
-    case LENGTH_NORMAL: uinttos(buf, va_arg(ap, unsigned int), base); break;   \
-    case LENGTH_SHORT: uinttos(buf, va_arg(ap, unsigned int), base); break;    \
-    case LENGTH_VERY_SHORT: uinttos(buf, va_arg(ap, unsigned int), base);      \
+    case LENGTH_NORMAL:                                                        \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
         break;                                                                 \
-    case LENGTH_LONG: ulongtos(buf, va_arg(ap, unsigned long), base); break;   \
+    case LENGTH_SHORT:                                                         \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_VERY_SHORT:                                                    \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_LONG:                                                          \
+        ulong_to_string(buf, va_arg(ap, unsigned long), base);                 \
+        break;                                                                 \
     case LENGTH_VERY_LONG:                                                     \
-        ullongtos(buf, va_arg(ap, unsigned long long), base);                  \
+        ulong_long_to_string(buf, va_arg(ap, unsigned long long), base);       \
         break;                                                                 \
     }                                                                          \
-    scrputsf("%s", strtoupper(buf))
+    screen_print_format_string("%s", str_to_upper(buf))
 
 #define GET_VGA_POSITION_XY(x, y) (((y) * (VGA_WIDTH) + (x)) * 2)
 
@@ -84,22 +102,22 @@ enum printf_length_state
     LENGTH_VERY_LONG
 };
 
-void scrputs(const char *__restrict__ s)
+void screen_print_string(const char *__restrict__ s)
 {
     int old_flag     = _move_cursor_chr;
     _move_cursor_chr = 0;
 
     while (*s)
     {
-        scrputc(*s);
+        screen_print_char(*s);
         ++s;
     }
 
     _move_cursor_chr = old_flag;
-    scrmvcur(_pos_x, _pos_y);
+    screen_move_cursor(_pos_x, _pos_y);
 }
 
-void scrputsf(const char *__restrict__ fmt, ...)
+void screen_print_format_string(const char *__restrict__ fmt, ...)
 {
     int old_flag     = _move_cursor_chr;
     _move_cursor_chr = 0;
@@ -124,9 +142,9 @@ void scrputsf(const char *__restrict__ fmt, ...)
         {
             switch (*fmt)
             {
-            case '%': scrputc('%'); break;
-            case 's': scrputs(va_arg(ap, const char *)); break;
-            case 'c': scrputc(CAST(char, va_arg(ap, int))); break;
+            case '%': screen_print_char('%'); break;
+            case 's': screen_print_string(va_arg(ap, const char *)); break;
+            case 'c': screen_print_char(CAST(char, va_arg(ap, int))); break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;
@@ -144,17 +162,17 @@ void scrputsf(const char *__restrict__ fmt, ...)
                 SWITCH_LENGTH_UNSIGNED_UPR(ap, length, num_buf, 16);
                 break;
             case 'p':
-                scrputs("0x");
+                screen_print_string("0x");
                 SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16);
                 break;
             case 'o': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 8); break;
             case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 2); break;
-            default: scrputsf("%%%c", *fmt); break;
+            default: screen_print_format_string("%%%c", *fmt); break;
             }
         }
         else
         {
-            scrputc(*fmt);
+            screen_print_char(*fmt);
         }
 
         state  = STATE_NORMAL;
@@ -165,10 +183,10 @@ void scrputsf(const char *__restrict__ fmt, ...)
     va_end(ap);
 
     _move_cursor_chr = old_flag;
-    scrmvcur(_pos_x, _pos_y);
+    screen_move_cursor(_pos_x, _pos_y);
 }
 
-void scrputc(char c)
+void screen_print_char(char c)
 {
     switch (c)
     {
@@ -181,7 +199,7 @@ void scrputc(char c)
     }
 
     if (_pos_y >= VGA_LENGTH)
-        scrscroll();
+        screen_scroll();
 
     int position             = GET_VGA_POSITION_XY(_pos_x, _pos_y);
     VGA_BUFFER[position]     = c;
@@ -196,39 +214,49 @@ void scrputc(char c)
     }
 
     if (_move_cursor_chr)
-        scrmvcur(_pos_x, _pos_y);
+        screen_move_cursor(_pos_x, _pos_y);
 }
 
-void scrclr()
+void screen_clear()
 {
     _pos_x = 0;
     _pos_y = 0;
 
-    for (int i = 0; i < VGA_LENGTH; i++)
-    {
-        for (int j = 0; j < VGA_WIDTH; j += 2)
-        {
-            VGA_BUFFER[i * VGA_WIDTH + j]     = '\0';
-            VGA_BUFFER[i * VGA_WIDTH + j + 1] = 0x0F;
-        }
-    }
+    mem_fill(VGA_BUFFER, 0, VGA_LENGTH * VGA_WIDTH * 2);
+
+    screen_move_cursor(_pos_x, _pos_y);
 }
 
-void scrscroll()
+void screen_clear_line(int y)
 {
-    memcopyovlp(
+    _pos_x = 0;
+
+    mem_fill(VGA_BUFFER + VGA_LENGTH * y * 2, 0, VGA_WIDTH * 2);
+
+    screen_move_cursor(_pos_x, _pos_y);
+}
+
+void screen_scroll()
+{
+    mem_copy_with_overlap(
         VGA_BUFFER, VGA_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
-    memfill(VGA_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
+    mem_fill(VGA_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
 
     if (_pos_y > 0)
         --_pos_y;
 }
 
-void scrmvcur(int x, int y)
+void screen_move_cursor(int x, int y)
 {
     uint16_t pos = GET_VGA_POSITION_XY(x, y) / 2;
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, CAST(uint8_t, pos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, CAST(uint8_t, (pos >> 8) & 0xFF));
+    out_byte(0x3D4, 0x0F);
+    out_byte(0x3D5, CAST(uint8_t, pos & 0xFF));
+    out_byte(0x3D4, 0x0E);
+    out_byte(0x3D5, CAST(uint8_t, (pos >> 8) & 0xFF));
+}
+
+void screen_get_cursor_position(int *x, int *y)
+{
+    *x = _pos_x;
+    *y = _pos_y;
 }

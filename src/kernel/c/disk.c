@@ -17,7 +17,7 @@
 //                                        uint8_t  *heads,
 //                                        uint8_t  *sectors);
 
-int diskqueryinfo(struct disk *disk, uint8_t index)
+int disk_query_info(struct disk *disk, uint8_t index)
 {
     USE(disk);
     USE(index);
@@ -30,7 +30,7 @@ int diskqueryinfo(struct disk *disk, uint8_t index)
     return 1;
 }
 
-int diskreset(struct disk *disk)
+int disk_reset_system(struct disk *disk)
 {
     USE(disk);
     // return __diskReset_internal_impl(disk->Index);

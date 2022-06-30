@@ -11,13 +11,36 @@
 
 #include <misc/type_macros.h>
 
-void *memcopy(void *__restrict__ dest, const void *__restrict__ src, size_t len)
+void *mem_fill(void *ptr, uint8_t fill, size_t len)
 {
     size_t i = 0;
     size_t x = len / sizeof len;
 
-    size_t       *al_dest = dest;
-    const size_t *al_src  = src;
+    uint32_t *al_ptr = ptr;
+    uint32_t  u_fill = (((fill << 8) | (fill)) << 16) | ((fill << 8) | (fill));
+
+    for (; i < x; i++)
+        al_ptr[i] = u_fill;
+
+    i *= sizeof len;
+
+    uint8_t *sec_ptr = CAST(uint8_t *, al_ptr);
+
+    for (; i < len; i++)
+        sec_ptr[i] = fill;
+
+    return ptr;
+}
+
+void *mem_copy(void *__restrict__ dest,
+               const void *__restrict__ src,
+               size_t len)
+{
+    size_t i = 0;
+    size_t x = len / sizeof len;
+
+    uint32_t       *al_dest = dest;
+    const uint32_t *al_src  = src;
 
     for (; i < x; i++)
         al_dest[i] = al_src[i];
@@ -33,15 +56,15 @@ void *memcopy(void *__restrict__ dest, const void *__restrict__ src, size_t len)
     return dest;
 }
 
-void *memcopyovlp(void *__restrict__ dest,
-                  const void *__restrict__ src,
-                  size_t len)
+void *mem_copy_with_overlap(void *__restrict__ dest,
+                            const void *__restrict__ src,
+                            size_t len)
 {
     uintptr_t isrc  = CAST(uintptr_t, src);
     uintptr_t idest = CAST(uintptr_t, dest);
 
     if (isrc > idest)
-        return memcopy(dest, src, len);
+        return mem_copy(dest, src, len);
 
     if (isrc == idest)
         return dest;

@@ -25,8 +25,8 @@ struct disk
     uint8_t type;
 };
 
-int diskqueryinfo(struct disk *disk, uint8_t index);
-int diskreset(struct disk *disk);
+int disk_query_info(struct disk *disk, uint8_t index);
+int disk_reset_system(struct disk *disk);
 
 #ifdef __cplusplus
 }

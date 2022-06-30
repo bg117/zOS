@@ -10,13 +10,16 @@
 
 #include <syslvl/core.h>
 #include <syslvl/disk.h>
+#include <syslvl/exception_info.h>
 #include <syslvl/fat.h>
 #include <syslvl/gdt.h>
 #include <syslvl/hal.h>
 #include <syslvl/idt.h>
 #include <syslvl/io.h>
+#include <syslvl/kbd.h>
 #include <syslvl/mem.h>
 #include <syslvl/pic.h>
+#include <syslvl/timer.h>
 #include <syslvl/video.h>
 
 #include <misc/num.h>
@@ -24,39 +27,6 @@
 
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
-
-static const char US_SCANCODES[128] = {
-    0,    27,  '1', '2', '3',  '4', '5', '6', '7',  '8', /* 9 */
-    '9',  '0', '-', '=', '\b',                           /* Backspace */
-    '\t',                                                /* Tab */
-    'q',  'w', 'e', 'r',                                 /* 19 */
-    't',  'y', 'u', 'i', 'o',  'p', '[', ']', '\n',      /* Enter key */
-    0,                                                   /* 29   - Control */
-    'a',  's', 'd', 'f', 'g',  'h', 'j', 'k', 'l',  ';', /* 39 */
-    '\'', '`', 0,                                        /* Left shift */
-    '\\', 'z', 'x', 'c', 'v',  'b', 'n',                 /* 49 */
-    'm',  ',', '.', '/', 0,                              /* Right shift */
-    '*',  0,                                             /* Alt */
-    ' ',                                                 /* Space bar */
-    0,                                                   /* Caps lock */
-    0,                                                   /* 59 - F1 key ... > */
-    0,    0,   0,   0,   0,    0,   0,   0,   0,         /* < ... F10 */
-    0,                                                   /* 69 - Num lock*/
-    0,                                                   /* Scroll Lock */
-    0,                                                   /* Home key */
-    0,                                                   /* Up Arrow */
-    0,                                                   /* Page Up */
-    '-',  0,                                             /* Left Arrow */
-    0,    0,                                             /* Right Arrow */
-    '+',  0,                                             /* 79 - End key*/
-    0,                                                   /* Down Arrow */
-    0,                                                   /* Page Down */
-    0,                                                   /* Insert Key */
-    0,                                                   /* Delete Key */
-    0,    0,   0,   0,                                   /* F11 Key */
-    0,                                                   /* F12 Key */
-    0, /* All other keys are undefined */
-};
 
 static const char *EXCEPTION_IDS[]
     = { "Divide-by-zero error",
@@ -89,85 +59,50 @@ static const char *EXCEPTION_IDS[]
         "FPU error interrupt" };
 
 static void _default_exception_handler(struct exception_info *regs);
-static void _default_irq_handler(struct exception_info *regs);
-static void _irq1_handler(struct exception_info *regs);
-
-static volatile int _lock = 1;
 
 // main
 int main(int argc, char **argv)
 {
-    scrclr();
+    screen_clear();
 
     struct fat_info fi;
-    uint8_t         driveNumber;
+    uint8_t         drive_number;
 
     // works!
-    memcopy(&fi, argv[1], sizeof fi);
-    memcopy(&driveNumber, &argv[0], sizeof driveNumber);
+    mem_copy(&fi, argv[1], sizeof fi);
+    mem_copy(&drive_number, &argv[0], sizeof drive_number);
 
-    halusedefexcept(_default_exception_handler);
-    halinit(PIC1_OFFSET, PIC2_OFFSET);
+    hal_use_default_exception_handler(_default_exception_handler);
+    hal_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    // map default IRQ handlers
-    for (int i = 0; i < 16; i++)
-        halmapexcept(i + PIC1_OFFSET, _default_irq_handler);
+    timer_init();
+    kbd_init();
 
-    // map keyboard handler
-    halmapexcept(1 /* IRQ 1 */ + PIC1_OFFSET, _irq1_handler);
+    screen_print_string("zOS version 0.01\r\n");
+    screen_print_string("Type something:\r\n\r\n");
 
-    scrputs("zOS version 0.01\r\n");
-    scrputs("Type something:\r\n\r\n");
-
-    while (_lock)
-        ;
+    while (1)
+    {
+        struct get_char gc = kbd_get_char();
+        screen_print_char(gc.key);
+    }
 
     return 1;
 }
 
-void _default_irq_handler(struct exception_info *regs)
-{
-    picsendeoi(regs->vector - PIC1_OFFSET);
-}
-
-void _irq1_handler(struct exception_info *regs)
-{
-    char read;
-    int  isready = 0;
-
-    while (_lock /* remove opportunity to optimize */)
-    {
-        if ((inb(0x64) & 1) == 0)
-            continue;
-
-        read    = inb(0x60);
-        isready = 1;
-        break;
-    }
-
-    if (isready)
-    {
-        if (!(read & 0x80))
-            scrputc(US_SCANCODES[CAST(int, read)]);
-    }
-
-    outb(0x80, 0x00);
-
-    picsendeoi(regs->vector - PIC1_OFFSET);
-}
-
 void _default_exception_handler(struct exception_info *regs)
 {
-    scrputs("--------------- SYSTEM ERROR ---------------\r\n");
-    scrputs(
+    screen_print_string("--------------- SYSTEM ERROR ---------------\r\n");
+    screen_print_string(
         "The kernel threw a fit trying to handle an interrupt and "
         "couldn't continue.\r\n"); // ah yes.
-    scrputsf("Interrupt index: 0x%X\r\n", regs->vector);
+    screen_print_format_string("Interrupt index: 0x%X\r\n", regs->vector);
     if (regs->vector < 0x20)
-        scrputsf("Identifier: %s\r\n", EXCEPTION_IDS[regs->vector]);
+        screen_print_format_string("Identifier: %s\r\n",
+                                   EXCEPTION_IDS[regs->vector]);
 
-    scrputs("Dump:\r\n");
-    scrputsf(
+    screen_print_string("Dump:\r\n");
+    screen_print_format_string(
         "    EAX: 0x%X\r\n    EBX: 0x%X\r\n    ECX: 0x%X\r\n    EDX: "
         "0x%X\r\n    ESI: "
         "0x%X\r\n    EDI: "
@@ -188,5 +123,6 @@ void _default_exception_handler(struct exception_info *regs)
         regs->ss,
         regs->eflags);
 
-    corehlt();
+    core_clear_interrupt_flag();
+    core_halt();
 }

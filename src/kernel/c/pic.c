@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+
 #include <syslvl/io.h>
 #include <syslvl/pic.h>
 
@@ -27,45 +28,58 @@
 
 #define ICW4_8086 0x01 // 8086 mode
 
-#define IOWAIT() outb(UNUSED_PORT, 0)
+#define IOWAIT() out_byte(UNUSED_PORT, 0)
 
-void picinit(uint8_t master_offset, uint8_t slave_offset)
+static uint8_t _pic1_offset;
+static uint8_t _pic2_offset;
+
+void pic_init(uint8_t master_offset, uint8_t slave_offset)
 {
-    uint8_t master = inb(PIC1_DAT);
-    uint8_t slave  = inb(PIC2_DAT);
+    _pic1_offset = master_offset;
+    _pic2_offset = slave_offset;
 
-    outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
+    out_byte(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
     IOWAIT();
 
-    outb(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
+    out_byte(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
     IOWAIT();
 
-    outb(PIC1_DAT, master_offset);
+    out_byte(PIC1_DAT, master_offset);
     IOWAIT();
 
-    outb(PIC2_DAT, slave_offset);
+    out_byte(PIC2_DAT, slave_offset);
     IOWAIT();
 
-    outb(PIC1_DAT, ICW3_MASTER_LINE);
+    out_byte(PIC1_DAT, ICW3_MASTER_LINE);
     IOWAIT();
 
-    outb(PIC2_DAT, ICW3_SLAVE_LINE);
+    out_byte(PIC2_DAT, ICW3_SLAVE_LINE);
     IOWAIT();
 
-    outb(PIC1_DAT, ICW4_8086);
+    out_byte(PIC1_DAT, ICW4_8086);
     IOWAIT();
 
-    outb(PIC2_DAT, ICW4_8086);
+    out_byte(PIC2_DAT, ICW4_8086);
     IOWAIT();
 
-    outb(PIC1_DAT, master);
-    outb(PIC2_DAT, slave);
+    out_byte(PIC1_DAT, 0xFC);
+    out_byte(PIC2_DAT, 0xFF);
 }
 
-void picsendeoi(uint8_t irq)
+void pic_send_eoi(uint8_t irq)
 {
     if (irq >= 8)
-        outb(PIC2_CMD, PIC_EOI);
+        out_byte(PIC2_CMD, PIC_EOI);
 
-    outb(PIC1_CMD, PIC_EOI);
+    out_byte(PIC1_CMD, PIC_EOI);
+}
+
+uint8_t pic_get_pic1_offset()
+{
+    return _pic1_offset;
+}
+
+uint8_t pic_get_pic2_offset()
+{
+    return _pic2_offset;
 }

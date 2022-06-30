@@ -46,20 +46,20 @@ struct __attribute__((packed)) idt_descriptor
     uint32_t address;
 };
 
-struct idt_entry idtmkentry(void    *isr,
-                            uint16_t code_segment,
-                            uint8_t  access_byte);
+struct idt_entry idt_make_entry(void    *isr,
+                                uint16_t code_segment,
+                                uint8_t  access_byte);
 
-void idtmodentry(struct idt_entry *entry,
-                 void             *isr,
-                 uint16_t          code_segment,
-                 uint8_t           access_byte);
+void idt_modify_entry(struct idt_entry *entry,
+                      void             *isr,
+                      uint16_t          code_segment,
+                      uint8_t           access_byte);
 
-void idtdescinit(struct idt_descriptor *desc,
-                 struct idt_entry      *idt,
-                 size_t                 entry_count);
+void idt_descriptor_init(struct idt_descriptor *desc,
+                         struct idt_entry      *idt,
+                         size_t                 entry_count);
 
-void __attribute__((cdecl)) idtdescld(struct idt_descriptor *desc);
+void __attribute__((cdecl)) idt_descriptor_load(struct idt_descriptor *desc);
 
 #if defined(__cplusplus)
 }

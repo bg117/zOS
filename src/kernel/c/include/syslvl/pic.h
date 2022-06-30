@@ -14,8 +14,11 @@
 extern "C" {
 #endif
 
-void picinit(uint8_t master_offset, uint8_t slave_offset);
-void picsendeoi(uint8_t irq);
+void pic_init(uint8_t master_offset, uint8_t slave_offset);
+void pic_send_eoi(uint8_t irq);
+
+uint8_t pic_get_pic1_offset();
+uint8_t pic_get_pic2_offset();
 
 #ifdef __cplusplus
 }
