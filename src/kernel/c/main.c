@@ -83,8 +83,8 @@ int main(int argc, char **argv)
 
     while (1)
     {
-        struct get_char gc = kbd_get_char();
-        screen_print_char(gc.key);
+        char c = kbd_get_char();
+        screen_print_char(c);
     }
 
     return 1;

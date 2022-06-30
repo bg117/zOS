@@ -14,14 +14,8 @@
 extern "C" {
 #endif
 
-struct get_char
-{
-    char scancode;
-    char key;
-};
-
-void            kbd_init();
-struct get_char kbd_get_char();
+void kbd_init();
+char kbd_get_char();
 
 #ifdef __cplusplus
 }

@@ -46,34 +46,43 @@ static const char US_SCANCODES[128] = {
     0, /* All other keys are undefined */
 };
 
-static char         _last_char     = '\0';
-static char         _last_scancode = '\0';
-static volatile int _got_key       = 0;
+static char         _last_char;
+static char         _last_scancode;
+static volatile int _got_key;
+
+static enum key_flags
+{
+    KEY_SHIFT = 0x01,
+    KEY_CTRL  = 0x02,
+    KEY_ALT   = 0x04
+} _key_flags;
 
 static void _irq1_handler(struct exception_info *);
 
 void kbd_init()
 {
     hal_map_exception_handler(1 + pic_get_pic1_offset(), _irq1_handler);
+
+    _last_char     = 0;
+    _last_scancode = 0;
+    _got_key       = 0;
+
+    _key_flags = 0;
 }
 
-struct get_char kbd_get_char()
+char kbd_get_char()
 {
     _got_key = 0;
     while (!_got_key)
         ;
 
-    struct get_char gc;
-    gc.key      = _last_char;
-    gc.scancode = _last_scancode;
-
-    return gc;
+    return _last_char;
 }
 
 void _irq1_handler(struct exception_info *info)
 {
-    char read;
-    int  is_ready = 0;
+    uint8_t read;
+    int     is_ready = 0;
 
     while (!is_ready)
     {
@@ -84,12 +93,17 @@ void _irq1_handler(struct exception_info *info)
         is_ready = 1;
     }
 
-    if (!(read & 0x80))
+    if ((read & 0x80))
     {
-        _last_char     = US_SCANCODES[CAST(int, read)];
+        // TODO: implement key-release functionality
+    }
+    else
+    {
+        _last_char     = US_SCANCODES[read];
         _last_scancode = read;
+
+        _got_key = 1;
     }
 
-    _got_key = 1;
     pic_send_eoi(0x01);
 }
