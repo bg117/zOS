@@ -8,10 +8,10 @@
 #include <stdint.h>
 
 #include <syslvl/core.h>
-#include <syslvl/exception_info.h>
 #include <syslvl/gdt.h>
 #include <syslvl/hal.h>
 #include <syslvl/idt.h>
+#include <syslvl/interrupt_info.h>
 #include <syslvl/pic.h>
 #include <syslvl/video.h>
 
@@ -23,16 +23,16 @@ static struct gdt_descriptor _gdt_desc;
 static struct idt_entry      _idt[256];
 static struct idt_descriptor _idt_desc;
 
-static void _default_exception_handler(struct exception_info *);
-static void _default_irq_handler(struct exception_info *);
+static void _default_exception_handler(struct interrupt_info *);
+static void _default_irq_handler(struct interrupt_info *);
 
-static void (*_handlers[256])(struct exception_info *)
+static void (*_handlers[256])(struct interrupt_info *)
     = { _default_exception_handler };
 
 static void _hal_init_gdt(void);
 static void _hal_init_isr(void);
 
-void __dispatch_exception(struct exception_info *);
+void __dispatch_exception(struct interrupt_info *);
 
 // auto-generated
 #pragma region ISR stubs
@@ -310,14 +310,14 @@ void hal_init(uint8_t pic1_offset, uint8_t pic2_offset)
     core_set_interrupt_flag();
 }
 
-void hal_use_default_exception_handler(void (*handler)(struct exception_info *))
+void hal_use_default_interrupt_handler(void (*handler)(struct interrupt_info *))
 {
     for (int i = 0; i < sizeof _handlers / sizeof *_handlers; i++)
         _handlers[i] = handler;
 }
 
 void hal_map_exception_handler(uint8_t vector,
-                               void (*handler)(struct exception_info *))
+                               void (*handler)(struct interrupt_info *))
 {
     _handlers[vector] = handler;
 }
@@ -871,16 +871,16 @@ void _hal_init_isr()
     idt_descriptor_init(&_idt_desc, _idt, sizeof _idt / sizeof *_idt);
 }
 
-void __dispatch_exception(struct exception_info *info)
+void __dispatch_exception(struct interrupt_info *info)
 {
     _handlers[info->vector](info);
 }
 
-void _default_exception_handler(struct exception_info *info)
+void _default_exception_handler(struct interrupt_info *info)
 {
 }
 
-void _default_irq_handler(struct exception_info *info)
+void _default_irq_handler(struct interrupt_info *info)
 {
     pic_send_eoi(info->vector - pic_get_pic1_offset());
 }

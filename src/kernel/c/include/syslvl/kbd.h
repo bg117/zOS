@@ -14,7 +14,16 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initializes the keyboard and its handler.
+ */
 void kbd_init();
+
+/**
+ * @brief Gets a single character from the user.
+ *
+ * @return The character entered.
+ */
 char kbd_get_char();
 
 #ifdef __cplusplus

@@ -10,7 +10,11 @@
 
 #include <stdint.h>
 
-struct __attribute__((packed)) exception_info
+/**
+ * @brief Provides a list of registers passed onto the stack
+ *        when an interrupt is called.
+ */
+struct __attribute__((packed)) interrupt_info
 {
     uint32_t ds;
     uint32_t edi;

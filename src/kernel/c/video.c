@@ -81,6 +81,8 @@
 static const uint8_t VGA_WIDTH  = 80;
 static const uint8_t VGA_LENGTH = 25;
 
+static const int TAB_WIDTH = 8;
+
 static uint8_t *const VGA_BUFFER = CAST(uint8_t *const, 0xB8000);
 static uint16_t       _pos_x     = 0;
 static uint16_t       _pos_y     = 0;
@@ -190,7 +192,21 @@ void screen_print_char(char c)
 {
     switch (c)
     {
-    case '\n': ++_pos_y; return;
+    case '\n':
+        _pos_x = 0;
+        ++_pos_y;
+        return;
+    case '\t':
+        if (_pos_x % TAB_WIDTH == 0)
+        {
+            _pos_x += TAB_WIDTH;
+        }
+        else
+        {
+            for (int i = 0; i < _pos_x % TAB_WIDTH; i++)
+                screen_print_char(' ');
+        }
+        return;
     case '\r': _pos_x = 0; return;
     case '\b':
         if (_pos_x > 0)

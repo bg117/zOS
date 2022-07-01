@@ -5,13 +5,14 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <syslvl/exception_info.h>
 #include <syslvl/hal.h>
+#include <syslvl/interrupt_info.h>
 #include <syslvl/io.h>
 #include <syslvl/kbd.h>
 #include <syslvl/pic.h>
 
 #include <misc/type_macros.h>
+#include "syslvl/core.h"
 
 static const char US_SCANCODES[128] = {
     0,    27,  '1', '2', '3',  '4', '5', '6', '7',  '8', /* 9 */
@@ -90,7 +91,7 @@ static enum key_flags
     KEY_ALT   = 0x04
 } _key_flags;
 
-static void _irq1_handler(struct exception_info *);
+static void _irq1_handler(struct interrupt_info *);
 
 void kbd_init()
 {
@@ -119,7 +120,7 @@ char kbd_get_char()
 #define SHIFT_ALT_CTRL_CHECK(x)                                                \
     (SHIFT_CHECK(x) || ALT_CHECK(x) || CTRL_CHECK(x))
 
-void _irq1_handler(struct exception_info *info)
+void _irq1_handler(struct interrupt_info *info)
 {
     uint8_t read;
     int     is_ready = 0;
@@ -133,41 +134,24 @@ void _irq1_handler(struct exception_info *info)
         is_ready = 1;
     }
 
-    if ((read & 0x80))
+    if (SHIFT_ALT_CTRL_CHECK(read))
     {
-        if (SHIFT_ALT_CTRL_CHECK(read))
-        {
-            if (SHIFT_CHECK(read))
-                _key_flags ^= KEY_SHIFT;
+        if (SHIFT_CHECK(read))
+            _key_flags ^= KEY_SHIFT; // XOR can both set and unset bits
 
-            if (ALT_CHECK(read))
-                _key_flags ^= KEY_ALT;
+        if (ALT_CHECK(read))
+            _key_flags ^= KEY_ALT;
 
-            if (CTRL_CHECK(read))
-                _key_flags ^= KEY_CTRL;
-        }
+        if (CTRL_CHECK(read))
+            _key_flags ^= KEY_CTRL;
     }
-    else
+    else if (!(read & 0x80) && !SHIFT_ALT_CTRL_CHECK(read))
     {
-        if (SHIFT_ALT_CTRL_CHECK(read))
-        {
-            if (SHIFT_CHECK(read))
-                _key_flags ^= KEY_SHIFT;
-
-            if (ALT_CHECK(read))
-                _key_flags ^= KEY_ALT;
-
-            if (CTRL_CHECK(read))
-                _key_flags ^= KEY_CTRL;
-        }
-        else
-        {
-            _last_char = (_key_flags & KEY_SHIFT) == 1 ? US_SCANCODES_UPR[read]
+        _last_char     = (_key_flags & KEY_SHIFT) == 1 ? US_SCANCODES_UPR[read]
                                                        : US_SCANCODES[read];
-            _last_scancode = read;
+        _last_scancode = read;
 
-            _got_key = 1;
-        }
+        _got_key = 1;
     }
 
     pic_send_eoi(0x01);

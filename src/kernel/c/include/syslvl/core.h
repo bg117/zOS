@@ -12,8 +12,19 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Halts the CPU (executes the HLT instruction).
+ */
 void core_halt(void);
+
+/**
+ * @brief Sets the interrupt flag.
+ */
 void core_set_interrupt_flag(void);
+
+/**
+ * @brief Clears the interrupt flag.
+ */
 void core_clear_interrupt_flag(void);
 
 #ifdef __cplusplus

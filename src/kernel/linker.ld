@@ -3,6 +3,8 @@ ENTRY(_start)
 
 SECTIONS
 {
+    __start = .;
+
     __text_start = .;
     .text :
     {
