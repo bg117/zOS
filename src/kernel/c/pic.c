@@ -62,8 +62,8 @@ void pic_init(uint8_t master_offset, uint8_t slave_offset)
     out_byte(PIC2_DAT, ICW4_8086);
     IOWAIT();
 
-    out_byte(PIC1_DAT, 0xFC);
-    out_byte(PIC2_DAT, 0xFF);
+    out_byte(PIC1_DAT, 0); // all IRQs allowed
+    out_byte(PIC2_DAT, 0);
 }
 
 void pic_send_eoi(uint8_t irq)
