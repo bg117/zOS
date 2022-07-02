@@ -1,5 +1,5 @@
 ENTRY(_start)
-. = 0x1FC0;
+. = 0x100000;
 
 SECTIONS
 {

@@ -22,15 +22,17 @@ section .ld
 
 global _start
 extern __bss_start
+extern __start
 extern __end
 extern main
 
 _start: ; initial setup (same as in bootloader)
-        mov     esp, eax
+        mov     esp, 0x10000    ; gives approx. 64 KiB of stack
         mov     ebp, esp
 
         ; clear .bss
         push    edi
+
         mov     ecx, __end
         mov     edi, __bss_start
 

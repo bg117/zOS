@@ -264,7 +264,10 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
                         mov     ax, [si]
                         pop     si
 
-                        add     bx, [variables.cluster_size_bytes]
+                        mov     cx, [variables.cluster_size_bytes]
+                        and     ecx, 0xFFFF
+                        add     bx, cx
+                        add     [variables.kernel_size_bytes], ecx
 
                         jmp     .after_load_kernel
 
@@ -293,17 +296,30 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
                                     mov     gs, ax
                                     mov     ss, ax
 
-                            mov     ebx, (KERNEL_SEGMENT << 4) | KERNEL_BUFFER
+                            ; relocate kernel
+                            mov     ecx, [variables.kernel_size_bytes]
+                            mov     edi, 0x100000
+                            mov     esi, (KERNEL_SEGMENT << 4) | KERNEL_BUFFER
+                            xor     edx, edx
+                            mov     eax, ecx
+                            mov     ecx, 4
+                            div     ecx
+                            mov     ecx, eax
+
+                            cld
+                            rep     movsd
+
+                            mov     ecx, edx
+
+                            cld
+                            rep     movsb
 
                             ; DI=FAT info
                             mov     edi, fat_info
-                            mov     eax, KERNEL_BUFFER
                             xor     edx, edx
                             mov     dl, [extended_boot_record.drive_number]
 
-                            push    0x08
-                            push    ebx
-                            retf    ; hack
+                            jmp     0x08:0x100000
         [bits 16]
         jmp $
 
@@ -339,6 +355,7 @@ variables:
     .fat_size:              dw  0
     .cluster:               dw  0
     .cluster_size_bytes:    dw  0
+    .kernel_size_bytes:     dd  0
     .current_fat:           dw  0
     .buffer1:               dw  BUFFER
     .buffer2:               dw  BUFFER

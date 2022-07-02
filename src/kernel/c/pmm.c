@@ -7,5 +7,7 @@
 
 #include <syslvl/pmm.h>
 
+#define BLOCK_SIZE 4096
+
 /* defined in the linker script */
 extern char __start, __end;

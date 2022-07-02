@@ -25,7 +25,8 @@ CFLAGS       := -Wall \
 				-nostdlib
 
 CPPFLAGS     := -I${CURDIR}/c/include \
-				-Wno-unknown-pragmas
+				-Wno-unknown-pragmas \
+				-MMD
 
 LDFLAGS      := -Map=${OBJ_DIR}/${EXEC}.map \
 				-T${CURDIR}/linker.ld \
@@ -40,6 +41,8 @@ SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
 
 OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.o}}
 OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.o}}
+
+HDRS := ${OBJS_C:.o=.d}
 
 .PHONY: all build clean
 
@@ -76,3 +79,5 @@ ${OBJ_DIR}/%.o: ${CURDIR}/asm/%.asm
 		${ASMFLAGS} \
 		-o $@ \
 		$<
+
+-include ${HDRS}

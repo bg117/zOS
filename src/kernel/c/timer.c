@@ -10,8 +10,10 @@
 #include <syslvl/hal.h>
 #include <syslvl/interrupt_info.h>
 #include <syslvl/io.h>
+#include <syslvl/log.h>
 #include <syslvl/pic.h>
 #include <syslvl/timer.h>
+#include <syslvl/video.h>
 
 static uint64_t _timer_ticks;
 static uint64_t _seconds;
@@ -23,6 +25,7 @@ static void _irq0_handler(struct interrupt_info *);
 void timer_init()
 {
     hal_map_exception_handler(0 + pic_get_pic1_offset(), _irq0_handler);
+
     timer_set_cycle(100);
 
     _timer_ticks = 0;
@@ -32,7 +35,7 @@ void timer_init()
 void timer_set_cycle(int hz)
 {
     const int ONE_MHZ = 1193180;
-    int       div     = ONE_MHZ / hz;
+    uint16_t  div     = ONE_MHZ / hz;
 
     out_byte(0x43, 0x36);
     out_byte(0x40, div & 0xFF);

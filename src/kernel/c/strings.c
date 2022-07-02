@@ -7,6 +7,7 @@
 
 #include <misc/char_macros.h>
 #include <misc/strings.h>
+#include <stddef.h>
 
 char *str_to_upper(char *str)
 {
@@ -34,4 +35,13 @@ char *str_to_lower(char *str)
     }
 
     return str;
+}
+
+size_t str_get_length(const char *str)
+{
+    size_t i = 0;
+    for (; *str; i++, ++str)
+        ;
+
+    return i;
 }
