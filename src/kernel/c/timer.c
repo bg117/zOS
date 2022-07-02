@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 
-#include <syslvl/exception_info.h>
 #include <syslvl/hal.h>
+#include <syslvl/interrupt_info.h>
 #include <syslvl/io.h>
 #include <syslvl/pic.h>
 #include <syslvl/timer.h>
@@ -18,7 +18,7 @@ static uint64_t _seconds;
 
 static uint64_t _cycles;
 
-static void _irq0_handler(struct exception_info *);
+static void _irq0_handler(struct interrupt_info *);
 
 void timer_init()
 {
@@ -48,7 +48,7 @@ void timer_wait(int ms)
         ;
 }
 
-static void _irq0_handler(struct exception_info *info)
+static void _irq0_handler(struct interrupt_info *info)
 {
     ++_timer_ticks;
 

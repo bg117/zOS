@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Initializes the physical memory manager.
+ */
 void pmm_init();
 
 #ifdef __cplusplus

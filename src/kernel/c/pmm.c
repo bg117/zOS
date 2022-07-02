@@ -6,3 +6,6 @@
  */
 
 #include <syslvl/pmm.h>
+
+/* defined in the linker script */
+extern char __start, __end;

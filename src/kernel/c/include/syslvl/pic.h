@@ -32,7 +32,18 @@ void pic_init(uint8_t master_offset, uint8_t slave_offset);
  */
 void pic_send_eoi(uint8_t irq);
 
+/**
+ * @brief Retrieves the offset to the interrupt vector handling IRQs 0-7.
+ *
+ * @return The offset.
+ */
 uint8_t pic_get_pic1_offset();
+
+/**
+ * @brief Retrieves the offset to the interrupt vector handling IRQs 8-15.
+ *
+ * @return The offset.
+ */
 uint8_t pic_get_pic2_offset();
 
 #ifdef __cplusplus
