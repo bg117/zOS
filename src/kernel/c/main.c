@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     log_append_format_string("[%s]: initializing the keyboard\n", __func__);
     kbd_init();
 
-    screen_print_string("\nzOS version 0.01\n");
+    screen_print_string("zOS version 0.01\n");
     screen_print_string("Type something:\n\n");
 
     while (1)
