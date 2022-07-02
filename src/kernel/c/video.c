@@ -269,6 +269,9 @@ void screen_move_cursor(int x, int y)
     out_byte(0x3D5, CAST(uint8_t, pos & 0xFF));
     out_byte(0x3D4, 0x0E);
     out_byte(0x3D5, CAST(uint8_t, (pos >> 8) & 0xFF));
+
+    _pos_x = x;
+    _pos_y = y;
 }
 
 void screen_get_cursor_position(int *x, int *y)
