@@ -21,7 +21,6 @@
 #include <syslvl/timer.h>
 #include <syslvl/video.h>
 
-#include <misc/log_macros.h>
 #include <misc/num.h>
 #include <misc/type_macros.h>
 
@@ -72,15 +71,11 @@ int main(int argc, char **argv)
     mem_copy(&fi, argv[1], sizeof fi);
     mem_copy(&drive_number, &argv[0], sizeof drive_number);
 
-    screen_print_string("---------------- KERNEL LOG ----------------\n");
+    hal_use_default_interrupt_handler(_default_exception_handler);
+    hal_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    FUNC_LOG("initializing HAL... ", "done.\n", {
-        hal_use_default_interrupt_handler(_default_exception_handler);
-        hal_init(PIC1_OFFSET, PIC2_OFFSET);
-    });
-
-    // FUNC_LOG("initializing PIT... ", "done.\n", timer_init());
-    FUNC_LOG("initializing keyboard... ", "done.\n", kbd_init());
+    timer_init();
+    kbd_init();
 
     screen_print_string("zOS version 0.01\n");
     screen_print_string("Type something:\n\n");
@@ -107,19 +102,13 @@ void _default_exception_handler(struct interrupt_info *regs)
 
     screen_print_string("Dump:\n");
     screen_print_format_string(
-        "    EAX:    0x%X\n"
-        "    EBX:    0x%X\n"
-        "    ECX:    0x%X\n"
-        "    EDX:    0x%X\n"
-        "    ESI:    0x%X\n"
-        "    EDI:    0x%X\n"
-        "    EBP:    0x%X\n"
-        "    ESP:    0x%X\n"
-        "    EIP:    0x%X\n"
-        "    EFLAGS: 0x%X\n"
-        "    CS:     0x%X\n"
-        "    DS:     0x%X\n"
-        "    SS:     0x%X\n",
+        "    EAX: 0x%X\n    EBX: 0x%X\n    ECX: 0x%X\n    EDX: "
+        "0x%X\n    ESI: "
+        "0x%X\n    EDI: "
+        "0x%X\n    EBP: 0x%X\n    ESP: 0x%X\n    CS: "
+        "0x%X\n    DS: "
+        "0x%X\n    SS: "
+        "0x%X\n    EFLAGS: 0b%b\n",
         regs->eax,
         regs->ebx,
         regs->ecx,
@@ -128,11 +117,10 @@ void _default_exception_handler(struct interrupt_info *regs)
         regs->edi,
         regs->ebp,
         regs->esp,
-        regs->eip,
-        regs->eflags,
         regs->cs,
         regs->ds,
-        regs->ss);
+        regs->ss,
+        regs->eflags);
 
     core_clear_interrupt_flag();
     core_halt();
