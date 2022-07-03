@@ -64,8 +64,6 @@ static const char *EXCEPTION_IDS[] = { "Divide-by-zero error",
 
 static void _default_exception_handler(struct interrupt_info *info);
 
-static void _pmm_test(void);
-
 // main
 int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, uint16_t mmap_length)
 {
@@ -111,9 +109,6 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
     KLOG("initializing the physical memory manager\n");
     pmm_init(memory_map[mmap_idx].length);
 
-    KLOG("testing the PMM\n");
-    _pmm_test();
-
     screen_print_string("zOS version 0.01\n");
     screen_print_string("Type something:\n\n");
 
@@ -128,57 +123,6 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
     }
 
     return 1;
-}
-
-void _pmm_test()
-{
-    void            *p1        = pmm_allocate_page();
-    enum page_status p1_status = pmm_get_page_status(p1);
-    screen_print_format_string("Test 1 [alloc]: Address=%p, Status=%s\n",
-                               p1,
-                               p1_status == PS_USED   ? "used"
-                               : p1_status == PS_FREE ? "free"
-                                                      : "unknown");
-
-    void            *p2        = pmm_allocate_page();
-    enum page_status p2_status = pmm_get_page_status(p2);
-    screen_print_format_string("Test 2 [alloc]: Address=%p, Status=%s\n",
-                               p2,
-                               p2_status == PS_USED   ? "used"
-                               : p2_status == PS_FREE ? "free"
-                                                      : "unknown");
-
-    void            *p3        = pmm_allocate_page();
-    enum page_status p3_status = pmm_get_page_status(p3);
-    screen_print_format_string("Test 3 [alloc]: Address=%p, Status=%s\n",
-                               p3,
-                               p3_status == PS_USED   ? "used"
-                               : p3_status == PS_FREE ? "free"
-                                                      : "unknown");
-
-    pmm_free_page(p2);
-    p2_status = pmm_get_page_status(p2);
-    screen_print_format_string("Test 2 [free]: Address=%p, Status=%s\n",
-                               p2,
-                               p2_status == PS_USED   ? "used"
-                               : p2_status == PS_FREE ? "free"
-                                                      : "unknown");
-
-    pmm_free_page(p1);
-    p1_status = pmm_get_page_status(p1);
-    screen_print_format_string("Test 1 [free]: Address=%p, Status=%s\n",
-                               p1,
-                               p1_status == PS_USED   ? "used"
-                               : p1_status == PS_FREE ? "free"
-                                                      : "unknown");
-
-    pmm_free_page(p3);
-    p3_status = pmm_get_page_status(p3);
-    screen_print_format_string("Test 3 [free]: Address=%p, Status=%s\n",
-                               p3,
-                               p3_status == PS_USED   ? "used"
-                               : p3_status == PS_FREE ? "free"
-                                                      : "unknown");
 }
 
 void _default_exception_handler(struct interrupt_info *info)
