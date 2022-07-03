@@ -95,13 +95,6 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
     while (mmap_idx < mmap_length && memory_map[mmap_idx].base < CAST(uint64_t, &__start))
         ++mmap_idx;
 
-    if (memory_map[mmap_idx].base < CAST(uint64_t, &__start))
-    {
-        screen_print_string("Too little memory installed in system. Aborting...");
-        core_clear_interrupt_flag();
-        core_halt();
-    }
-
     KLOG("initializing the hardware abstraction layer\n");
     hal_use_default_interrupt_handler(_default_exception_handler);
     hal_init(PIC1_OFFSET, PIC2_OFFSET);
@@ -147,14 +140,6 @@ void _pmm_test()
                                : p1_status == PS_FREE ? "free"
                                                       : "unknown");
 
-    pmm_free_page(p1);
-    p1_status = pmm_get_page_status(p1);
-    screen_print_format_string("Test 1 [free]: Address=%p, Status=%s\n",
-                               p1,
-                               p1_status == PS_USED   ? "used"
-                               : p1_status == PS_FREE ? "free"
-                                                      : "unknown");
-
     void            *p2        = pmm_allocate_page();
     enum page_status p2_status = pmm_get_page_status(p2);
     screen_print_format_string("Test 2 [alloc]: Address=%p, Status=%s\n",
@@ -177,6 +162,14 @@ void _pmm_test()
                                p2,
                                p2_status == PS_USED   ? "used"
                                : p2_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    pmm_free_page(p1);
+    p1_status = pmm_get_page_status(p1);
+    screen_print_format_string("Test 1 [free]: Address=%p, Status=%s\n",
+                               p1,
+                               p1_status == PS_USED   ? "used"
+                               : p1_status == PS_FREE ? "free"
                                                       : "unknown");
 
     pmm_free_page(p3);

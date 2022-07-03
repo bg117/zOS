@@ -14,4 +14,6 @@
 #define SETBITVAR(x, bit)   ((x) = SETBIT(x, bit))
 #define UNSETBITVAR(x, bit) ((x) = UNSETBIT(x, bit))
 
+#define ALIGN(x, a) (x + a - 1) / a *a
+
 #endif

@@ -5,6 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <limits.h>
 #include <stdint.h>
 
 #include <log.h>
@@ -13,6 +14,8 @@
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
+#include "mem.h"
+#include "video.h"
 
 #define PAGE_SIZE 0x1000
 
@@ -36,19 +39,22 @@ void pmm_init(uint64_t len)
     len          = tmp * PAGE_SIZE;
     _bitmap_size = tmp; // length / 4096 / 8
 
-    if (tmp % 8 > 0)
+    if (tmp % CHAR_BIT > 0)
         ++_bitmap_size;
 
     // mark reserved areas as used (kernel + bitmap)
     size = __end - __start + _bitmap_size;
-    size = ((size + PAGE_SIZE - 1) / PAGE_SIZE * PAGE_SIZE);
+    size = ALIGN(size, PAGE_SIZE);
     size /= PAGE_SIZE;
+
+    mem_fill(_bitmap, 0, ALIGN(_bitmap_size, CHAR_BIT));
 
     KLOG("marking reserved areas as used\n");
     // size = counter; mark all reserved pages as used
-    for (uint64_t i = 0, bitmap_idx = 0, bit = 0; i < size; i++, bit++)
+    uint8_t bit = 0;
+    for (uint64_t i = 0, bitmap_idx = 0; i < size; i++, bit++)
     {
-        if (i > 0 && i % 8 == 0)
+        if (i > 0 && i % CHAR_BIT == 0)
         {
             ++bitmap_idx;
             bit = 0;
@@ -69,7 +75,7 @@ void *pmm_allocate_page(void)
     // allocation ;)
     SETBITVAR(_bitmap[idx], 1 << bit);
 
-    uint64_t offset = (idx * 8 + bit) * PAGE_SIZE + _base;
+    uint64_t offset = (idx * CHAR_BIT + bit) * PAGE_SIZE + _base;
     return CAST(void *, offset);
 }
 
@@ -79,7 +85,7 @@ void pmm_free_page(void *page)
     for (uint64_t i = 0, base_addr = CAST(uint64_t, _base), bitmap_idx = 0; i < _bitmap_size;
          i++, bit++, base_addr += PAGE_SIZE)
     {
-        if (i > 0 && i % 8 == 0)
+        if (i > 0 && i % CHAR_BIT == 0)
         {
             ++bitmap_idx;
             bit = 0;
@@ -87,7 +93,7 @@ void pmm_free_page(void *page)
 
         if (base_addr == CAST(uint64_t, page))
         {
-            if ((_bitmap[bitmap_idx] & (1 << bit)) == 1)
+            if ((_bitmap[bitmap_idx] & (1 << bit)))
                 UNSETBITVAR(_bitmap[bitmap_idx], 1 << bit);
             else
                 KLOG("warning: page %p already free\n", page);
@@ -105,7 +111,7 @@ enum page_status pmm_get_page_status(void *page)
     for (uint64_t i = 0, base_addr = CAST(uint64_t, _base), bitmap_idx = 0; i < _bitmap_size;
          i++, bit++, base_addr += PAGE_SIZE)
     {
-        if (i > 0 && i % 8 == 0)
+        if (i > 0 && i % CHAR_BIT == 0)
         {
             ++bitmap_idx;
             bit = 0;
@@ -113,7 +119,7 @@ enum page_status pmm_get_page_status(void *page)
 
         if (base_addr == CAST(uint64_t, page))
         {
-            if ((_bitmap[bitmap_idx] & (1 << bit)) == 1)
+            if ((_bitmap[bitmap_idx] & (1 << bit)))
                 return PS_USED;
             else
                 return PS_FREE;
@@ -130,7 +136,7 @@ static uint64_t _pmm_get_first_free_idx(uint8_t *bit)
 
     for (uint64_t i = 0, bitmap_idx = 0; i < _bitmap_size; i++, (*bit)++)
     {
-        if (i > 0 && i % 8 == 0)
+        if (i > 0 && i % CHAR_BIT == 0)
         {
             ++bitmap_idx;
             *bit = 0;
