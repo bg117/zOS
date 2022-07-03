@@ -13,10 +13,10 @@
 #include <mem.h>
 #include <video.h>
 
+#include <misc/char_macros.h>
 #include <misc/num.h>
 #include <misc/strings.h>
 #include <misc/type_macros.h>
-#include "misc/char_macros.h"
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
     switch (len)                                                                                                       \

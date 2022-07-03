@@ -9,13 +9,12 @@
 #include <stdint.h>
 
 #include <log.h>
+#include <mem.h>
 #include <pmm.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
-#include "mem.h"
-#include "video.h"
 
 #define PAGE_SIZE 0x1000
 

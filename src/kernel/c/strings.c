@@ -5,9 +5,10 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <stddef.h>
+
 #include <misc/char_macros.h>
 #include <misc/strings.h>
-#include <stddef.h>
 
 char *str_to_upper(char *str)
 {
