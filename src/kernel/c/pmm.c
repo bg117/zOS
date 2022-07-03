@@ -71,6 +71,9 @@ void *pmm_allocate_page(void)
     uint8_t  bit;
     uint64_t idx = _pmm_get_first_free_idx(&bit);
 
+    if (idx == UINT64_MAX)
+        return NULL; // just like good old (m|c|re)alloc
+
     // it's definitely true that setting metadata in a bitmap is faster than
     // allocation ;)
     SETBITVAR(_bitmap[idx], 1 << bit);
