@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 
-#include <syslvl/log.h>
-#include <syslvl/pmm.h>
+#include <log.h>
+#include <pmm.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>

@@ -7,14 +7,14 @@
 
 #include <stdint.h>
 
-#include <syslvl/core.h>
-#include <syslvl/gdt.h>
-#include <syslvl/hal.h>
-#include <syslvl/idt.h>
-#include <syslvl/interrupt_info.h>
-#include <syslvl/log.h>
-#include <syslvl/pic.h>
-#include <syslvl/video.h>
+#include <core.h>
+#include <gdt.h>
+#include <hal.h>
+#include <idt.h>
+#include <interrupt_info.h>
+#include <log.h>
+#include <pic.h>
+#include <video.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>

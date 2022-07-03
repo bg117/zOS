@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include <syslvl/mem.h>
+#include <mem.h>
 
 #include <misc/type_macros.h>
 
@@ -32,9 +32,7 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len)
     return ptr;
 }
 
-void *mem_copy(void *__restrict__ dest,
-               const void *__restrict__ src,
-               size_t len)
+void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len)
 {
     size_t i = 0;
     size_t x = len / sizeof len;
@@ -56,9 +54,7 @@ void *mem_copy(void *__restrict__ dest,
     return dest;
 }
 
-void *mem_copy_with_overlap(void *__restrict__ dest,
-                            const void *__restrict__ src,
-                            size_t len)
+void *mem_copy_with_overlap(void *__restrict__ dest, const void *__restrict__ src, size_t len)
 {
     uintptr_t isrc  = CAST(uintptr_t, src);
     uintptr_t idest = CAST(uintptr_t, dest);

@@ -25,6 +25,7 @@ CFLAGS       := -Wall \
 				-nostdlib
 
 CPPFLAGS     := -I${CURDIR}/c/include \
+				-I${CURDIR}/c/include/syslvl \
 				-Wno-unknown-pragmas \
 				-MMD
 

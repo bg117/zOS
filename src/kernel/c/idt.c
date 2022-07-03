@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include <syslvl/idt.h>
+#include <idt.h>
 
 #include <misc/type_macros.h>
 

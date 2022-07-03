@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include <syslvl/log.h>
+#include <log.h>
 
 #include <misc/char_macros.h>
 #include <misc/num.h>

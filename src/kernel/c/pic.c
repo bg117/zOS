@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 
-#include <syslvl/io.h>
-#include <syslvl/pic.h>
+#include <io.h>
+#include <pic.h>
 
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0

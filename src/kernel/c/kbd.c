@@ -5,13 +5,13 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <syslvl/hal.h>
-#include <syslvl/interrupt_info.h>
-#include <syslvl/io.h>
-#include <syslvl/kbd.h>
-#include <syslvl/log.h>
-#include <syslvl/pic.h>
-#include <syslvl/video.h>
+#include <hal.h>
+#include <interrupt_info.h>
+#include <io.h>
+#include <kbd.h>
+#include <log.h>
+#include <pic.h>
+#include <video.h>
 
 #include <misc/type_macros.h>
 

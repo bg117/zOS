@@ -9,9 +9,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <syslvl/io.h>
-#include <syslvl/mem.h>
-#include <syslvl/video.h>
+#include <io.h>
+#include <mem.h>
+#include <video.h>
 
 #include <misc/num.h>
 #include <misc/strings.h>

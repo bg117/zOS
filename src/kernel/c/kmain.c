@@ -8,21 +8,21 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <syslvl/core.h>
-#include <syslvl/fat.h>
-#include <syslvl/gdt.h>
-#include <syslvl/hal.h>
-#include <syslvl/idt.h>
-#include <syslvl/interrupt_info.h>
-#include <syslvl/io.h>
-#include <syslvl/kbd.h>
-#include <syslvl/log.h>
-#include <syslvl/mem.h>
-#include <syslvl/mmap.h>
-#include <syslvl/pic.h>
-#include <syslvl/pmm.h>
-#include <syslvl/timer.h>
-#include <syslvl/video.h>
+#include <core.h>
+#include <fat.h>
+#include <gdt.h>
+#include <hal.h>
+#include <idt.h>
+#include <interrupt_info.h>
+#include <io.h>
+#include <kbd.h>
+#include <log.h>
+#include <mem.h>
+#include <mmap.h>
+#include <pic.h>
+#include <pmm.h>
+#include <timer.h>
+#include <video.h>
 
 #include <misc/log_macros.h>
 #include <misc/num.h>

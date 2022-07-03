@@ -5,7 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <syslvl/core.h>
+#include <core.h>
 
 void core_halt(void)
 {

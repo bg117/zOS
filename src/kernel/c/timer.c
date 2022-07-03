@@ -7,14 +7,14 @@
 
 #include <stdint.h>
 
-#include <syslvl/hal.h>
-#include <syslvl/interrupt_info.h>
-#include <syslvl/io.h>
-#include <syslvl/log.h>
-#include <syslvl/pic.h>
-#include <syslvl/timer.h>
-#include <syslvl/video.h>
-#include "syslvl/core.h"
+#include <hal.h>
+#include <interrupt_info.h>
+#include <io.h>
+#include <log.h>
+#include <pic.h>
+#include <timer.h>
+#include <video.h>
+#include "core.h"
 
 static uint64_t _timer_ticks;
 static uint64_t _seconds;
