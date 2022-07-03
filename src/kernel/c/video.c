@@ -280,7 +280,7 @@ void screen_clear_line(int y)
 {
     _pos_x = 0;
 
-    mem_fill(VGA_BUFFER + VGA_LENGTH * y * 2, 0, VGA_WIDTH * 2);
+    mem_fill(VGA_BUFFER + VGA_WIDTH * y * 2, 0, VGA_WIDTH * 2);
 
     screen_move_cursor(_pos_x, _pos_y);
 }
