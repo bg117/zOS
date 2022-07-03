@@ -17,6 +17,7 @@
 #include <syslvl/video.h>
 
 #include <misc/bit_macros.h>
+#include <misc/log_macros.h>
 
 static struct gdt_entry      _gdt[5];
 static struct gdt_descriptor _gdt_desc;
@@ -296,23 +297,23 @@ extern void __attribute__((cdecl)) __isr_stub_255(void);
 
 void hal_init(uint8_t pic1_offset, uint8_t pic2_offset)
 {
-    log_append_format_string("[%s]: initializing the global descriptor table\n", __func__);
+    KLOG("initializing the global descriptor table\n");
     _hal_init_gdt();
 
-    log_append_format_string("[%s]: loading the GDT\n", __func__);
+    KLOG("loading the GDT\n");
     gdt_descriptor_load(&_gdt_desc, 0x08, 0x10);
 
-    log_append_format_string("[%s]: initializing the Programmable Interrupt Controller\n", __func__);
+    KLOG("initializing the Programmable Interrupt Controller\n");
     pic_init(pic1_offset, pic2_offset);
 
-    log_append_format_string("[%s]: mapping default IRQ handlers\n", __func__);
+    KLOG("mapping default IRQ handlers\n");
     for (int i = 0; i < 16; i++)
         hal_map_exception_handler(i + pic1_offset, _default_irq_handler);
 
-    log_append_format_string("[%s]: initializing interrupt service routines\n", __func__);
+    KLOG("initializing interrupt service routines\n");
     _hal_init_isr();
 
-    log_append_format_string("[%s]: loading the IDT\n", __func__);
+    KLOG("loading the IDT\n");
     idt_descriptor_load(&_idt_desc);
 }
 
@@ -324,7 +325,7 @@ void hal_use_default_interrupt_handler(void (*handler)(struct interrupt_info *))
 
 void hal_map_exception_handler(uint8_t vector, void (*handler)(struct interrupt_info *))
 {
-    log_append_format_string("[%s]: mapping handler located at %p to vector %hhu\n", __func__, handler, vector);
+    KLOG("mapping handler located at %p to vector %hhu\n", handler, vector);
     _handlers[vector] = handler;
 }
 

@@ -20,14 +20,18 @@
 #include <syslvl/mem.h>
 #include <syslvl/mmap.h>
 #include <syslvl/pic.h>
+#include <syslvl/pmm.h>
 #include <syslvl/timer.h>
 #include <syslvl/video.h>
 
+#include <misc/log_macros.h>
 #include <misc/num.h>
 #include <misc/type_macros.h>
 
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
+
+extern uint8_t __start;
 
 static const char *EXCEPTION_IDS[] = { "Divide-by-zero error",
                                        "Debug",
@@ -60,6 +64,8 @@ static const char *EXCEPTION_IDS[] = { "Divide-by-zero error",
 
 static void _default_exception_handler(struct interrupt_info *info);
 
+static void _pmm_test(void);
+
 // main
 int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, uint16_t mmap_length)
 {
@@ -84,18 +90,36 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
                                    memory_map[i].acpi_extended_attributes);
     }
 
-    log_append_format_string("[%s]: initializing the hardware abstraction layer\n", __func__);
+    // find region which is greater than or equal to __start
+    size_t mmap_idx = 0;
+    while (mmap_idx < mmap_length && memory_map[mmap_idx].base < CAST(uint64_t, &__start))
+        ++mmap_idx;
+
+    if (memory_map[mmap_idx].base < CAST(uint64_t, &__start))
+    {
+        screen_print_string("Too little memory installed in system. Aborting...");
+        core_clear_interrupt_flag();
+        core_halt();
+    }
+
+    KLOG("initializing the hardware abstraction layer\n");
     hal_use_default_interrupt_handler(_default_exception_handler);
     hal_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    log_append_format_string("[%s]: initializing the Programmable Interval Timer\n", __func__);
+    KLOG("initializing the Programmable Interval Timer\n");
     timer_init();
 
-    log_append_format_string("[%s]: initializing the keyboard\n", __func__);
+    KLOG("initializing the keyboard\n");
     kbd_init();
 
-    log_append_format_string("[%s]: enabling interrupts\n", __func__);
+    KLOG("enabling interrupts\n");
     core_set_interrupt_flag();
+
+    KLOG("initializing the physical memory manager\n");
+    pmm_init(memory_map[mmap_idx].length);
+
+    KLOG("testing the PMM\n");
+    _pmm_test();
 
     screen_print_string("zOS version 0.01\n");
     screen_print_string("Type something:\n\n");
@@ -111,6 +135,57 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
     }
 
     return 1;
+}
+
+void _pmm_test()
+{
+    void            *p1        = pmm_allocate_page();
+    enum page_status p1_status = pmm_get_page_status(p1);
+    screen_print_format_string("Test 1 [alloc]: Address=%p, Status=%s\n",
+                               p1,
+                               p1_status == PS_USED   ? "used"
+                               : p1_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    pmm_free_page(p1);
+    p1_status = pmm_get_page_status(p1);
+    screen_print_format_string("Test 1 [free]: Address=%p, Status=%s\n",
+                               p1,
+                               p1_status == PS_USED   ? "used"
+                               : p1_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    void            *p2        = pmm_allocate_page();
+    enum page_status p2_status = pmm_get_page_status(p2);
+    screen_print_format_string("Test 2 [alloc]: Address=%p, Status=%s\n",
+                               p2,
+                               p2_status == PS_USED   ? "used"
+                               : p2_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    void            *p3        = pmm_allocate_page();
+    enum page_status p3_status = pmm_get_page_status(p3);
+    screen_print_format_string("Test 3 [alloc]: Address=%p, Status=%s\n",
+                               p3,
+                               p3_status == PS_USED   ? "used"
+                               : p3_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    pmm_free_page(p2);
+    p2_status = pmm_get_page_status(p2);
+    screen_print_format_string("Test 2 [free]: Address=%p, Status=%s\n",
+                               p2,
+                               p2_status == PS_USED   ? "used"
+                               : p2_status == PS_FREE ? "free"
+                                                      : "unknown");
+
+    pmm_free_page(p3);
+    p3_status = pmm_get_page_status(p3);
+    screen_print_format_string("Test 3 [free]: Address=%p, Status=%s\n",
+                               p3,
+                               p3_status == PS_USED   ? "used"
+                               : p3_status == PS_FREE ? "free"
+                                                      : "unknown");
 }
 
 void _default_exception_handler(struct interrupt_info *info)
