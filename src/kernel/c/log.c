@@ -66,7 +66,8 @@
     }                                                                                                                  \
     log_append_format_string("%s", buf)
 
-static char  *_tmp_msg_buffer = CAST(char *, 0x10FEF);
+/* about 516 KB of log space */
+static char  *_tmp_msg_buffer = CAST(char *, 0x1FEF);
 static size_t _msg_buffer_idx = 0;
 
 enum printf_state

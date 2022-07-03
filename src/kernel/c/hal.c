@@ -314,9 +314,6 @@ void hal_init(uint8_t pic1_offset, uint8_t pic2_offset)
 
     log_append_format_string("[%s]: loading the IDT\n", __func__);
     idt_descriptor_load(&_idt_desc);
-
-    log_append_format_string("[%s]: enabling interrupts\n", __func__);
-    core_set_interrupt_flag();
 }
 
 void hal_use_default_interrupt_handler(void (*handler)(struct interrupt_info *))

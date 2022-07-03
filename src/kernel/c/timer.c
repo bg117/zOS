@@ -36,8 +36,6 @@ void timer_init()
 void timer_set_cycle(int hz)
 {
     // I KNOW this is a bad idea, but it's only a temporary fix, and it works!
-    core_clear_interrupt_flag();
-
     const int ONE_MHZ = 1193180;
     uint16_t  div     = ONE_MHZ / hz;
 
@@ -46,8 +44,6 @@ void timer_set_cycle(int hz)
     out_byte(0x40, (div >> 8) & 0xFF);
 
     _cycles = hz;
-
-    core_set_interrupt_flag();
 }
 
 void timer_wait(int ms)

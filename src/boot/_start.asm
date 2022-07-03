@@ -121,6 +121,10 @@ unable_to_read_sector:  mov     si, constants.UNABLE_TO_READ_SC_MSG
                         call    vgautils.print
                         jmp     wait_key_and_reboot
 
+failed_to_get_memory_map:   mov     si, constants.FAIL_GET_MMAP_MSG
+                            call    vgautils.print
+                            jmp     wait_key_and_reboot
+
 constants:
     .UNABLE_TO_BOOT_MSG:    db  `Unable to boot\0`
     .KERNEL_NOT_FOUND_MSG:  db  `Kernel not found\0`
@@ -128,6 +132,7 @@ constants:
     .UNABLE_TO_READ_SC_MSG: db  `Unable to read sector\0`
     .KERNEL_FILE:           db  `ZS         `
     .LOAD_KERNEL_MSG:       db  `Found kernel, loading\0`
+    .FAIL_GET_MMAP_MSG:     db  `Failed to get memory map\0`
 
 global_descriptor_table:
     dq  0
@@ -151,7 +156,76 @@ global_descriptor_table:
 times 510-($-$$)    db  0xCC    ; fill remaining with INT3
 dw  0xAA55                      ; signature
 
-real:   mov     cx, [bios_parameter_block.reserved_sectors]
+real:   ; get memory map
+        xor     eax, eax
+        mov     es, ax
+        mov     di, BUFFER
+        xor     si, si
+
+        mov     es:[di + 20], dword 1
+
+        xor     ebx, ebx
+        mov     edx, 0x534D4150
+        mov     eax, 0xE820
+        mov     ecx, 24
+        int     0x15
+
+        jc      .mm_failed
+        mov     edx, 0x534D4150
+        cmp     eax, edx
+        jne     .mm_failed
+        test    ebx, ebx
+        je      .mm_failed
+        jmp     .mm_intermediate
+
+        .mm_lp: mov     eax, 0xE820
+                mov     es:[di + 20], dword 1
+                mov     ecx, 24
+                int     0x15
+
+                jc      .mm_finished
+                mov     edx, 0x534D4150
+
+        .mm_intermediate:   jcxz    .mm_skip_entry
+                            cmp     cl, 20
+                            jbe     .mm_notext
+                            test    byte es:[di + 20], 1
+                            je      .mm_skip_entry
+
+        .mm_notext: mov     ecx, es:[di + 8]
+                    or      ecx, es:[di + 12]
+                    jz      .mm_skip_entry
+                    inc     si
+                    add     di, 24
+
+        .mm_skip_entry: test    ebx, ebx
+                        jne     .mm_lp
+
+        .mm_finished:   mov     [variables.mmap_entry_count], si
+                        clc
+                        jmp     .continue
+
+        .mm_failed: jmp failed_to_get_memory_map
+
+        .continue:
+
+        ; reserve space for memory map
+        mov     ax, 24                      ; 24 bytes per entry
+        mul     si                          ; amount of entries
+
+        ; round up to multiple of bytes_per_sector
+        mov     bx, [bios_parameter_block.bytes_per_sector] ; multiple
+        dec     bx                                          ; multiple - 1
+        add     ax, bx                                      ; num_to_round + multiple - 1
+        xor     dx, dx
+        inc     bx
+        div     bx                                          ; (num_to_round + multiple - 1) / multiple
+        mul     bx                                          ; ((num_to_round + multiple - 1) / multiple) * multiple
+
+        add     [variables.fat_buffer], ax
+        add     [variables.gen_buffer], ax
+
+        mov     cx, [bios_parameter_block.reserved_sectors]
         mov     ax, [bios_parameter_block.sectors_per_fat]
         mul     byte [bios_parameter_block.fats]                ; AX = sectors_per_fat * fats
         mov     [variables.fat_size], ax
@@ -168,11 +242,11 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
         call    load_next_fat   ; load first sector
 
         mov     ax, word [bios_parameter_block.bytes_per_sector]
-        add     [variables.buffer2], ax
+        add     [variables.gen_buffer], ax
 
         mov     ax, [variables.root_dir_start]
         mov     cx, [variables.root_dir_size]
-        mov     bx, [variables.buffer2]
+        mov     bx, [variables.gen_buffer]
         mov     dl, [extended_boot_record.drive_number]
         call    diskutils.read_sectors
 
@@ -214,9 +288,9 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
         mov     bx, KERNEL_BUFFER   ; BX=KERNEL_BUFFER
 
         ; extract first cluster
-        mov     ax, [di + 26]           ; first cluster is the 26th element in file info
-        mov     [variables.cluster], ax ; store first cluster number
-        mov     si, [variables.buffer1] ; point to start of FAT
+        mov     ax, [di + 26]               ; first cluster is the 26th element in file info
+        mov     [variables.cluster], ax     ; store first cluster number
+        mov     si, [variables.fat_buffer]  ; point to start of FAT
 
         .load_kernel:   mov     ax, [variables.cluster]
                         sub     ax, 2                           ; ax -= 2 (cluster starts at 2 for some reason)
@@ -280,46 +354,52 @@ real:   mov     cx, [bios_parameter_block.reserved_sectors]
                             mov     [variables.cluster], ax
                             jmp     .load_kernel
 
-        .loaded_kernel:     cli
-                            lgdt    [global_descriptor_table.load]
-                            mov     eax, cr0
-                            or      eax, 1
-                            mov     cr0, eax
+        .loaded_kernel:
 
-                            jmp     0x08:.pmode
+        cli
+        lgdt    [global_descriptor_table.load]
+        mov     eax, cr0
+        or      eax, 1
+        mov     cr0, eax
 
-                            [bits 32]
-                            .pmode: mov     ax, 0x10
-                                    mov     ds, ax
-                                    mov     es, ax
-                                    mov     fs, ax
-                                    mov     gs, ax
-                                    mov     ss, ax
+        jmp     0x08:.pmode
 
-                            ; relocate kernel
-                            mov     ecx, [variables.kernel_size_bytes]
-                            mov     edi, 0x100000
-                            mov     esi, (KERNEL_SEGMENT << 4) | KERNEL_BUFFER
-                            xor     edx, edx
-                            mov     eax, ecx
-                            mov     ecx, 4
-                            div     ecx
-                            mov     ecx, eax
+        [bits 32]
+        .pmode: mov     ax, 0x10
+                mov     ds, ax
+                mov     es, ax
+                mov     fs, ax
+                mov     gs, ax
+                mov     ss, ax
 
-                            cld
-                            rep     movsd
+        ; relocate kernel
+        mov     ecx, [variables.kernel_size_bytes]
+        mov     edi, 0x100000
+        mov     esi, (KERNEL_SEGMENT << 4) | KERNEL_BUFFER
+        xor     edx, edx
+        mov     eax, ecx
+        mov     ecx, 4
+        div     ecx
+        mov     ecx, eax
 
-                            mov     ecx, edx
+        cld
+        rep     movsd
 
-                            cld
-                            rep     movsb
+        mov     ecx, edx
 
-                            ; DI=FAT info
-                            mov     edi, fat_info
-                            xor     edx, edx
-                            mov     dl, [extended_boot_record.drive_number]
+        cld
+        rep     movsb
 
-                            jmp     0x08:0x100000
+        ; EDI=FAT info, EBX=memory map, ECX=memory map entry count
+        mov     edi, fat_info
+        xor     ebx, ebx
+        mov     bx, [variables.mmap_buffer]
+        mov     ecx, [variables.mmap_entry_count]
+        xor     edx, edx
+        mov     dl, [extended_boot_record.drive_number]
+
+        jmp     0x08:0x100000
+
         [bits 16]
         jmp $
 
@@ -331,7 +411,7 @@ load_next_fat:  pusha
                 add     ax, [variables.current_fat]
                 inc     word [variables.current_fat]
 
-                mov     bx, [variables.buffer1]
+                mov     bx, [variables.fat_buffer]
                 mov     cl, 1
                 mov     dl, [extended_boot_record.drive_number]
 
@@ -357,8 +437,10 @@ variables:
     .cluster_size_bytes:    dw  0
     .kernel_size_bytes:     dd  0
     .current_fat:           dw  0
-    .buffer1:               dw  BUFFER
-    .buffer2:               dw  BUFFER
+    .mmap_buffer:           dw  BUFFER
+    .fat_buffer:            dw  BUFFER
+    .gen_buffer:            dw  BUFFER
+    .mmap_entry_count:      dd  0
 
 times 1534-($-real) db 0xCC ; INT3
 dw                  0x55AA

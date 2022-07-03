@@ -18,6 +18,7 @@
 #include <syslvl/kbd.h>
 #include <syslvl/log.h>
 #include <syslvl/mem.h>
+#include <syslvl/mmap.h>
 #include <syslvl/pic.h>
 #include <syslvl/timer.h>
 #include <syslvl/video.h>
@@ -60,16 +61,28 @@ static const char *EXCEPTION_IDS[] = { "Divide-by-zero error",
 static void _default_exception_handler(struct interrupt_info *info);
 
 // main
-int main(int argc, char **argv)
+int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, uint16_t mmap_length)
 {
     screen_clear();
 
-    struct fat_info fi;
-    uint8_t         drive_number;
+    struct fat_info   fat_info;
+    struct memory_map memory_map[mmap_length];
 
-    // works!
-    mem_copy(&fi, argv[1], sizeof fi);
-    mem_copy(&drive_number, &argv[0], sizeof drive_number);
+    // save structs because they may get overwritten in the future
+    mem_copy(&fat_info, fi, sizeof fat_info);
+    mem_copy(memory_map, mmap, sizeof(struct memory_map) * mmap_length);
+
+    screen_print_string("---------------- MEMORY MAP ----------------\n");
+    screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
+    for (int i = 0; i < mmap_length; i++)
+    {
+        screen_print_format_string("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
+                                   i,
+                                   memory_map[i].base,
+                                   memory_map[i].length,
+                                   memory_map[i].type,
+                                   memory_map[i].acpi_extended_attributes);
+    }
 
     log_append_format_string("[%s]: initializing the hardware abstraction layer\n", __func__);
     hal_use_default_interrupt_handler(_default_exception_handler);
@@ -80,6 +93,9 @@ int main(int argc, char **argv)
 
     log_append_format_string("[%s]: initializing the keyboard\n", __func__);
     kbd_init();
+
+    log_append_format_string("[%s]: enabling interrupts\n", __func__);
+    core_set_interrupt_flag();
 
     screen_print_string("zOS version 0.01\n");
     screen_print_string("Type something:\n\n");
