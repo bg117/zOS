@@ -14,6 +14,7 @@ build/
 .idea/
 .vs/
 .cache/
+.ccls-cache/
 
 # Compile commands
 compile_commands.json

@@ -24,7 +24,7 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len)
 
     i *= sizeof len;
 
-    uint8_t *sec_ptr = CAST(uint8_t *, al_ptr);
+    uint8_t *sec_ptr = (uint8_t *)(al_ptr);
 
     for (; i < len; i++)
         sec_ptr[i] = fill;
@@ -45,8 +45,8 @@ void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len
 
     i *= sizeof len;
 
-    uint8_t       *sec_dest = CAST(uint8_t *, al_dest);
-    const uint8_t *sec_src  = CAST(uint8_t *, al_src);
+    uint8_t       *sec_dest = (uint8_t *)(al_dest);
+    const uint8_t *sec_src  = (uint8_t *)(al_src);
 
     for (; i < len; i++)
         sec_dest[i] = sec_src[i];
@@ -56,8 +56,8 @@ void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len
 
 void *mem_copy_with_overlap(void *__restrict__ dest, const void *__restrict__ src, size_t len)
 {
-    uintptr_t isrc  = CAST(uintptr_t, src);
-    uintptr_t idest = CAST(uintptr_t, dest);
+    uintptr_t isrc  = (uintptr_t)(src);
+    uintptr_t idest = (uintptr_t)(dest);
 
     if (isrc > idest)
         return mem_copy(dest, src, len);

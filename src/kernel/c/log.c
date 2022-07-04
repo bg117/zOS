@@ -19,8 +19,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: int_to_string(buf, va_arg(ap, int), base); break;                                              \
-    case LENGTH_SHORT: int_to_string(buf, CAST(short, va_arg(ap, int)), base); break;                                  \
-    case LENGTH_VERY_SHORT: int_to_string(buf, CAST(char, va_arg(ap, int)), base); break;                              \
+    case LENGTH_SHORT: int_to_string(buf, (short)(va_arg(ap, int)), base); break;                                      \
+    case LENGTH_VERY_SHORT: int_to_string(buf, (char)(va_arg(ap, int)), base); break;                                  \
     case LENGTH_LONG: long_to_string(buf, va_arg(ap, long), base); break;                                              \
     case LENGTH_VERY_LONG: long_long_to_string(buf, va_arg(ap, long long), base); break;                               \
     }                                                                                                                  \
@@ -36,8 +36,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                     \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                \
+    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
+    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
     case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
     case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
     }                                                                                                                  \
@@ -53,8 +53,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                     \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                \
+    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
+    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
     case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
     case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
     }                                                                                                                  \
@@ -67,7 +67,7 @@
     log_append_format_string("%s", buf)
 
 /* about 516 KB of log space */
-static char  *_tmp_msg_buffer = CAST(char *, 0x1FEF);
+static char  *_tmp_msg_buffer = (char *)(0x1FEF);
 static size_t _msg_buffer_idx = 0;
 
 enum printf_state
@@ -138,7 +138,7 @@ void log_append_format_string(const char *__restrict__ fmt, ...)
                 }
                 continue;
             case 's': log_append_string(va_arg(ap, const char *)); break;
-            case 'c': log_append_char(CAST(char, va_arg(ap, int))); break;
+            case 'c': log_append_char((char)(va_arg(ap, int))); break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;

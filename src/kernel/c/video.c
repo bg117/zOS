@@ -22,8 +22,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: int_to_string(buf, va_arg(ap, int), base); break;                                              \
-    case LENGTH_SHORT: int_to_string(buf, CAST(short, va_arg(ap, int)), base); break;                                  \
-    case LENGTH_VERY_SHORT: int_to_string(buf, CAST(char, va_arg(ap, int)), base); break;                              \
+    case LENGTH_SHORT: int_to_string(buf, (short)(va_arg(ap, int)), base); break;                                      \
+    case LENGTH_VERY_SHORT: int_to_string(buf, (char)(va_arg(ap, int)), base); break;                                  \
     case LENGTH_LONG: long_to_string(buf, va_arg(ap, long), base); break;                                              \
     case LENGTH_VERY_LONG: long_long_to_string(buf, va_arg(ap, long long), base); break;                               \
     }                                                                                                                  \
@@ -39,8 +39,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                     \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                \
+    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
+    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
     case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
     case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
     }                                                                                                                  \
@@ -56,8 +56,8 @@
     switch (len)                                                                                                       \
     {                                                                                                                  \
     case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                     \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                \
+    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
+    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
     case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
     case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
     }                                                                                                                  \
@@ -76,7 +76,7 @@ static const uint8_t VGA_LENGTH = 25;
 
 static const int TAB_WIDTH = 8;
 
-static uint8_t *const VGA_BUFFER = CAST(uint8_t *const, 0xB8000);
+static uint8_t *const VGA_BUFFER = (uint8_t *const)(0xB8000);
 static uint16_t       _pos_x     = 0;
 static uint16_t       _pos_y     = 0;
 
@@ -176,7 +176,7 @@ void screen_print_format_string(const char *__restrict__ fmt, ...)
                     screen_print_string(arg);
                 }
                 break;
-            case 'c': screen_print_char(CAST(char, va_arg(ap, int))); break;
+            case 'c': screen_print_char((char)(va_arg(ap, int))); break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;
@@ -298,9 +298,9 @@ void screen_move_cursor(int x, int y)
 {
     uint16_t pos = GET_VGA_POSITION_XY(x, y) / 2;
     out_byte(0x3D4, 0x0F);
-    out_byte(0x3D5, CAST(uint8_t, pos & 0xFF));
+    out_byte(0x3D5, (uint8_t)(pos & 0xFF));
     out_byte(0x3D4, 0x0E);
-    out_byte(0x3D5, CAST(uint8_t, (pos >> 8) & 0xFF));
+    out_byte(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 
     _pos_x = x;
     _pos_y = y;

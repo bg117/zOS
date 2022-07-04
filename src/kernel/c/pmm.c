@@ -62,7 +62,7 @@ void pmm_init(uint64_t len)
         SETBITVAR(_bitmap[bitmap_idx], 1 << bit);
     }
 
-    _base = CAST(uint64_t, &__start);
+    _base = (uint64_t)(&__start);
 }
 
 void *pmm_allocate_page(void)
@@ -78,13 +78,13 @@ void *pmm_allocate_page(void)
     SETBITVAR(_bitmap[idx], 1 << bit);
 
     uint64_t offset = (idx * CHAR_BIT + bit) * PAGE_SIZE + _base;
-    return CAST(void *, offset);
+    return (void *)(offset);
 }
 
 void pmm_free_page(void *page)
 {
     uint8_t bit = 0;
-    for (uint64_t i = 0, base_addr = CAST(uint64_t, _base), bitmap_idx = 0; i < _bitmap_size;
+    for (uint64_t i = 0, base_addr = (uint64_t)(_base), bitmap_idx = 0; i < _bitmap_size;
          i++, bit++, base_addr += PAGE_SIZE)
     {
         if (i > 0 && i % CHAR_BIT == 0)
@@ -93,7 +93,7 @@ void pmm_free_page(void *page)
             bit = 0;
         }
 
-        if (base_addr == CAST(uint64_t, page))
+        if (base_addr == (uint64_t)(page))
         {
             if ((_bitmap[bitmap_idx] & (1 << bit)))
                 UNSETBITVAR(_bitmap[bitmap_idx], 1 << bit);
@@ -110,8 +110,7 @@ void pmm_free_page(void *page)
 enum page_status pmm_get_page_status(void *page)
 {
     uint8_t bit = 0;
-    for (uint64_t i = 0, base_addr = CAST(uint64_t, _base), bitmap_idx = 0; i < _bitmap_size;
-         i++, bit++, base_addr += PAGE_SIZE)
+    for (uint64_t i = 0, base_addr = _base, bitmap_idx = 0; i < _bitmap_size; i++, bit++, base_addr += PAGE_SIZE)
     {
         if (i > 0 && i % CHAR_BIT == 0)
         {
@@ -119,7 +118,7 @@ enum page_status pmm_get_page_status(void *page)
             bit = 0;
         }
 
-        if (base_addr == CAST(uint64_t, page))
+        if (base_addr == (uint64_t)(page))
         {
             if ((_bitmap[bitmap_idx] & (1 << bit)))
                 return PS_USED;

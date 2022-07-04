@@ -8,7 +8,9 @@
 #include <stdint.h>
 
 #include <gdt.h>
+#include <log.h>
 
+#include <misc/log_macros.h>
 #include <misc/type_macros.h>
 
 struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags)
@@ -26,12 +28,18 @@ struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_by
 
 void gdt_descriptor_init(struct gdt_descriptor *desc, struct gdt_entry *gdt, size_t entry_count)
 {
-    desc->offset  = CAST(uint16_t, sizeof *gdt * entry_count - 1);
-    desc->address = CAST(uint32_t, gdt);
+    desc->offset  = (uint16_t)(sizeof *gdt * entry_count - 1);
+    desc->address = (uint32_t)(gdt);
 }
 
 void gdt_descriptor_load(struct gdt_descriptor *desc, uint16_t code_offset, uint16_t data_offset)
 {
+    struct gdt_entry *ent = (struct gdt_entry *)(desc->address);
+    KLOG("loading descriptor: base=0x%08X, limit=0x%08X, access_byte=0x%02hhX\n",
+         ent->base_upper_8 << 24 | ent->base_middle_8 << 16 | ent->base_lower_16,
+         (ent->flags_limit_upper_4 & 0xF) << 16 | ent->limit_lower_16,
+         ent->access_byte);
+
     __asm__ __volatile__(
         "lgdt %0;"
         "pushl %1;"

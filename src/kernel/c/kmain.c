@@ -11,11 +11,11 @@
 #include <core.h>
 #include <fat.h>
 #include <gdt.h>
-#include <hal.h>
 #include <idt.h>
 #include <interrupt_info.h>
 #include <io.h>
 #include <kbd.h>
+#include <kernel.h>
 #include <log.h>
 #include <mem.h>
 #include <mmap.h>
@@ -27,9 +27,6 @@
 #include <misc/log_macros.h>
 #include <misc/num.h>
 #include <misc/type_macros.h>
-
-#define PIC1_OFFSET 0x20
-#define PIC2_OFFSET 0x28
 
 extern uint8_t __start;
 
@@ -88,28 +85,13 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
                                    memory_map[i].acpi_extended_attributes);
     }
 
-    // find region which is greater than or equal to __start
-    size_t mmap_idx = 0;
-    while (mmap_idx < mmap_length && memory_map[mmap_idx].base < CAST(uint64_t, &__start))
-        ++mmap_idx;
+    KLOG("initializing the kernel\n");
+    kernel_use_default_interrupt_handler(_default_exception_handler);
+    kernel_init(memory_map, mmap_length);
 
-    KLOG("initializing the hardware abstraction layer\n");
-    hal_use_default_interrupt_handler(_default_exception_handler);
-    hal_init(PIC1_OFFSET, PIC2_OFFSET);
+    screen_print_string(log_get_tmp_buffer());
 
-    KLOG("initializing the Programmable Interval Timer\n");
-    timer_init();
-
-    KLOG("initializing the keyboard\n");
-    kbd_init();
-
-    KLOG("enabling interrupts\n");
-    core_set_interrupt_flag();
-
-    KLOG("initializing the physical memory manager\n");
-    pmm_init(memory_map[mmap_idx].length);
-
-    screen_print_string("zOS version 0.01\n");
+    screen_print_string("\nzOS version 0.01\n");
     screen_print_string("Type something:\n\n");
 
     while (1)

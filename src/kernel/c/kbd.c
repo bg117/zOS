@@ -5,14 +5,15 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <hal.h>
 #include <interrupt_info.h>
 #include <io.h>
 #include <kbd.h>
+#include <kernel.h>
 #include <log.h>
 #include <pic.h>
 #include <video.h>
 
+#include <misc/log_macros.h>
 #include <misc/type_macros.h>
 
 static const char US_SCANCODES[128] = {
@@ -94,7 +95,8 @@ static void _irq1_handler(struct interrupt_info *);
 
 void kbd_init()
 {
-    hal_map_exception_handler(1 + pic_get_pic1_offset(), _irq1_handler);
+    KLOG("mapping IRQ 1 handler\n");
+    kernel_map_exception_handler(1 + pic_get_pic1_offset(), _irq1_handler);
 
     _last_char     = 0;
     _last_scancode = 0;
@@ -131,6 +133,8 @@ void _irq1_handler(struct interrupt_info *info)
         read     = in_byte(0x60);
         is_ready = 1;
     }
+
+    KLOG("read key with scancode=0x%hhX\n", read);
 
     if (SHIFT_ALT_CTRL_CHECK(read))
     {

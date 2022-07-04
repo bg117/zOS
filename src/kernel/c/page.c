@@ -5,9 +5,9 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxTYPE_MACROSHxuuq
-#define quuxTYPE_MACROSHxuuq
+#include <stddef.h>
 
-#define USE(x) (void)(x)
+#include <page.h>
+#include <pmm.h>
 
-#endif
+#define PAGE_SIZE 4096

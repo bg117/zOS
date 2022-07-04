@@ -7,14 +7,15 @@
 
 #include <stdint.h>
 
-#include <hal.h>
 #include <interrupt_info.h>
 #include <io.h>
+#include <kernel.h>
 #include <log.h>
 #include <pic.h>
 #include <timer.h>
 #include <video.h>
-#include "core.h"
+
+#include <misc/log_macros.h>
 
 static uint64_t _timer_ticks;
 static uint64_t _seconds;
@@ -25,7 +26,8 @@ static void _irq0_handler(struct interrupt_info *);
 
 void timer_init()
 {
-    hal_map_exception_handler(0 + pic_get_pic1_offset(), _irq0_handler);
+    KLOG("mapping IRQ 0 handler\n");
+    kernel_map_exception_handler(0 + pic_get_pic1_offset(), _irq0_handler);
 
     timer_set_cycle(100);
 
