@@ -18,7 +18,7 @@ TARGET := i686-pc-none-elf
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
 CFLAGS       := -Wall \
-				-Og \
+				-O0 \
 				-g \
 				-fno-stack-check \
 				-ffreestanding \
@@ -39,15 +39,19 @@ OBJCOPYFLAGS := -O binary \
 
 SRCS_ASM := ${wildcard ${CURDIR}/asm/*.asm}
 SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
+SRCS_H   := ${wildcard ${CURDIR}/c/include/**/*.h}
 
 OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.o}}
 OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.o}}
 
 HDRS := ${OBJS_C:.o=.d}
 
-.PHONY: all build clean
+.PHONY: all build clean format
 
-all: build
+all: format build
+
+format: ${SRCS_C} ${SRCS_H}
+	clang-format -i $^
 
 build: ${FULLEXEC}
 

@@ -27,6 +27,11 @@ struct memory_map;
 void kernel_init(struct memory_map *mmap, size_t mmap_length);
 
 /**
+ * @brief Finalizes the kernel.
+ */
+void kernel_fin(void);
+
+/**
  * @brief Sets the default interrupt handler for the 256 interrupts.
  *
  * @param handler The interrupt handler which takes a pointer to an

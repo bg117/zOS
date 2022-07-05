@@ -8,7 +8,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include <log.h>
+#include <io.h>
+#include <serial.h>
 
 #include <misc/char_macros.h>
 #include <misc/num.h>
@@ -28,9 +29,9 @@
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
         for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
-            log_append_char('0');                                                                                      \
+            serial_write_char('0');                                                                                    \
     }                                                                                                                  \
-    log_append_format_string("%s", buf)
+    serial_write_format_string("%s", buf)
 
 #define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                                                                     \
     switch (len)                                                                                                       \
@@ -45,9 +46,9 @@
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
         for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
-            log_append_char('0');                                                                                      \
+            serial_write_char('0');                                                                                    \
     }                                                                                                                  \
-    log_append_format_string("%s", buf)
+    serial_write_format_string("%s", buf)
 
 #define SWITCH_LENGTH_UNSIGNED_UPR(ap, len, buf, base)                                                                 \
     switch (len)                                                                                                       \
@@ -62,13 +63,9 @@
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
         for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
-            log_append_char('0');                                                                                      \
+            serial_write_char('0');                                                                                    \
     }                                                                                                                  \
-    log_append_format_string("%s", buf)
-
-/* about 516 KB of log space */
-static char  *_tmp_msg_buffer = (char *)(0x1FEF);
-static size_t _msg_buffer_idx = 0;
+    serial_write_format_string("%s", buf)
 
 enum printf_state
 {
@@ -85,22 +82,21 @@ enum printf_length_state
     LENGTH_VERY_LONG
 };
 
-void log_append_char(char c)
+void serial_write_char(char c)
 {
-    _tmp_msg_buffer[_msg_buffer_idx] = c;
-    ++_msg_buffer_idx;
+    out_byte(0x3F8, c);
 }
 
-void log_append_string(const char *__restrict__ s)
+void serial_write_string(const char *__restrict__ s)
 {
     while (*s)
     {
-        log_append_char(*s);
+        serial_write_char(*s);
         ++s;
     }
 }
 
-void log_append_format_string(const char *__restrict__ fmt, ...)
+void serial_write_format_string(const char *__restrict__ fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -108,8 +104,9 @@ void log_append_format_string(const char *__restrict__ fmt, ...)
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
-    int zero_pad = 0;
-    int pad_len  = 0;
+    int zero_pad  = 0;
+    int space_pad = 0;
+    int pad_len   = 0;
 
     char num_buf[256];
 
@@ -125,7 +122,7 @@ void log_append_format_string(const char *__restrict__ fmt, ...)
         {
             switch (*fmt)
             {
-            case '%': log_append_char('%'); break;
+            case '%': serial_write_char('%'); break;
             case '0':
                 zero_pad = 1;
                 ++fmt;
@@ -137,8 +134,30 @@ void log_append_format_string(const char *__restrict__ fmt, ...)
                     ++fmt;
                 }
                 continue;
-            case 's': log_append_string(va_arg(ap, const char *)); break;
-            case 'c': log_append_char((char)(va_arg(ap, int))); break;
+            case ' ':
+                space_pad = 1;
+                ++fmt;
+                while (*fmt && ISDIGIT(*fmt))
+                {
+                    pad_len *= 10;
+                    pad_len += *fmt - '0';
+
+                    ++fmt;
+                }
+                continue;
+            case 's':
+                {
+                    const char *arg = va_arg(ap, const char *);
+                    if (space_pad)
+                    {
+                        for (size_t i = 0; i < pad_len - str_get_length(arg); i++)
+                            serial_write_char(' ');
+                    }
+
+                    serial_write_string(arg);
+                }
+                break;
+            case 'c': serial_write_char((char)(va_arg(ap, int))); break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;
@@ -153,28 +172,26 @@ void log_append_format_string(const char *__restrict__ fmt, ...)
             case 'x': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16); break;
             case 'X': SWITCH_LENGTH_UNSIGNED_UPR(ap, length, num_buf, 16); break;
             case 'p':
-                log_append_string("0x");
+                serial_write_string("0x");
                 SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16);
                 break;
             case 'o': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 8); break;
             case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 2); break;
-            default: log_append_format_string("%%%c", *fmt); break;
+            default: serial_write_format_string("%%%c", *fmt); break;
             }
         }
         else
         {
-            log_append_char(*fmt);
+            serial_write_char(*fmt);
         }
 
-        state  = STATE_NORMAL;
-        length = LENGTH_NORMAL;
+        state     = STATE_NORMAL;
+        length    = LENGTH_NORMAL;
+        zero_pad  = 0;
+        space_pad = 0;
+        pad_len   = 0;
         ++fmt;
     }
 
     va_end(ap);
-}
-
-char *log_get_tmp_buffer()
-{
-    return _tmp_msg_buffer;
 }

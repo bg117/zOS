@@ -82,10 +82,7 @@ struct __attribute__((packed)) gdt_descriptor
  * @param flags Other flags such as granularity, 32-bit, etc.
  * @return A gdt_entry struct populated with the provided arguments.
  */
-struct gdt_entry gdt_make_entry(uint32_t limit,
-                                uint32_t base,
-                                uint8_t  access_byte,
-                                uint8_t  flags);
+struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags);
 
 /**
  * @brief Initializes a pointer to a GDT descriptor with the GDT provided.
@@ -94,9 +91,7 @@ struct gdt_entry gdt_make_entry(uint32_t limit,
  * @param gdt The global descriptor table.
  * @param entry_count The number of entries in the GDT.
  */
-void gdt_descriptor_init(struct gdt_descriptor *desc,
-                         struct gdt_entry      *gdt,
-                         size_t                 entry_count);
+void gdt_descriptor_init(struct gdt_descriptor *desc, struct gdt_entry *gdt, size_t entry_count);
 
 /**
  * @brief Loads the GDT descriptor into the GDTR.
@@ -107,9 +102,7 @@ void gdt_descriptor_init(struct gdt_descriptor *desc,
  * @param data_offset The offset to the data segment to be used. Must also
  *                    be a multiple of 8.
  */
-void gdt_descriptor_load(struct gdt_descriptor *desc,
-                         uint16_t               code_offset,
-                         uint16_t               data_offset);
+void gdt_descriptor_load(struct gdt_descriptor *desc, uint16_t code_offset, uint16_t data_offset);
 
 #if defined(__cplusplus)
 }

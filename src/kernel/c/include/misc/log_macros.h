@@ -5,4 +5,4 @@
  * https://opensource.org/licenses/MIT
  */
 
-#define KLOG(msg, ...) log_append_format_string("[%s]: " msg, __func__, ##__VA_ARGS__)
+#define KSLOG(msg, ...) serial_write_format_string("[%s]: " msg, __func__, ##__VA_ARGS__)

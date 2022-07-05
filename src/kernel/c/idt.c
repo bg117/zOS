@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #include <idt.h>
-#include <log.h>
+#include <serial.h>
 
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
@@ -23,6 +23,11 @@ struct idt_entry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access
     entry.segment_selector = code_segment;            // code segment offset in GDT
     entry.access_byte      = access_byte;
     entry.reserved         = 0;
+
+    KSLOG("creating entry: offset=0x%08X, segment=0x%04hX, access_byte=0x%02hhX\n",
+          entry.offset_upper_16 << 16 | entry.offset_lower_16,
+          entry.segment_selector,
+          entry.access_byte);
 
     return entry;
 }
@@ -46,11 +51,5 @@ void idt_descriptor_init(struct idt_descriptor *desc, struct idt_entry *idt, siz
 
 void idt_descriptor_load(struct idt_descriptor *desc)
 {
-    struct idt_entry *ent = (struct idt_entry *)(desc->address);
-    KLOG("loading descriptor: offset=0x%08X, segment=0x%04X, access_byte=0x%02hhX\n",
-         ent->offset_upper_16 << 16 | ent->offset_lower_16,
-         ent->segment_selector,
-         ent->access_byte);
-
     __asm__ __volatile__("lidt %0;" ::"m"(*desc));
 }

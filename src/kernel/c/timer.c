@@ -10,8 +10,8 @@
 #include <interrupt_info.h>
 #include <io.h>
 #include <kernel.h>
-#include <log.h>
 #include <pic.h>
+#include <serial.h>
 #include <timer.h>
 #include <video.h>
 
@@ -26,7 +26,7 @@ static void _irq0_handler(struct interrupt_info *);
 
 void timer_init()
 {
-    KLOG("mapping IRQ 0 handler\n");
+    KSLOG("mapping IRQ 0 handler\n");
     kernel_map_exception_handler(0 + pic_get_pic1_offset(), _irq0_handler);
 
     timer_set_cycle(100);

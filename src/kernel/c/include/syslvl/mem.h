@@ -33,9 +33,7 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len);
  * @param len The length of the source block to copy.
  * @return The destination block.
  */
-void *mem_copy(void *__restrict__ dest,
-               const void *__restrict__ src,
-               size_t len);
+void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len);
 
 /**
  * @brief Copies a block of memory to another location.
@@ -48,9 +46,7 @@ void *mem_copy(void *__restrict__ dest,
  * @param len The length of the source block to copy.
  * @return The destination block.
  */
-void *mem_copy_with_overlap(void *__restrict__ dest,
-                            const void *__restrict__ src,
-                            size_t len);
+void *mem_copy_with_overlap(void *__restrict__ dest, const void *__restrict__ src, size_t len);
 
 #ifdef __cplusplus
 }

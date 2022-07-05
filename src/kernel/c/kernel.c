@@ -20,10 +20,11 @@
 #include <interrupt_info.h>
 #include <kbd.h>
 #include <kernel.h>
-#include <log.h>
 #include <mmap.h>
+#include <page.h>
 #include <pic.h>
 #include <pmm.h>
+#include <serial.h>
 #include <timer.h>
 #include <video.h>
 
@@ -311,20 +312,23 @@ extern void __attribute__((cdecl)) __isr_stub_255(void);
 
 extern uint8_t __start;
 
+static struct page_directory_entry *_page_dir_mem;
+static struct page_table_entry     *_page_tab_mem;
+
 void kernel_init(struct memory_map *mmap, size_t mmap_length)
 {
-    KLOG("initializing the global descriptor table\n");
+    KSLOG("initializing the global descriptor table\n");
     _kernel_init_gdt();
 
-    KLOG("loading the GDT\n");
+    KSLOG("loading the GDT\n");
     gdt_descriptor_load(&_gdt_desc, 0x08, 0x10);
     pic_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    KLOG("mapping default IRQ handlers\n");
+    KSLOG("mapping default IRQ handlers\n");
     for (int i = 0; i < 16; i++)
         kernel_map_exception_handler(i + PIC1_OFFSET, _default_irq_handler);
 
-    KLOG("initializing interrupt service routines\n");
+    KSLOG("initializing interrupt service routines\n");
     _kernel_init_isr();
 
     timer_init();
@@ -332,16 +336,37 @@ void kernel_init(struct memory_map *mmap, size_t mmap_length)
 
     idt_descriptor_load(&_idt_desc);
 
-    KLOG("enabling interrupts\n");
+    KSLOG("enabling interrupts\n");
     core_set_interrupt_flag();
 
-    // find region which is greater than or equal to __start
-    size_t mmap_idx = 0;
-    while (mmap_idx < mmap_length && mmap[mmap_idx].base < (uint64_t)(&__start))
-        ++mmap_idx;
+    KSLOG("initializing the physical memory manager\n");
+    pmm_init(mmap, mmap_length);
 
-    KLOG("initializing the physical memory manager\n");
-    pmm_init(mmap[mmap_idx].length);
+    KSLOG("initializing paging\n");
+    // page structures need to be aligned at page boundary
+    _page_dir_mem = pmm_allocate_page();
+    _page_tab_mem = pmm_allocate_page();
+
+    KSLOG("mapping virtual addresses to address 0\n");
+    // fill page table mapping memory starting from address 0
+    for (int i = 0; i < 1024; i++)
+        _page_tab_mem[i] = page_create_page_table_entry(PGT_AX_PRESENT | PGT_AX_WRITE | PGT_AX_KERNEL, i * 0x1000);
+
+    // set page table in page directory
+    _page_dir_mem[0] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
+                                                        (uint32_t)(&_page_tab_mem[0]));
+
+    KSLOG("loading page directory into CR3\n");
+    page_load_page_directory(_page_dir_mem);
+
+    // KSLOG("enabling paging\n");
+    // page_enable_paging();
+}
+
+void kernel_fin()
+{
+    pmm_free_page(_page_dir_mem);
+    pmm_free_page(_page_tab_mem);
 }
 
 void kernel_use_default_interrupt_handler(void (*handler)(struct interrupt_info *))

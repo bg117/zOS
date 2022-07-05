@@ -63,9 +63,7 @@ struct __attribute__((packed)) idt_descriptor
  * @param access_byte The present, privilege, and type flags.
  * @return A idt_entry struct populated with the provided arguments.
  */
-struct idt_entry idt_make_entry(void    *isr,
-                                uint16_t code_segment,
-                                uint8_t  access_byte);
+struct idt_entry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access_byte);
 
 /**
  * @brief Creates an IDT entry.
@@ -75,10 +73,7 @@ struct idt_entry idt_make_entry(void    *isr,
  * @param code_segment The code segment to use (from GDT).
  * @param access_byte The present, privilege, and type flags.
  */
-void idt_modify_entry(struct idt_entry *entry,
-                      void             *isr,
-                      uint16_t          code_segment,
-                      uint8_t           access_byte);
+void idt_modify_entry(struct idt_entry *entry, void *isr, uint16_t code_segment, uint8_t access_byte);
 
 /**
  * @brief Initializes a pointer to a IDT descriptor with the IDT provided.
@@ -87,9 +82,7 @@ void idt_modify_entry(struct idt_entry *entry,
  * @param idt The interrupt descriptor table.
  * @param entry_count The number of entries in the IDT.
  */
-void idt_descriptor_init(struct idt_descriptor *desc,
-                         struct idt_entry      *idt,
-                         size_t                 entry_count);
+void idt_descriptor_init(struct idt_descriptor *desc, struct idt_entry *idt, size_t entry_count);
 
 /**
  * @brief Loads the IDT descriptor into the IDTR.

@@ -53,9 +53,13 @@ struct __attribute__((packed)) page_table_entry
     uint32_t address : 20;
 };
 
-struct page_directory_entry page_create_page_directory_entry(void);
+struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte, uint32_t address);
 
-struct page_table_entry page_create_page_table_entry(void);
+struct page_table_entry page_create_page_table_entry(uint8_t access_byte, uint32_t address);
+
+void page_load_page_directory(struct page_directory_entry *pgd);
+
+void page_enable_paging(void);
 
 #ifdef __cplusplus
 }

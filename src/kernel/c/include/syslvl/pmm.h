@@ -8,6 +8,7 @@
 #ifndef quuxPMMHxuuq
 #define quuxPMMHxuuq
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -21,13 +22,15 @@ enum page_status
     PS_UNKNOWN
 };
 
+struct memory_map;
+
 /**
  * @brief Initializes the physical memory manager.
  *
- * @param len The length of free memory available, starting from the base
-              of the kernel (usually 0x100000).
+ * @param mmap The memory map of the system.
+ * @param mmap_length Tells how many entries the memory map contains.
  */
-void pmm_init(uint64_t len);
+void pmm_init(struct memory_map *mmap, size_t mmap_length);
 
 /**
  * @brief Allocates a single page and marks it as used.

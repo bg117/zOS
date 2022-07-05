@@ -16,11 +16,11 @@
 #include <io.h>
 #include <kbd.h>
 #include <kernel.h>
-#include <log.h>
 #include <mem.h>
 #include <mmap.h>
 #include <pic.h>
 #include <pmm.h>
+#include <serial.h>
 #include <timer.h>
 #include <video.h>
 
@@ -85,11 +85,9 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
                                    memory_map[i].acpi_extended_attributes);
     }
 
-    KLOG("initializing the kernel\n");
+    KSLOG("initializing the kernel\n");
     kernel_use_default_interrupt_handler(_default_exception_handler);
     kernel_init(memory_map, mmap_length);
-
-    screen_print_string(log_get_tmp_buffer());
 
     screen_print_string("\nzOS version 0.01\n");
     screen_print_string("Type something:\n\n");
@@ -104,6 +102,8 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
             screen_print_char(c);
     }
 
+    kernel_fin();
+
     return 1;
 }
 
@@ -112,8 +112,7 @@ void _default_exception_handler(struct interrupt_info *info)
     screen_print_string("--------------- SYSTEM ERROR ---------------\n");
     screen_print_string("The kernel threw a fit trying to handle an interrupt and couldn't continue.\n"); // ah yes.
 
-    screen_print_string("Kernel log for reference:\n");
-    screen_print_format_string("%s\n", log_get_tmp_buffer());
+    screen_print_string("Check serial port COM1 for logs.\n");
 
     screen_print_format_string("Interrupt index: 0x%02X\n", info->vector);
     if (info->vector < 0x20)

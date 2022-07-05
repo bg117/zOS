@@ -9,8 +9,8 @@
 #include <io.h>
 #include <kbd.h>
 #include <kernel.h>
-#include <log.h>
 #include <pic.h>
+#include <serial.h>
 #include <video.h>
 
 #include <misc/log_macros.h>
@@ -95,7 +95,7 @@ static void _irq1_handler(struct interrupt_info *);
 
 void kbd_init()
 {
-    KLOG("mapping IRQ 1 handler\n");
+    KSLOG("mapping IRQ 1 handler\n");
     kernel_map_exception_handler(1 + pic_get_pic1_offset(), _irq1_handler);
 
     _last_char     = 0;
@@ -134,7 +134,7 @@ void _irq1_handler(struct interrupt_info *info)
         is_ready = 1;
     }
 
-    KLOG("read key with scancode=0x%hhX\n", read);
+    KSLOG("read key with scancode=0x%hhX\n", read);
 
     if (SHIFT_ALT_CTRL_CHECK(read))
     {
