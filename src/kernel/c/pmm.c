@@ -85,44 +85,6 @@ void /* _pmm_proto_init */ pmm_init(struct memory_map *mmap, size_t mmap_length)
     }
 }
 
-#if 0
-void pmm_init(uint64_t len)
-{
-    // round len down to nearest multiple of PAGE_SIZE, just to be sure
-    uint64_t tmp = len / PAGE_SIZE;
-    uint64_t size;
-
-    len          = tmp * PAGE_SIZE;
-    _bitmap_size = tmp; // length / 4096 / 8
-
-    if (tmp % CHAR_BIT > 0)
-        ++_bitmap_size;
-
-    // mark reserved areas as used (kernel + bitmap)
-    size = __end - __start + _bitmap_size;
-    size = ALIGN(size, PAGE_SIZE);
-    size /= PAGE_SIZE;
-
-    mem_fill(_bitmap, 0, ALIGN(_bitmap_size, CHAR_BIT));
-
-    KSLOG("marking reserved areas as used\n");
-    // size = counter; mark all reserved pages as used
-    uint8_t bit = 0;
-    for (uint64_t i = 0, byte = 0; i < size; i++, bit++)
-    {
-        if (i > 0 && i % CHAR_BIT == 0)
-        {
-            ++byte;
-            bit = 0;
-        }
-
-        SETBITVAR(_bitmap[byte], 1 << bit);
-    }
-
-    _base = (uint64_t)(&__start);
-}
-#endif
-
 void *pmm_allocate_page(void)
 {
     uint8_t  bit;
