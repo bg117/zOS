@@ -60,6 +60,7 @@ static const char *EXCEPTION_IDS[] = { "Divide-by-zero error",
                                        "FPU error interrupt" };
 
 static void _default_exception_handler(struct interrupt_info *info);
+static void _page_fault_handler(struct interrupt_info *info);
 
 // main
 int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, uint16_t mmap_length)
@@ -87,7 +88,11 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
 
     KSLOG("initializing the kernel\n");
     kernel_use_default_interrupt_handler(_default_exception_handler);
+    kernel_map_exception_handler(14, _page_fault_handler);
     kernel_init(memory_map, mmap_length);
+
+    //! page fault test
+    (void)*(char *)(0x90000000);
 
     screen_print_string("\nzOS version 0.01\n");
     screen_print_string("Type something:\n\n");
@@ -109,6 +114,24 @@ int kmain(uint8_t drive_number, struct fat_info *fi, struct memory_map *mmap, ui
 
 void _default_exception_handler(struct interrupt_info *info)
 {
+    KSLOG("unhandled interrupt 0x%02X.\n", info->vector);
+    KSLOG(
+        "register dump:\n\t"
+        "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
+        "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
+        "cs=0x%04X ds=0x%04X ss=0x%04X\n",
+        info->eax,
+        info->ebx,
+        info->ecx,
+        info->edx,
+        info->esi,
+        info->edi,
+        info->ebp,
+        info->esp,
+        info->cs,
+        info->ds,
+        info->ss);
+
     screen_print_string("--------------- SYSTEM ERROR ---------------\n");
     screen_print_string("The kernel threw a fit trying to handle an interrupt and couldn't continue.\n"); // ah yes.
 
@@ -147,6 +170,36 @@ void _default_exception_handler(struct interrupt_info *info)
         info->ds,
         info->ss);
 
+    core_clear_interrupt_flag();
+    core_halt();
+}
+
+static void _page_fault_handler(struct interrupt_info *info)
+{
+    uint32_t cr2;
+    __asm__ __volatile__("movl %%cr2, %0" : "=r"(cr2) :); // get value of CR2 (contains the address of page fault)
+    KSLOG("page fault@0x%08X. Error code: 0x%X\n", cr2, info->error_code);
+    KSLOG(
+        "register dump:\n\t"
+        "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
+        "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
+        "cs=0x%04X ds=0x%04X ss=0x%04X\n",
+        info->eax,
+        info->ebx,
+        info->ecx,
+        info->edx,
+        info->esi,
+        info->edi,
+        info->ebp,
+        info->esp,
+        info->cs,
+        info->ds,
+        info->ss);
+
+    screen_print_string("--------------- SYSTEM ERROR ---------------\n");
+    screen_print_format_string("A process tried to access address 0x%08X and caused a page fault.\n", cr2);
+
+    // temporary
     core_clear_interrupt_flag();
     core_halt();
 }

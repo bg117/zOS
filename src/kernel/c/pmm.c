@@ -40,11 +40,13 @@ void /* _pmm_proto_init */ pmm_init(struct memory_map *mmap, size_t mmap_length)
     // mark reserved areas as used
     for (size_t i = 0; i < mmap_length; i++)
     {
+        // if not reserved, continue
         if (mmap[i].type != 0x02)
             continue;
 
         uint64_t base_lower = mmap[i].base;
         uint64_t base_upper;
+        // get length of usable areas
         while (i < mmap_length && mmap[i].type != 0x01)
             ++i;
 

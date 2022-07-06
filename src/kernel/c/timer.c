@@ -37,7 +37,6 @@ void timer_init()
 
 void timer_set_cycle(int hz)
 {
-    // I KNOW this is a bad idea, but it's only a temporary fix, and it works!
     const int ONE_MHZ = 1193180;
     uint16_t  div     = ONE_MHZ / hz;
 

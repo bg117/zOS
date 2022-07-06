@@ -82,6 +82,8 @@ static uint16_t       _pos_y     = 0;
 
 static volatile int _move_cursor_chr = 1;
 
+static uint8_t _char_color = 0x07; // light gray
+
 enum printf_state
 {
     STATE_NORMAL,
@@ -249,7 +251,7 @@ void screen_print_char(char c)
         {
             int position             = GET_VGA_POSITION_XY(_pos_x, _pos_y);
             VGA_BUFFER[position]     = c;
-            VGA_BUFFER[position + 1] = 0x0F;
+            VGA_BUFFER[position + 1] = _char_color;
 
             ++_pos_x;
 

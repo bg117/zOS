@@ -5,13 +5,6 @@
  * https://opensource.org/licenses/MIT
  */
 
-/**
- * Copyright (c) 2022 bg117
- *
- * This software is released under the MIT License.
- * https://opensource.org/licenses/MIT
- */
-
 #include <stdint.h>
 
 #include <core.h>
@@ -331,9 +324,11 @@ void kernel_init(struct memory_map *mmap, size_t mmap_length)
     KSLOG("initializing interrupt service routines\n");
     _kernel_init_isr();
 
+    KSLOG("initializing hardware peripherals\n");
     timer_init();
     kbd_init();
 
+    KSLOG("loading the IDT\n");
     idt_descriptor_load(&_idt_desc);
 
     KSLOG("enabling interrupts\n");
@@ -348,7 +343,7 @@ void kernel_init(struct memory_map *mmap, size_t mmap_length)
     _page_tab_mem = pmm_allocate_page();
 
     KSLOG("mapping virtual addresses to address 0\n");
-    // fill page table mapping memory starting from address 0
+    // identity-map the first 4 MB of memory
     for (int i = 0; i < 1024; i++)
         _page_tab_mem[i] = page_create_page_table_entry(PGT_AX_PRESENT | PGT_AX_WRITE | PGT_AX_KERNEL, i * 0x1000);
 
@@ -359,8 +354,8 @@ void kernel_init(struct memory_map *mmap, size_t mmap_length)
     KSLOG("loading page directory into CR3\n");
     page_load_page_directory(_page_dir_mem);
 
-    // KSLOG("enabling paging\n");
-    // page_enable_paging();
+    KSLOG("enabling paging\n");
+    page_enable_paging();
 }
 
 void kernel_fin()

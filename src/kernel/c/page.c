@@ -15,8 +15,10 @@
 struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte, uint32_t address)
 {
     struct page_directory_entry entry;
-    entry.access_byte = access_byte;
-    entry.address     = address & 0xFFFFF;
+    entry.access_byte      = access_byte;
+    entry.address_upper_20 = (address & 0xFFFFF000) >> 12; // the address is supposed to be page-aligned
+                                                           // so the lower 12 bits are all zeros, thus giving
+                                                           // space for the access byte
 
     return entry;
 }
@@ -24,8 +26,8 @@ struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte
 struct page_table_entry page_create_page_table_entry(uint8_t access_byte, uint32_t address)
 {
     struct page_table_entry entry;
-    entry.access_byte = access_byte;
-    entry.address     = address & 0xFFFFF;
+    entry.access_byte      = access_byte;
+    entry.address_upper_20 = (address & 0xFFFFF000) >> 12;
 
     return entry;
 }
@@ -40,5 +42,5 @@ void page_enable_paging()
     __asm__ __volatile__(
         "movl %cr0, %eax;"
         "orl $0x80000000, %eax;"
-        "movl %eax, %cr0;");
+        "movl %eax, %cr0;"); // enable paging bit
 }

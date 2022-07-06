@@ -43,14 +43,14 @@ struct __attribute__((packed)) page_directory_entry
 {
     uint8_t  access_byte;
     uint8_t  reserved : 4;
-    uint32_t address : 20;
+    uint32_t address_upper_20 : 20;
 };
 
 struct __attribute__((packed)) page_table_entry
 {
     uint8_t  access_byte;
     uint8_t  reserved : 4;
-    uint32_t address : 20;
+    uint32_t address_upper_20 : 20;
 };
 
 struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte, uint32_t address);
