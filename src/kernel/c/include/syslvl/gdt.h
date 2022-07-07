@@ -18,7 +18,7 @@ extern "C" {
 /**
  * @brief The present, privilege, and type flags of a GDT entry.
  */
-enum gdt_access_flags
+typedef enum gdt_access_flags
 {
     GDT_AX_PRESENT = 0b10000000,
 
@@ -40,21 +40,21 @@ enum gdt_access_flags
     GDT_AX_DATA_WRITABLE = 0b00000010,
 
     GDT_AX_ACCESSED = 0b00000001
-};
+} GdtAccessFlags;
 
 /**
  * @brief Flags for the "other" field of a GDT entry.
  */
-enum gdt_other_flags
+typedef enum gdt_other_flags
 {
     GDT_OF_GRANULARITY = 0b1000,
     GDT_OF_32BIT       = 0b0100,
-};
+} GdtOtherFlags;
 
 /**
  * @brief Represents a global descriptor table entry.
  */
-struct __attribute__((packed)) gdt_entry
+typedef struct __attribute__((packed)) gdt_entry
 {
     uint16_t limit_lower_16;
     uint16_t base_lower_16;
@@ -62,16 +62,16 @@ struct __attribute__((packed)) gdt_entry
     uint8_t  access_byte;
     uint8_t  flags_limit_upper_4;
     uint8_t  base_upper_8;
-};
+} GdtEntry;
 
 /**
  * @brief The GDT descriptor to load into the GDTR.
  */
-struct __attribute__((packed)) gdt_descriptor
+typedef struct __attribute__((packed)) gdt_descriptor
 {
     uint16_t offset;
     uint32_t address;
-};
+} GdtDescriptor;
 
 /**
  * @brief Creates an entry for a global descriptor table.
@@ -82,7 +82,7 @@ struct __attribute__((packed)) gdt_descriptor
  * @param flags Other flags such as granularity, 32-bit, etc.
  * @return A gdt_entry struct populated with the provided arguments.
  */
-struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags);
+GdtEntry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags);
 
 /**
  * @brief Initializes a pointer to a GDT descriptor with the GDT provided.
@@ -91,7 +91,7 @@ struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_by
  * @param gdt The global descriptor table.
  * @param entry_count The number of entries in the GDT.
  */
-void gdt_descriptor_init(struct gdt_descriptor *desc, struct gdt_entry *gdt, size_t entry_count);
+void gdt_descriptor_init(GdtDescriptor *desc, GdtEntry *gdt, size_t entry_count);
 
 /**
  * @brief Loads the GDT descriptor into the GDTR.
@@ -102,7 +102,7 @@ void gdt_descriptor_init(struct gdt_descriptor *desc, struct gdt_entry *gdt, siz
  * @param data_offset The offset to the data segment to be used. Must also
  *                    be a multiple of 8.
  */
-void gdt_descriptor_load(struct gdt_descriptor *desc, uint16_t code_offset, uint16_t data_offset);
+void gdt_descriptor_load(GdtDescriptor *desc, uint16_t code_offset, uint16_t data_offset);
 
 #if defined(__cplusplus)
 }

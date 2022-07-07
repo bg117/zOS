@@ -14,6 +14,19 @@
 extern "C" {
 #endif
 
+typedef enum key_modifiers
+{
+    KEY_ALT   = 0x01,
+    KEY_CTRL  = 0x02,
+    KEY_SHIFT = 0x04
+} KeyModifiers;
+
+typedef struct read_key
+{
+    char         c;
+    KeyModifiers modifiers;
+} ReadKey;
+
 /**
  * @brief Initializes the keyboard and its handler.
  */
@@ -24,7 +37,7 @@ void kbd_init();
  *
  * @return The character entered.
  */
-char kbd_get_char();
+ReadKey kbd_get_char();
 
 #ifdef __cplusplus
 }

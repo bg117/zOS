@@ -13,9 +13,9 @@
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
 
-struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags)
+GdtEntry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags)
 {
-    struct gdt_entry entry;
+    GdtEntry entry;
     entry.limit_lower_16      = limit & 0xFFFF;
     entry.base_lower_16       = base & 0xFFFF;
     entry.base_middle_8       = (base >> 16) & 0xFF;
@@ -31,13 +31,13 @@ struct gdt_entry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_by
     return entry;
 }
 
-void gdt_descriptor_init(struct gdt_descriptor *desc, struct gdt_entry *gdt, size_t entry_count)
+void gdt_descriptor_init(GdtDescriptor *desc, GdtEntry *gdt, size_t entry_count)
 {
     desc->offset  = (uint16_t)(sizeof *gdt * entry_count - 1);
     desc->address = (uint32_t)(gdt);
 }
 
-void gdt_descriptor_load(struct gdt_descriptor *desc, uint16_t code_offset, uint16_t data_offset)
+void gdt_descriptor_load(GdtDescriptor *desc, uint16_t code_offset, uint16_t data_offset)
 {
     __asm__ __volatile__(
         "lgdt %0;"

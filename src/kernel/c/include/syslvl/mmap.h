@@ -10,12 +10,12 @@
 
 #include <stdint.h>
 
-struct __attribute__((packed)) memory_map
+typedef struct __attribute__((packed)) memory_map
 {
     uint64_t base;
     uint64_t length;
     uint32_t type;
     uint32_t acpi_extended_attributes;
-};
+} MemoryMap;
 
 #endif

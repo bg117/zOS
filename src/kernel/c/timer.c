@@ -9,6 +9,7 @@
 
 #include <interrupt_info.h>
 #include <io.h>
+#include <isr.h>
 #include <kernel.h>
 #include <pic.h>
 #include <serial.h>
@@ -17,22 +18,22 @@
 
 #include <misc/log_macros.h>
 
-static uint64_t _timer_ticks;
-static uint64_t _seconds;
+static uint64_t g_timer_ticks;
+static uint64_t g_seconds;
 
-static uint64_t _cycles;
+static uint64_t g_cycles;
 
-static void _irq0_handler(struct interrupt_info *);
+static void pit_handler(struct interrupt_info *);
 
 void timer_init()
 {
     KSLOG("mapping IRQ 0 handler\n");
-    kernel_map_exception_handler(0 + pic_get_pic1_offset(), _irq0_handler);
+    isr_map_interrupt_handler(0 + pic_get_pic1_offset(), pit_handler);
 
     timer_set_cycle(100);
 
-    _timer_ticks = 0;
-    _seconds     = 0;
+    g_timer_ticks = 0;
+    g_seconds     = 0;
 }
 
 void timer_set_cycle(int hz)
@@ -44,22 +45,22 @@ void timer_set_cycle(int hz)
     out_byte(0x40, div & 0xFF);
     out_byte(0x40, (div >> 8) & 0xFF);
 
-    _cycles = hz;
+    g_cycles = hz;
 }
 
 void timer_wait(int ms)
 {
-    uint64_t ticks_final = _timer_ticks + ms / 1000 * _cycles;
-    while (_timer_ticks < ticks_final)
+    uint64_t ticks_final = g_timer_ticks + ms / 1000 * g_cycles;
+    while (g_timer_ticks < ticks_final)
         ;
 }
 
-static void _irq0_handler(struct interrupt_info *info)
+static void pit_handler(struct interrupt_info *info)
 {
-    ++_timer_ticks;
+    ++g_timer_ticks;
 
-    if (_timer_ticks % _cycles == 0)
-        ++_seconds;
+    if (g_timer_ticks % g_cycles == 0)
+        ++g_seconds;
 
     pic_send_eoi(0x00);
 }

@@ -19,7 +19,6 @@ struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte
     entry.address_upper_20 = (address & 0xFFFFF000) >> 12; // the address is supposed to be page-aligned
                                                            // so the lower 12 bits are all zeros, thus giving
                                                            // space for the access byte
-
     return entry;
 }
 

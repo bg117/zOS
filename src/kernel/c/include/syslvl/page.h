@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-enum page_directory_access_flags
+typedef enum page_directory_access_flags
 {
     PGD_AX_PRESENT      = 0b00000001,
     PGD_AX_READ         = 0b00000000,
@@ -26,9 +26,9 @@ enum page_directory_access_flags
     PGD_AX_ACCESSED     = 0b00100000,
     PGD_AX_PAGE_SIZE_4K = 0b00000000,
     PGD_AX_PAGE_SIZE_4M = 0b10000000
-};
+} PageDirectoryAccessFlags;
 
-enum page_table_access_flags
+typedef enum page_table_access_flags
 {
     PGT_AX_PRESENT  = 0b00000001,
     PGT_AX_READ     = 0b00000000,
@@ -37,27 +37,27 @@ enum page_table_access_flags
     PGT_AX_KERNEL   = 0b00000100,
     PGT_AX_ACCESSED = 0b00100000,
     PGT_AX_DIRTY    = 0b01000000
-};
+} PageTableAccessFlags;
 
-struct __attribute__((packed)) page_directory_entry
+typedef struct __attribute__((packed)) page_directory_entry
 {
     uint8_t  access_byte;
     uint8_t  reserved : 4;
     uint32_t address_upper_20 : 20;
-};
+} PageDirectoryEntry;
 
-struct __attribute__((packed)) page_table_entry
+typedef struct __attribute__((packed)) page_table_entry
 {
     uint8_t  access_byte;
     uint8_t  reserved : 4;
     uint32_t address_upper_20 : 20;
-};
+} PageTableEntry;
 
-struct page_directory_entry page_create_page_directory_entry(uint8_t access_byte, uint32_t address);
+PageDirectoryEntry page_create_page_directory_entry(uint8_t access_byte, uint32_t address);
 
-struct page_table_entry page_create_page_table_entry(uint8_t access_byte, uint32_t address);
+PageTableEntry page_create_page_table_entry(uint8_t access_byte, uint32_t address);
 
-void page_load_page_directory(struct page_directory_entry *pgd);
+void page_load_page_directory(PageDirectoryEntry *pgd);
 
 void page_enable_paging(void);
 
