@@ -37,20 +37,16 @@ void vmm_init()
     PageTableEntry *page_tab = NULL;
 
     // let's identity map the kernel
-    for (uint32_t i = base, dir_idx = 0, dir_idx_prev = 0xFFFF, tab_idx = 0, tab_idx_prev = 0xFFFF; i < top;
-         i += PAGE_SIZE)
+    for (uint32_t i = base, dir_idx = 0, dir_idx_prev = 0xFFFF, tab_idx = 0; i < top; i += PAGE_SIZE)
     {
         dir_idx = VADDR_GET_PAGE_DIR_IDX(i);
         tab_idx = VADDR_GET_PAGE_TAB_IDX(i);
 
-        if (tab_idx != tab_idx_prev)
+        if (dir_idx != dir_idx_prev)
         {
             KSLOG("allocating page for new page table\n");
             page_tab = pmm_allocate_page();
-        }
 
-        if (dir_idx != dir_idx_prev)
-        {
             KSLOG("creating new page directory entry\n");
             g_page_dir[dir_idx]
                 = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, (uint32_t)(page_tab));
@@ -60,7 +56,6 @@ void vmm_init()
                                                          i /* mapping to the same address */);
 
         dir_idx_prev = dir_idx;
-        tab_idx_prev = tab_idx;
     }
 
     page_load_page_directory(g_page_dir);
