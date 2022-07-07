@@ -68,7 +68,7 @@ static void default_interrupt_handler(InterruptInfo *info);
 static void page_fault_handler(InterruptInfo *info);
 static void default_irq_handler(InterruptInfo *info);
 
-void kernel_init(struct memory_map *mmap, size_t mmap_length)
+void kernel_init(MemoryMap *mmap, size_t mmap_length)
 {
     KSLOG("initializing the global descriptor table\n");
     init_gdt();
