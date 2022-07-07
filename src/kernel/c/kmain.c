@@ -73,7 +73,5 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_leng
             screen_print_char(key.c);
     }
 
-    kernel_fin();
-
     return 1;
 }

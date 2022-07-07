@@ -26,11 +26,6 @@ struct memory_map;
  */
 void kernel_init(struct memory_map *mmap, size_t mmap_length);
 
-/**
- * @brief Finalizes the kernel.
- */
-void kernel_fin(void);
-
 #ifdef __cplusplus
 }
 #endif
