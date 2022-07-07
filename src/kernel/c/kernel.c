@@ -92,6 +92,8 @@ void kernel_init(MemoryMap *mmap, size_t mmap_length)
     for (int i = 0; i < 16; i++)
         isr_map_interrupt_handler(i + PIC1_OFFSET, default_irq_handler);
 
+    isr_load_idt();
+
     KSLOG("initializing hardware peripherals\n");
     timer_init();
     kbd_init();

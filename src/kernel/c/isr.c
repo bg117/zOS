@@ -298,7 +298,7 @@ void isr_map_interrupt_handler(uint8_t vector, void (*handler)(InterruptInfo *))
 
 void __dispatch_exception(InterruptInfo *info)
 {
-    void (*handler)(InterruptInfo * info) = g_isrs[info->vector];
+    void (*handler)(InterruptInfo *) = g_isrs[info->vector];
     if (handler)
         handler(info);
 }
