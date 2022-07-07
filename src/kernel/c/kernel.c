@@ -7,21 +7,25 @@
 
 #include <stdint.h>
 
-#include <core.h>
-#include <gdt.h>
-#include <idt.h>
-#include <interrupt_info.h>
-#include <isr.h>
-#include <kbd.h>
 #include <kernel.h>
-#include <mmap.h>
-#include <page.h>
-#include <pic.h>
-#include <pmm.h>
-#include <serial.h>
-#include <timer.h>
-#include <video.h>
-#include <vmm.h>
+
+#include <ll/core.h>
+#include <ll/gdt.h>
+
+#include <int/idt.h>
+#include <int/interrupt_info.h>
+#include <int/isr.h>
+#include <int/pic.h>
+
+#include <memory/mmap.h>
+#include <memory/page.h>
+#include <memory/pmm.h>
+#include <memory/vmm.h>
+
+#include <hw/kbd.h>
+#include <hw/serial.h>
+#include <hw/timer.h>
+#include <hw/video.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>

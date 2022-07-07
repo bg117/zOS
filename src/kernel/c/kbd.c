@@ -5,14 +5,15 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <interrupt_info.h>
-#include <io.h>
-#include <isr.h>
-#include <kbd.h>
-#include <kernel.h>
-#include <pic.h>
-#include <serial.h>
-#include <video.h>
+#include <int/interrupt_info.h>
+#include <int/isr.h>
+#include <int/pic.h>
+
+#include <hw/kbd.h>
+#include <hw/serial.h>
+#include <hw/video.h>
+
+#include <ll/io.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>

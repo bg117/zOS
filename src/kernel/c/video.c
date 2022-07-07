@@ -9,9 +9,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <io.h>
-#include <mem.h>
-#include <video.h>
+#include <ll/io.h>
+
+#include <memory/mem.h>
+
+#include <hw/video.h>
 
 #include <misc/char_macros.h>
 #include <misc/num.h>

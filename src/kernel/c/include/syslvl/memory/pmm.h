@@ -15,14 +15,14 @@
 extern "C" {
 #endif
 
-enum page_status
+typedef enum page_status
 {
     PS_FREE,
     PS_USED,
     PS_UNKNOWN
-};
+} PageStatus;
 
-struct memory_map;
+typedef struct memory_map MemoryMap;
 
 /**
  * @brief Initializes the physical memory manager.
@@ -30,7 +30,7 @@ struct memory_map;
  * @param mmap The memory map of the system.
  * @param mmap_length Tells how many entries the memory map contains.
  */
-void pmm_init(struct memory_map *mmap, size_t mmap_length);
+void pmm_init(MemoryMap *mmap, size_t mmap_length);
 
 /**
  * @brief Allocates a single page and marks it as used.
@@ -52,7 +52,14 @@ void pmm_free_page(void *page);
  * @param page The page to get the status of.
  * @return The status of the page. See enum page_status for reference.
  */
-enum page_status pmm_get_page_status(void *page);
+PageStatus pmm_get_page_status(void *page);
+
+/**
+ * @brief Gets the size of the bitmap which keeps track of free/used pages.
+ *
+ * @return The size of the bitmap (in bytes).
+ */
+uint64_t pmm_get_bitmap_length(void);
 
 #ifdef __cplusplus
 }

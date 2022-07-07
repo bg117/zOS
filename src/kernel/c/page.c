@@ -7,8 +7,8 @@
 
 #include <stddef.h>
 
-#include <page.h>
-#include <pmm.h>
+#include <memory/page.h>
+#include <memory/pmm.h>
 
 #define PAGE_SIZE 4096
 

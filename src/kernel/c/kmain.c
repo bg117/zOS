@@ -8,26 +8,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <core.h>
-#include <fat.h>
-#include <gdt.h>
-#include <idt.h>
-#include <interrupt_info.h>
-#include <io.h>
-#include <isr.h>
-#include <kbd.h>
 #include <kernel.h>
-#include <mem.h>
-#include <mmap.h>
-#include <pic.h>
-#include <pmm.h>
-#include <serial.h>
-#include <timer.h>
-#include <video.h>
+
+#include <fs/fat.h>
+
+#include <memory/mem.h>
+#include <memory/mmap.h>
+
+#include <hw/kbd.h>
+#include <hw/serial.h>
+#include <hw/video.h>
 
 #include <misc/log_macros.h>
-#include <misc/num.h>
-#include <misc/type_macros.h>
 
 // main
 int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_length)

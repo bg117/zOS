@@ -7,14 +7,14 @@
 
 #include <stdint.h>
 
-#include <interrupt_info.h>
-#include <io.h>
-#include <isr.h>
-#include <kernel.h>
-#include <pic.h>
-#include <serial.h>
-#include <timer.h>
-#include <video.h>
+#include <ll/io.h>
+
+#include <int/interrupt_info.h>
+#include <int/isr.h>
+#include <int/pic.h>
+
+#include <hw/serial.h>
+#include <hw/timer.h>
 
 #include <misc/log_macros.h>
 

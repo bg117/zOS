@@ -8,8 +8,9 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include <io.h>
-#include <serial.h>
+#include <ll/io.h>
+
+#include <hw/serial.h>
 
 #include <misc/char_macros.h>
 #include <misc/num.h>

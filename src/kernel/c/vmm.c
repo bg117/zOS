@@ -5,10 +5,12 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <page.h>
-#include <pmm.h>
-#include <serial.h>
-#include <vmm.h>
+#include <memory/mem.h>
+#include <memory/page.h>
+#include <memory/pmm.h>
+#include <memory/vmm.h>
+
+#include <hw/serial.h>
 
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>
@@ -27,16 +29,16 @@ static PageDirectoryEntry *g_page_dir;
 void vmm_init()
 {
     g_page_dir = pmm_allocate_page();
+    mem_fill(g_page_dir, 0, PAGE_SIZE);
 
-    uint32_t base = (uint32_t)(&__start);
-    uint32_t top  = (uint32_t)(&__end);
+    uint32_t base = 0;
+    uint32_t top  = (uint32_t)(&__end) + pmm_get_bitmap_length();
 
-    base = base / PAGE_SIZE * PAGE_SIZE;
-    top  = ALIGN(top, PAGE_SIZE);
+    top = ALIGN(top, PAGE_SIZE);
 
     PageTableEntry *page_tab = NULL;
 
-    // let's identity map the kernel
+    // let's identity map the kernel space
     for (uint32_t i = base, dir_idx = 0, dir_idx_prev = 0xFFFF, tab_idx = 0; i < top; i += PAGE_SIZE)
     {
         dir_idx = VADDR_GET_PAGE_DIR_IDX(i);
@@ -46,6 +48,7 @@ void vmm_init()
         {
             KSLOG("allocating page for new page table\n");
             page_tab = pmm_allocate_page();
+            mem_fill(page_tab, 0, PAGE_SIZE);
 
             KSLOG("creating new page directory entry\n");
             g_page_dir[dir_idx]

@@ -7,8 +7,9 @@
 
 #include <stdint.h>
 
-#include <gdt.h>
-#include <serial.h>
+#include <ll/gdt.h>
+
+#include <hw/serial.h>
 
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
