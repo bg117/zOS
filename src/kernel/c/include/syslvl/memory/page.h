@@ -19,8 +19,8 @@ typedef enum page_directory_access_flags
     PGD_AX_PRESENT      = 0b00000001,
     PGD_AX_READ         = 0b00000000,
     PGD_AX_WRITE        = 0b00000010,
-    PGD_AX_USER         = 0b00000000,
-    PGD_AX_KERNEL       = 0b00000100,
+    PGD_AX_KERNEL       = 0b00000000,
+    PGD_AX_USER         = 0b00000100,
     PGD_AX_WRITE_THRU   = 0b00001000,
     PGD_AX_CACHE        = 0b00010000,
     PGD_AX_ACCESSED     = 0b00100000,
@@ -33,8 +33,8 @@ typedef enum page_table_access_flags
     PGT_AX_PRESENT  = 0b00000001,
     PGT_AX_READ     = 0b00000000,
     PGT_AX_WRITE    = 0b00000010,
-    PGT_AX_USER     = 0b00000000,
-    PGT_AX_KERNEL   = 0b00000100,
+    PGT_AX_KERNEL   = 0b00000000,
+    PGT_AX_USER     = 0b00000100,
     PGT_AX_ACCESSED = 0b00100000,
     PGT_AX_DIRTY    = 0b01000000
 } PageTableAccessFlags;

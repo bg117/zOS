@@ -18,6 +18,8 @@ bits 32
 ;
 ;
 
+%define KERNEL_SYM_PHYS(x) ((x) - 0xC0000000)
+
 section .ld
 
 global _start
@@ -25,11 +27,12 @@ extern __bss_start
 extern __start
 extern __end
 extern kmain
+extern mem_copy
 
 _start: ; initial setup (same as in bootloader)
-        mov     esp, 0x10000    ; gives approx. 64 KiB of stack
-        mov     ebp, esp
-
+        and     edx, 0xFF
+        mov     [KERNEL_SYM_PHYS(SMEM_MAP_LENGTH)], ecx
+        mov     [KERNEL_SYM_PHYS(SDRIVE_NUMBER)], edx
         ; clear .bss
         push    ecx
         push    edi
@@ -45,15 +48,113 @@ _start: ; initial setup (same as in bootloader)
         pop     edi
         pop     ecx
 
-        ; __cdecl passes args from right to left
-        xor     dh, dh
+        ; copy structs
         push    ecx
-        push    ebx
+        push    62
         push    edi
-        push    edx
+        push    KERNEL_SYM_PHYS(SFAT_INFO)
+        call    mem_copy
+        add     esp, 12
+        pop     ecx
 
-        call    kmain
+        mov     eax, ecx
+        mov     ecx, 24
+        mul     ecx
+        push    eax
+        push    ebx
+        push    KERNEL_SYM_PHYS(SMEM_MAP)
+        call    mem_copy
+        add     esp, 12
 
-        add     esp, 16
+        ; set up paging
+        mov     edi, KERNEL_SYM_PHYS(SYS_PGTAB)
+        mov     esi, 0
+        mov     ecx, 1023
 
-        jmp     $
+        .1:     cmp     esi, __start
+                jb      .2
+
+                cmp     esi, __end
+                jae     .3
+
+                mov     edx, esi
+                or      edx, 0x03
+                mov     es:[edi], edx
+
+        .2:     add     esi, 0x1000
+                add     edi, 4
+
+                loop    .1
+
+        .3:     mov     [KERNEL_SYM_PHYS(SYS_PGTAB) + 1023 * 4], dword 0xB8000 | 0x03
+
+                ; identity map kernel first
+                mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 0 * 4], dword KERNEL_SYM_PHYS(SYS_PGTAB) + 0x03
+                
+                ; map to 0xC0000000
+                mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 768 * 4], dword KERNEL_SYM_PHYS(SYS_PGTAB) + 0x03
+
+                mov     ecx, KERNEL_SYM_PHYS(SYS_PGDIR)
+                mov     cr3, ecx
+
+                mov     ecx, cr0
+                or      ecx, 0x80000001
+                mov     cr0, ecx
+
+                mov     ebx, .after_setup
+                jmp     ebx
+
+section .text
+        .after_setup:   mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 0 * 4], dword 0
+
+                        ; flush TLB
+                        mov     ecx, cr3
+                        mov     cr3, ecx
+
+                        mov     ebp, STACK_TOP
+                        mov     esp, ebp
+
+                        mov     ebx, SMEM_MAP
+                        mov     edi, SFAT_INFO
+
+                        ; __cdecl passes args from right to left
+                        push    dword [SMEM_MAP_LENGTH]
+                        push    SMEM_MAP
+                        push    SFAT_INFO
+                        push    dword [SDRIVE_NUMBER]
+
+                        call    kmain
+
+                        add     esp, 16
+
+                        jmp     $
+
+section .data
+
+align 0x40
+
+SFAT_INFO:  times 8 dq 0
+
+align 0x40
+
+SMEM_MAP:   times 192 dq 0 ; enough space for 64 entries
+
+align 0x40
+
+SMEM_MAP_LENGTH:    dd 0
+
+align 0x40
+
+SDRIVE_NUMBER:      dd 0
+
+section .bss
+
+align 0x1000
+
+times 4096 resq 0
+STACK_TOP:
+
+align 0x1000
+
+SYS_PGDIR:  times 1024 resd 0
+SYS_PGTAB:  times 1024 resd 0

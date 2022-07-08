@@ -212,7 +212,7 @@ static void page_fault_handler(InterruptInfo *info)
         "register dump:\n\t"
         "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
         "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
-        "cs=0x%04X ds=0x%04X ss=0x%04X\n",
+        "eip=0x%08X cs=0x%04X      ds=0x%04X      ss=0x%04X\n",
         info->eax,
         info->ebx,
         info->ecx,
@@ -221,12 +221,16 @@ static void page_fault_handler(InterruptInfo *info)
         info->edi,
         info->ebp,
         info->esp,
+        info->eip,
         info->cs,
         info->ds,
         info->ss);
 
     screen_print_string("--------------- SYSTEM ERROR ---------------\n");
-    screen_print_format_string("A process tried to access address 0x%08X and caused a page fault.\n", cr2);
+    screen_print_format_string(
+        "A process tried to access address 0x%08X and caused a page fault.\nError code: 0x%02X\n",
+        cr2,
+        info->error_code);
 
     // temporary
     core_clear_interrupt_flag();

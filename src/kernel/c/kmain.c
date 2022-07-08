@@ -26,28 +26,20 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_leng
 {
     screen_clear();
 
-    FatInfo   fat_info;
-    MemoryMap memory_map[mmap_length];
-
-    KSLOG("saving structs passed by bootloader\n");
-    // save structs because they may get overwritten in the future
-    mem_copy(&fat_info, fi, sizeof fat_info);
-    mem_copy(memory_map, mmap, sizeof(MemoryMap) * mmap_length);
-
     screen_print_string("---------------- MEMORY MAP ----------------\n");
     screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
     for (int i = 0; i < mmap_length; i++)
     {
         screen_print_format_string("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
                                    i,
-                                   memory_map[i].base,
-                                   memory_map[i].length,
-                                   memory_map[i].type,
-                                   memory_map[i].acpi_extended_attributes);
+                                   mmap[i].base,
+                                   mmap[i].length,
+                                   mmap[i].type,
+                                   mmap[i].acpi_extended_attributes);
     }
 
     KSLOG("initializing the kernel\n");
-    kernel_init(memory_map, mmap_length);
+    kernel_init(mmap, mmap_length);
 
     //! page fault test
     (void)*(char *)(0x90000000);
