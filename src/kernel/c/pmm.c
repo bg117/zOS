@@ -100,7 +100,7 @@ void *pmm_allocate_page(void)
 
     if (idx == UINT64_MAX)
     {
-        KSLOG("warning: no more free pages left\n");
+        KSLOG("error: no more free pages left\n");
         return NULL; // just like good old (m|c|re)alloc
     }
 
@@ -131,7 +131,7 @@ void pmm_free_page(void *page)
         }
     }
 
-    KSLOG("warning: page %p cannot be found in the bitmap\n", page);
+    KSLOG("error: page %p cannot be found in the bitmap\n", page);
 }
 
 enum page_status pmm_get_page_status(void *page)
@@ -150,7 +150,7 @@ enum page_status pmm_get_page_status(void *page)
         }
     }
 
-    KSLOG("warning: cannot get status of page %p, possibly not page-aligned\n", page);
+    KSLOG("warning: cannot get status of page %p\n", page);
     return PS_UNKNOWN;
 }
 

@@ -25,6 +25,7 @@ extern uint8_t __start;
 extern uint8_t __end;
 
 static PageDirectoryEntry *g_page_dir;
+static PageDirectoryEntry *g_virt_page_dir = (PageDirectoryEntry *)(0xFFC00000);
 
 void vmm_init()
 {
@@ -61,6 +62,21 @@ void vmm_init()
         dir_idx_prev = dir_idx;
     }
 
+    // recursive page directory
+    g_page_dir[1023]
+        = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, (uint32_t)(g_page_dir));
+
     page_load_page_directory(g_page_dir);
     page_enable_paging();
+}
+
+void *vmm_allocate_page()
+{
+    void *page = pmm_allocate_page();
+    return page;
+}
+
+void vmm_free_page(void *page)
+{
+    pmm_free_page(page);
 }
