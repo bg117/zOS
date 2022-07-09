@@ -18,10 +18,11 @@
 #include <misc/log_macros.h>
 #include <misc/type_macros.h>
 
-#define PAGE_SIZE 0x1000
+#define PAGE_SIZE    0x1000
+#define VIRTUAL_BASE 0xC0000000
 
 /* defined in the linker script */
-extern uint8_t __start, __end;
+extern uint8_t __start, __bitmap_start, __bitmap_start_virt, __end;
 
 static uint8_t *g_bitmap;
 
@@ -33,12 +34,11 @@ static uint64_t get_first_free_idx(uint8_t *bit);
 
 void pmm_init(MemoryMap *mmap, size_t mmap_length)
 {
-    g_bitmap = &__end;
+    g_bitmap = &__bitmap_start_virt;
 
     g_base        = 0ULL;
     g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
     g_bitmap_size = ALIGN(g_bitmap_size, PAGE_SIZE) / PAGE_SIZE;
-    mem_fill(g_bitmap, 0, g_bitmap_size);
 
     // mark reserved areas as used
     for (size_t i = 0; i < mmap_length; i++)
@@ -46,6 +46,8 @@ void pmm_init(MemoryMap *mmap, size_t mmap_length)
         // if not reserved, continue
         if (mmap[i].type != 0x02)
             continue;
+
+        KSLOG("found reserved area (%d), marking as used\n", i);
 
         uint64_t base_lower = mmap[i].base;
         uint64_t base_upper;
@@ -78,8 +80,10 @@ void pmm_init(MemoryMap *mmap, size_t mmap_length)
         }
     }
 
+    KSLOG("marking kernel as used\n");
+
     // mark bitmap and kernel as used
-    uint64_t reserved = (uint64_t)(&__end) - (uint64_t)(&__start) + g_bitmap_size;
+    uint64_t reserved = (uint64_t)(&__end) - (uint64_t)(&__start);
     reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
     for (uint64_t i = (uint64_t)(&__start) / PAGE_SIZE; i < reserved; i++)
     {

@@ -25,6 +25,7 @@ section .ld
 global _start
 extern __bss_start
 extern __start
+extern __data_start
 extern __end
 extern kmain
 extern mem_copy
@@ -53,7 +54,7 @@ _start: ; initial setup (same as in bootloader)
         push    62
         push    edi
         push    KERNEL_SYM_PHYS(SFAT_INFO)
-        call    mem_copy
+        call    KERNEL_SYM_PHYS(mem_copy)
         add     esp, 12
         pop     ecx
 
@@ -63,7 +64,7 @@ _start: ; initial setup (same as in bootloader)
         push    eax
         push    ebx
         push    KERNEL_SYM_PHYS(SMEM_MAP)
-        call    mem_copy
+        call    KERNEL_SYM_PHYS(mem_copy)
         add     esp, 12
 
         ; set up paging
@@ -77,9 +78,17 @@ _start: ; initial setup (same as in bootloader)
                 cmp     esi, __end
                 jae     .3
 
+                cmp     esi, __data_start ; encompasses .text and .rodata
+                jb      .readonly
+
                 mov     edx, esi
-                or      edx, 0x03
+                or      edx, 0x03   ; read-write, present
                 mov     es:[edi], edx
+                jmp     .2
+
+                .readonly:  mov     edx, esi
+                            or      edx, 0x01
+                            mov     es:[edi], edx
 
         .2:     add     esi, 0x1000
                 add     edi, 4
@@ -98,14 +107,14 @@ _start: ; initial setup (same as in bootloader)
                 mov     cr3, ecx
 
                 mov     ecx, cr0
-                or      ecx, 0x80000001
+                or      ecx, 0x80000000
                 mov     cr0, ecx
 
                 mov     ebx, .after_setup
                 jmp     ebx
 
 section .text
-        .after_setup:   mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 0 * 4], dword 0
+        .after_setup:   mov     [SYS_PGDIR + 0 * 4], dword 0
 
                         ; flush TLB
                         mov     ecx, cr3
@@ -130,6 +139,10 @@ section .text
                         jmp     $
 
 section .data
+align 0x1000
+
+SYS_PGDIR:  times 512 dq 0
+SYS_PGTAB:  times 512 dq 0
 
 align 0x40
 
@@ -154,7 +167,3 @@ align 0x1000
 times 4096 resq 0
 STACK_TOP:
 
-align 0x1000
-
-SYS_PGDIR:  times 1024 resd 0
-SYS_PGTAB:  times 1024 resd 0

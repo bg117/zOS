@@ -15,7 +15,8 @@
 #include <misc/bit_macros.h>
 #include <misc/log_macros.h>
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE    4096
+#define VIRTUAL_BASE 0xC0000000
 
 #define VADDR_GET_PAGE_DIR_IDX(vaddr) (((vaddr) >> 22) & 0x3FF)
 #define VADDR_GET_PAGE_TAB_IDX(vaddr) (((vaddr) >> 12) & 0x3FF)
@@ -29,7 +30,7 @@ static PageDirectoryEntry *g_virt_page_dir = (PageDirectoryEntry *)(0xFFC00000);
 
 void vmm_init()
 {
-    g_page_dir = pmm_allocate_page();
+    g_page_dir = pmm_allocate_page() + VIRTUAL_BASE;
     mem_fill(g_page_dir, 0, PAGE_SIZE);
 
     uint32_t base = 0;

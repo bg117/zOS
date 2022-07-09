@@ -126,6 +126,7 @@ void serial_write_format_string(const char *__restrict__ fmt, ...)
             case '%': serial_write_char('%'); break;
             case '0':
                 zero_pad = 1;
+                pad_len  = 0;
                 ++fmt;
                 while (*fmt && ISDIGIT(*fmt))
                 {

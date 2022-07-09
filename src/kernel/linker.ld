@@ -4,15 +4,12 @@ ENTRY(_start)
 SECTIONS
 {
     __start = .;
+    .ld ALIGN(4K) : { *(.ld) }
 
     . += 0xC0000000; /* higher half */
 
     __text_start = . - 0xC0000000;
-    .text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
-    {
-        *(.ld)
-        *(.text)
-    }
+    .text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000) { *(.text) }
 
     __rodata_start = . - 0xC0000000;
     .rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xC0000000) { *(.rodata) }
@@ -22,6 +19,12 @@ SECTIONS
 
     __bss_start = . - 0xC0000000;
     .bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000) { *(.bss) }
+
+    . = ALIGN(4K);
+
+    __bitmap_start = . - 0xC0000000;
+    __bitmap_start_virt = .;
+    . += 128K; /* the max size for a bitmap (4G) */
 
     __end = . - 0xC0000000;
 }
