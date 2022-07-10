@@ -17,6 +17,7 @@ extern "C" {
 char  *str_to_upper(char *str);
 char  *str_to_lower(char *str);
 size_t str_get_length(const char *str);
+int    str_is_equal(const char *s1, const char *s2);
 
 #ifdef __cplusplus
 }

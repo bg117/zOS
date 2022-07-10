@@ -46,3 +46,17 @@ size_t str_get_length(const char *str)
 
     return i;
 }
+
+int str_is_equal(const char *s1, const char *s2)
+{
+    while (*s1 && *s2)
+    {
+        if (*s1 != *s2)
+            return 0;
+
+        ++s1;
+        ++s2;
+    }
+
+    return 1;
+}
