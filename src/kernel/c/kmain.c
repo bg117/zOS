@@ -56,6 +56,9 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     screen_print_string("zOS version 0.01\n");
 
+    for (int i = 0; i < 0x1000; i++)
+        vmm_allocate_page();
+
     while (1)
     {
         screen_print_string("> ");

@@ -19,66 +19,71 @@
 #define PAGE_SIZE    4096
 #define VIRTUAL_BASE 0xC0000000
 #define MAGIC_NUMBER 0xDEADC0DE
+#define BITMAP_BITS  786432 // up to 0xC0000000 only
 
 #define VADDR_GET_PAGE_DIR_IDX(vaddr) (((vaddr) >> 22) & 0x3FF)
 #define VADDR_GET_PAGE_TAB_IDX(vaddr) (((vaddr) >> 12) & 0x3FF)
 #define VADDR_GET_PAGE_FRM_OFF(vaddr) ((vaddr)&0xFFF)
 
-extern uint8_t __start;
-extern uint8_t __end;
+/* defined in the linker script */
+extern uint8_t __start, __pmm_bitmap_start, __pmm_bitmap_start_virt, __end;
+
+static uint64_t *g_bitmap;
+
+// size of the bitmap in bits
+static PhysicalAddress g_base;
 
 extern uint8_t SYS_PGDIR;
 
-extern uint32_t __vmm_stack_base;
-extern uint32_t __vmm_stack_top;
-
 static PageDirectoryEntry *g_pgdir;
 
-static uint32_t *g_stack_base;
-static uint32_t *g_stack_top;
-
-static int64_t g_stack_idx;
-
-static uint32_t g_stack_size;
-
-static void push_address(VirtualAddress virt);
-
-static VirtualAddress pop_address(void);
+static uint32_t get_first_free_idx(uint8_t *bit);
 
 void vmm_init(void)
 {
     g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
     KSLOG("initial page directory located at %p\n", (void *)(g_pgdir));
 
-    // initialize temporary free address stack
-    g_stack_base = &__vmm_stack_base;
-    g_stack_top  = &__vmm_stack_top;
-    g_stack_size = (g_stack_top - g_stack_base) / sizeof g_stack_base;
-    g_stack_idx  = -1;
+    g_bitmap = &__pmm_bitmap_start_virt;
 
-    // ONLY TEMPORARY
-    for (uint32_t i = 0, addr = 0xE0000 + (g_stack_size - 1) * PAGE_SIZE; i < g_stack_size; i++, addr -= PAGE_SIZE)
-        push_address(addr);
+    g_base = 0;
+
+    KSLOG("marking kernel as used\n");
+
+    // mark bitmap and kernel as used
+    uint32_t reserved = (PhysicalAddress)(&__end) - (PhysicalAddress)(&__start);
+    reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
+    for (uint32_t i = ((PhysicalAddress)(&__start) + VIRTUAL_BASE) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
+    {
+        uint32_t idx = i / 64;
+        uint8_t  bit = i % 64;
+
+        SETBITVAR(g_bitmap[idx], 1 << bit);
+    }
 
     page_load_page_directory((PageDirectoryEntry *)((VirtualAddress)(g_pgdir)-VIRTUAL_BASE));
 }
 
 void *vmm_allocate_page()
 {
-    void          *page = pmm_allocate_page();
-    VirtualAddress virt = pop_address();
+    void    *page = pmm_allocate_page();
+    uint8_t  bit;
+    uint32_t idx = get_first_free_idx(&bit);
 
-    if (virt == MAGIC_NUMBER)
+    if (idx == UINT32_MAX)
     {
-        KSLOG("error: VMM stack empty\n");
-        return (void *)(virt);
+        KSLOG("error: out of memory\n");
+        return (void *)(MAGIC_NUMBER);
     }
 
-    vmm_map_page((PhysicalAddress)(page), virt);
+    SETBITVAR(g_bitmap[idx], 1 << bit);
 
-    KSLOG("returning page 0x%08x\n", virt);
+    VirtualAddress addr = (idx * 64 + bit) * PAGE_SIZE;
+    vmm_map_page((PhysicalAddress)(page), addr);
 
-    return (void *)(virt);
+    KSLOG("returning page 0x%x\n", addr);
+
+    return (void *)(addr);
 }
 
 void vmm_free_page(void *page)
@@ -89,16 +94,34 @@ void vmm_free_page(void *page)
         return;
     }
 
-    PhysicalAddress phys = vmm_unmap_page((VirtualAddress)(page));
+    PhysicalAddress phys = vmm_get_phys((VirtualAddress)(page));
+    vmm_unmap_page((VirtualAddress)(page));
 
     pmm_free_page((void *)(phys));
-    push_address((VirtualAddress)(page));
+
+    PhysicalAddress base_addr = g_base;
+    for (uint32_t i = 0; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
+    {
+        uint32_t idx = i / 64;
+        uint8_t  bit = i % 64;
+
+        if (base_addr == (PhysicalAddress)(page))
+        {
+            if (TESTBIT(g_bitmap[idx], 1 << bit))
+                UNSETBITVAR(g_bitmap[idx], 1 << bit);
+            else
+                KSLOG("warning: page %p already free\n", page);
+
+            return;
+        }
+    }
+
+    KSLOG("error: page %p cannot be found in the bitmap\n", page);
 }
 
 void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 {
-    __asm__ __volatile__("xchgw %bx, %bx");
-    KSLOG("mapping page 0x%08X to physical address 0x%08X\n", virt, phys);
+    KSLOG("mapping page 0x%X to physical address 0x%X\n", virt, phys);
 
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
@@ -116,17 +139,17 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
     PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
     page_tab[tab_idx] = page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, phys & 0xFFFFF000);
 
+    KSLOG("reloading CR3\n");
     page_reload_cr3();
 }
 
-PhysicalAddress vmm_unmap_page(VirtualAddress virt)
+void vmm_unmap_page(VirtualAddress virt)
 {
-    KSLOG("unmapping page 0x%08X\n", virt);
+    KSLOG("unmapping page 0x%X\n", virt);
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
     PageTableEntry *page_tab      = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
-    PhysicalAddress phys          = page_tab[tab_idx].address_upper_20 << 12;
     page_tab[tab_idx]             = page_create_page_table_entry(0xDE, 0xDC0DE);
     page_tab[tab_idx].access_byte = 0xA;
 
@@ -152,35 +175,37 @@ PhysicalAddress vmm_unmap_page(VirtualAddress virt)
 
     // flush the TLB, of course
     page_reload_cr3();
+}
+
+PhysicalAddress vmm_get_phys(VirtualAddress virt)
+{
+    uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
+    uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
+
+    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+    PhysicalAddress phys     = page_tab[tab_idx].address_upper_20 << 12;
 
     return phys;
 }
 
-void push_address(VirtualAddress virt)
+uint32_t get_first_free_idx(uint8_t *bit)
 {
-    KSLOG("pushing address 0x%08X to the VMM stack\n", virt);
+    *bit = 0;
 
-    if (g_stack_idx >= g_stack_size)
+    for (uint32_t i = 0, base_addr = g_base; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
     {
-        KSLOG("error: free address stack full\n");
-        return;
+        uint32_t idx = i / 64;
+        *bit         = i % 64;
+
+        if (g_bitmap[idx] == 0xFFFFFFFFFFFFFFFF)
+        {
+            i += 63;
+            continue;
+        }
+
+        if (!TESTBIT(g_bitmap[idx], 1 << *bit))
+            return idx;
     }
 
-    ++g_stack_idx;
-    g_stack_base[g_stack_idx] = virt & 0xFFFFF000;
-}
-
-VirtualAddress pop_address(void)
-{
-    KSLOG("popping last free address from VMM stack\n");
-    if (g_stack_idx < 0)
-    {
-        KSLOG("error: free address stack empty\n");
-        return MAGIC_NUMBER; // not page-aligned
-    }
-
-    uint32_t pop = g_stack_base[g_stack_idx];
-    --g_stack_idx;
-
-    return pop;
+    return UINT32_MAX; // this is impossible to reach
 }

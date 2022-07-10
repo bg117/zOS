@@ -22,13 +22,13 @@ SECTIONS
 
     . = ALIGN(4K);
 
-    __vmm_stack_base = .;
-    . += 16K;
-    __vmm_stack_top = .;
-
-    __bitmap_start = . - 0xC0000000;
-    __bitmap_start_virt = .;
+    __pmm_bitmap_start = . - 0xC0000000;
+    __pmm_bitmap_start_virt = .;
     . += 128K; /* the max size for a bitmap (4G) */
+
+    __vmm_bitmap_start = . - 0xC0000000; /* will probably never be used; just for consistency */
+    __vmm_bitmap_start_virt = .;
+    . += 98304; /* 0xC0000000 / PAGE_SIZE / 8 */
 
     __end = . - 0xC0000000;
 }

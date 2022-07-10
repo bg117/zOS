@@ -81,6 +81,12 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
     KSLOG("loading the GDT\n");
     load_gdt();
 
+    KSLOG("initializing the physical memory manager\n");
+    pmm_init(mmap, mmap_length);
+
+    KSLOG("initializing the virtual memory manager\n");
+    vmm_init();
+
     KSLOG("initializing the Programmable Interrupt Controller\n");
     pic_init(PIC1_OFFSET, PIC2_OFFSET);
 
@@ -105,12 +111,6 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 
     KSLOG("enabling interrupts\n");
     core_set_interrupt_flag();
-
-    KSLOG("initializing the physical memory manager\n");
-    pmm_init(mmap, mmap_length);
-
-    KSLOG("initializing the virtual memory manager\n");
-    vmm_init();
 }
 
 void init_gdt(void)

@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include <memory/mem.h>
+#include <memory/memdefs.h>
 #include <memory/mmap.h>
 #include <memory/pmm.h>
 
@@ -23,21 +24,21 @@
 #define MAGIC_NUMBER 0xDEADC0DE
 
 /* defined in the linker script */
-extern uint8_t __start, __bitmap_start, __bitmap_start_virt, __end;
+extern uint8_t __start, __pmm_bitmap_start, __pmm_bitmap_start_virt, __end;
 
-static uint8_t *g_bitmap;
+static uint64_t *g_bitmap;
 
 // size of the bitmap in bits
-static uint64_t g_bitmap_size;
-static uint64_t g_base;
+static uint64_t        g_bitmap_size;
+static PhysicalAddress g_base;
 
 static uint64_t get_first_free_idx(uint8_t *bit);
 
 void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
-    g_bitmap = &__bitmap_start_virt;
+    g_bitmap = &__pmm_bitmap_start_virt;
 
-    g_base        = 0ULL;
+    g_base        = 0;
     g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
     g_bitmap_size = ALIGN(g_bitmap_size, PAGE_SIZE) / PAGE_SIZE;
 
@@ -74,24 +75,24 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         uint64_t length = base_upper - base_lower;
         for (uint64_t j = base_lower, k = 0; j < g_bitmap_size && k < length; j++, k++)
         {
-            uint64_t byte = j / CHAR_BIT;
-            uint8_t  bit  = j % CHAR_BIT;
+            uint64_t idx = j / 64;
+            uint8_t  bit = j % 64;
 
-            SETBITVAR(g_bitmap[byte], 1 << bit);
+            SETBITVAR(g_bitmap[idx], 1 << bit);
         }
     }
 
     KSLOG("marking kernel as used\n");
 
     // mark bitmap and kernel as used
-    uint64_t reserved = (uint64_t)(&__end) - (uint64_t)(&__start);
+    uint32_t reserved = (PhysicalAddress)(&__end) - (PhysicalAddress)(&__start);
     reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
-    for (uint64_t i = (uint64_t)(&__start) / PAGE_SIZE; i < reserved; i++)
+    for (uint32_t i = (PhysicalAddress)(&__start) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
     {
-        uint64_t byte = i / CHAR_BIT;
-        uint8_t  bit  = i % CHAR_BIT;
+        uint64_t idx = i / 64;
+        uint8_t  bit = i % 64;
 
-        SETBITVAR(g_bitmap[byte], 1 << bit);
+        SETBITVAR(g_bitmap[idx], 1 << bit);
     }
 
     // also mark BDA as used
@@ -113,22 +114,23 @@ void *pmm_allocate_page(void)
     // allocation ;)
     SETBITVAR(g_bitmap[idx], 1 << bit);
 
-    void *offset = (void *)((idx * CHAR_BIT + bit) * PAGE_SIZE);
+    void *offset = (void *)((idx * 64 + bit) * PAGE_SIZE);
     KSLOG("returning page %p\n", offset);
     return offset;
 }
 
 void pmm_free_page(void *page)
 {
-    for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    PhysicalAddress base_addr = g_base;
+    for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
-        uint64_t byte = i / CHAR_BIT;
-        uint8_t  bit  = i % CHAR_BIT;
+        uint32_t idx = i / 64;
+        uint8_t  bit = i % 64;
 
-        if (base_addr == (uint64_t)(page))
+        if (base_addr == (PhysicalAddress)(page))
         {
-            if (TESTBIT(g_bitmap[byte], 1 << bit))
-                UNSETBITVAR(g_bitmap[byte], 1 << bit);
+            if (TESTBIT(g_bitmap[idx], 1 << bit))
+                UNSETBITVAR(g_bitmap[idx], 1 << bit);
             else
                 KSLOG("warning: page %p already free\n", page);
 
@@ -141,14 +143,15 @@ void pmm_free_page(void *page)
 
 enum page_status pmm_get_page_status(void *page)
 {
-    for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    PhysicalAddress base_addr = g_base;
+    for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
-        uint64_t byte = i / CHAR_BIT;
-        uint8_t  bit  = i % CHAR_BIT;
+        uint32_t idx = i / 64;
+        uint8_t  bit = i % 64;
 
-        if (base_addr == (uint64_t)(page))
+        if (base_addr == (PhysicalAddress)(page))
         {
-            if (TESTBIT(g_bitmap[byte], 1 << bit))
+            if (TESTBIT(g_bitmap[idx], 1 << bit))
                 return PS_USED;
             else
                 return PS_FREE;
@@ -161,7 +164,7 @@ enum page_status pmm_get_page_status(void *page)
 
 uint64_t pmm_get_bitmap_length(void)
 {
-    return ALIGN(g_bitmap_size, CHAR_BIT) / CHAR_BIT;
+    return ALIGN(g_bitmap_size, 64) / 64;
 }
 
 uint64_t get_first_free_idx(uint8_t *bit)
@@ -170,11 +173,17 @@ uint64_t get_first_free_idx(uint8_t *bit)
 
     for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
-        uint64_t byte = i / CHAR_BIT;
-        *bit          = i % CHAR_BIT;
+        uint64_t idx = i / 64;
+        *bit         = i % 64;
 
-        if (!TESTBIT(g_bitmap[byte], 1 << *bit))
-            return byte;
+        if (g_bitmap[idx] == 0xFFFFFFFFFFFFFFFF)
+        {
+            i += 63;
+            continue;
+        }
+
+        if (!TESTBIT(g_bitmap[idx], 1 << *bit))
+            return idx;
     }
 
     return UINT64_MAX; // this is impossible to reach
