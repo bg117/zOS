@@ -13,14 +13,15 @@
 #include <fs/fat.h>
 
 #include <memory/mem.h>
+#include <memory/memdefs.h>
 #include <memory/mmap.h>
+#include <memory/vmm.h>
 
 #include <hw/kbd.h>
 #include <hw/serial.h>
 #include <hw/video.h>
 
 #include <misc/log_macros.h>
-#include "memory/vmm.h"
 
 // main
 int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_length)
