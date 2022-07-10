@@ -22,6 +22,10 @@ SECTIONS
 
     . = ALIGN(4K);
 
+    __vmm_stack_base = .;
+    . += 16K;
+    __vmm_stack_top = .;
+
     __bitmap_start = . - 0xC0000000;
     __bitmap_start_virt = .;
     . += 128K; /* the max size for a bitmap (4G) */

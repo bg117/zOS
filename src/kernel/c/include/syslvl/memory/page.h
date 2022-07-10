@@ -41,25 +41,29 @@ typedef enum page_table_access_flags
 
 typedef struct __attribute__((packed)) page_directory_entry
 {
-    uint8_t  access_byte;
-    uint8_t  reserved : 4;
-    uint32_t address_upper_20 : 20;
+    uint8_t         access_byte;
+    uint8_t         reserved : 4;
+    PhysicalAddress address_upper_20 : 20;
 } PageDirectoryEntry;
 
 typedef struct __attribute__((packed)) page_table_entry
 {
-    uint8_t  access_byte;
-    uint8_t  reserved : 4;
-    uint32_t address_upper_20 : 20;
+    uint8_t         access_byte;
+    uint8_t         reserved : 4;
+    PhysicalAddress address_upper_20 : 20;
 } PageTableEntry;
 
-PageDirectoryEntry page_create_page_directory_entry(uint8_t access_byte, uint32_t address);
+PageDirectoryEntry page_create_page_directory_entry(uint8_t access_byte, PhysicalAddress address);
 
-PageTableEntry page_create_page_table_entry(uint8_t access_byte, uint32_t address);
+PageTableEntry page_create_page_table_entry(uint8_t access_byte, PhysicalAddress address);
 
 void page_load_page_directory(PageDirectoryEntry *pgd);
 
 void page_enable_paging(void);
+
+void page_disable_paging(void);
+
+void page_flush_tlb(void);
 
 #ifdef __cplusplus
 }

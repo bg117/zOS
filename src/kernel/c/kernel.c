@@ -17,6 +17,7 @@
 #include <int/isr.h>
 #include <int/pic.h>
 
+#include <memory/memdefs.h>
 #include <memory/mmap.h>
 #include <memory/page.h>
 #include <memory/pmm.h>

@@ -8,6 +8,8 @@
 #ifndef quuxVMMHxuuq
 #define quuxVMMHxuuq
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +30,10 @@ void *vmm_allocate_page(void);
  * @param page The page to free.
  */
 void vmm_free_page(void *page);
+
+void vmm_map_page(PhysicalAddress phys, VirtualAddress virt);
+
+PhysicalAddress vmm_unmap_page(VirtualAddress virt);
 
 #ifdef __cplusplus
 }

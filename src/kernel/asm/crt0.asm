@@ -23,6 +23,7 @@ bits 32
 section .ld
 
 global _start
+global SYS_PGDIR
 extern __bss_start
 extern __start
 extern __data_start
@@ -31,9 +32,6 @@ extern kmain
 extern mem_copy
 
 _start: ; initial setup (same as in bootloader)
-        and     edx, 0xFF
-        mov     [KERNEL_SYM_PHYS(SMEM_MAP_LENGTH)], ecx
-        mov     [KERNEL_SYM_PHYS(SDRIVE_NUMBER)], edx
         ; clear .bss
         push    ecx
         push    edi
@@ -48,6 +46,10 @@ _start: ; initial setup (same as in bootloader)
 
         pop     edi
         pop     ecx
+
+        and     edx, 0xFF
+        mov     [KERNEL_SYM_PHYS(SMEM_MAP_LENGTH)], ecx
+        mov     [KERNEL_SYM_PHYS(SDRIVE_NUMBER)], edx
 
         ; copy structs
         push    ecx
@@ -103,12 +105,18 @@ _start: ; initial setup (same as in bootloader)
                 ; map to 0xC0000000
                 mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 768 * 4], dword KERNEL_SYM_PHYS(SYS_PGTAB) + 0x03
 
+                ; map page directory recursively
+                mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 1023 * 4], dword KERNEL_SYM_PHYS(SYS_PGDIR) + 0x03
+
                 mov     ecx, KERNEL_SYM_PHYS(SYS_PGDIR)
                 mov     cr3, ecx
 
                 mov     ecx, cr0
                 or      ecx, 0x80000000
                 mov     cr0, ecx
+
+                mov     ecx, [KERNEL_SYM_PHYS(SMEM_MAP_LENGTH)]
+                mov     edx, [KERNEL_SYM_PHYS(SDRIVE_NUMBER)]
 
                 mov     ebx, .after_setup
                 jmp     ebx
@@ -138,32 +146,21 @@ section .text
 
                         jmp     $
 
-section .data
-align 0x1000
-
-SYS_PGDIR:  times 512 dq 0
-SYS_PGTAB:  times 512 dq 0
-
-align 0x40
-
-SFAT_INFO:  times 8 dq 0
-
-align 0x40
-
-SMEM_MAP:   times 192 dq 0 ; enough space for 64 entries
-
-align 0x40
-
-SMEM_MAP_LENGTH:    dd 0
-
-align 0x40
-
-SDRIVE_NUMBER:      dd 0
-
 section .bss
+alignb 0x1000
 
-align 0x1000
+SYS_PGDIR:  resq 512
+SYS_PGTAB:  resq 512
 
-times 4096 resq 0
+SFAT_INFO:  resq 8
+
+SMEM_MAP:   resq 192 ; enough space for 64 entries
+
+SMEM_MAP_LENGTH:    resd 1
+
+SDRIVE_NUMBER:      resd 1
+
+alignb 0x1000
+resq 0x1000
 STACK_TOP:
 

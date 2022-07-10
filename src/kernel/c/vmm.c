@@ -6,6 +6,7 @@
  */
 
 #include <memory/mem.h>
+#include <memory/memdefs.h>
 #include <memory/page.h>
 #include <memory/pmm.h>
 #include <memory/vmm.h>
@@ -25,59 +26,126 @@
 extern uint8_t __start;
 extern uint8_t __end;
 
-static PageDirectoryEntry *g_page_dir;
-static PageDirectoryEntry *g_virt_page_dir = (PageDirectoryEntry *)(0xFFC00000);
+extern uint8_t SYS_PGDIR;
+
+extern uint32_t __vmm_stack_base;
+extern uint32_t __vmm_stack_top;
+
+static PageDirectoryEntry *g_pgdir;
+
+static uint32_t *g_stack_base;
+static uint32_t *g_stack_top;
+
+static uint32_t g_stack_idx;
+
+static uint32_t g_stack_size;
+
+static void push_address(VirtualAddress virt);
+
+static VirtualAddress pop_address(void);
 
 void vmm_init()
 {
-    g_page_dir = pmm_allocate_page() + VIRTUAL_BASE;
-    mem_fill(g_page_dir, 0, PAGE_SIZE);
+    g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
+    KSLOG("initial page directory located at %p\n", (void *)(g_pgdir));
 
-    uint32_t base = 0;
-    uint32_t top  = (uint32_t)(&__end) + pmm_get_bitmap_length();
+    // initialize temporary free address stack
+    g_stack_base = &__vmm_stack_base;
+    g_stack_top  = &__vmm_stack_top;
+    g_stack_size = (g_stack_top - g_stack_base) / sizeof g_stack_base;
+    g_stack_idx  = 0;
 
-    top = ALIGN(top, PAGE_SIZE);
+    // ONLY TEMPORARY
+    for (uint32_t i = 0; i < g_stack_size; i++)
+        push_address(0xA0000000 + i * PAGE_SIZE);
 
-    PageTableEntry *page_tab = NULL;
-
-    // let's identity map the kernel space
-    for (uint32_t i = base, dir_idx = 0, dir_idx_prev = 0xFFFF, tab_idx = 0; i < top; i += PAGE_SIZE)
-    {
-        dir_idx = VADDR_GET_PAGE_DIR_IDX(i);
-        tab_idx = VADDR_GET_PAGE_TAB_IDX(i);
-
-        if (dir_idx != dir_idx_prev)
-        {
-            KSLOG("allocating page for new page table\n");
-            page_tab = pmm_allocate_page();
-            mem_fill(page_tab, 0, PAGE_SIZE);
-
-            KSLOG("creating new page directory entry\n");
-            g_page_dir[dir_idx]
-                = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, (uint32_t)(page_tab));
-        }
-
-        page_tab[tab_idx] = page_create_page_table_entry(PGT_AX_PRESENT | PGT_AX_WRITE | PGT_AX_KERNEL,
-                                                         i /* mapping to the same address */);
-
-        dir_idx_prev = dir_idx;
-    }
-
-    // recursive page directory
-    g_page_dir[1023]
-        = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, (uint32_t)(g_page_dir));
-
-    page_load_page_directory(g_page_dir);
-    page_enable_paging();
+    page_load_page_directory((PageDirectoryEntry *)((VirtualAddress)(g_pgdir)-VIRTUAL_BASE));
 }
 
 void *vmm_allocate_page()
 {
-    void *page = pmm_allocate_page();
-    return page;
+    void          *page = pmm_allocate_page();
+    VirtualAddress virt = pop_address();
+
+    vmm_map_page((PhysicalAddress)(page), virt);
+
+    KSLOG("returning page 0x%08x\n", virt);
+
+    return (void *)(virt);
 }
 
 void vmm_free_page(void *page)
 {
-    pmm_free_page(page);
+    if (((VirtualAddress)(page)&0xFFF))
+    {
+        KSLOG("error: page %p not page-aligned\n", page);
+        return;
+    }
+
+    PhysicalAddress phys = vmm_unmap_page((VirtualAddress)(page));
+
+    pmm_free_page((void *)(phys));
+    push_address((VirtualAddress)(page));
+}
+
+void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
+{
+    KSLOG("mapping page 0x%08X to physical address 0x%08X\n", virt, phys);
+    uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
+    uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
+
+    if (!SETBIT(g_pgdir[dir_idx].access_byte, PGD_AX_PRESENT))
+    {
+        void *page_tab   = pmm_allocate_page();
+        g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
+                                                            (PhysicalAddress)(page_tab));
+    }
+    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * 0x1000);
+    page_tab[tab_idx] = page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, phys & 0xFFFFF000);
+}
+
+PhysicalAddress vmm_unmap_page(VirtualAddress virt)
+{
+    KSLOG("unmapping page 0x%08X\n", virt);
+    uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
+    uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
+
+    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * 0x1000);
+    PhysicalAddress phys     = page_tab[tab_idx].address_upper_20 << 12;
+    page_tab[tab_idx]        = page_create_page_table_entry(0, 0);
+
+    page_flush_tlb();
+
+    return phys;
+}
+
+void push_address(VirtualAddress virt)
+{
+    KSLOG("pushing address 0x%08X to the VMM stack\n", virt);
+
+    if (g_stack_idx >= g_stack_size)
+    {
+        KSLOG("error: free address stack full\n");
+        return;
+    }
+
+    g_stack_base[g_stack_idx] = virt & 0xFFFFF000;
+    ++g_stack_idx;
+}
+
+VirtualAddress pop_address()
+{
+    KSLOG("popping last free address from VMM stack\n");
+
+    if (g_stack_idx < 0)
+    {
+        KSLOG("error: free address stack empty\n");
+        return 0xDEADBEEF; // not page-aligned
+    }
+
+    uint32_t pop = g_stack_base[g_stack_idx];
+    if (g_stack_idx > 0)
+        --g_stack_idx;
+
+    return pop;
 }
