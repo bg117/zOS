@@ -20,6 +20,7 @@
 #include <hw/video.h>
 
 #include <misc/log_macros.h>
+#include "memory/vmm.h"
 
 // main
 int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_length)
@@ -41,8 +42,15 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_leng
     KSLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
+    // VMM test
+    unsigned int *p = vmm_allocate_page();
+    *p              = 42; // IT ACTUALLY WORKS!!!
+    screen_print_format_string("%u\n", *p);
+    vmm_free_page(p);
+
     //! page fault test
-    (void)*(char *)(0x90000000);
+    char *pf = (char *)(0x8765ABCD);
+    *pf      = 'A';
 
     screen_print_string("\nzOS version 0.01\n");
     screen_print_string("Type something:\n\n");

@@ -20,6 +20,7 @@
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000
+#define MAGIC_NUMBER 0xDEADC0DE
 
 /* defined in the linker script */
 extern uint8_t __start, __bitmap_start, __bitmap_start_virt, __end;
@@ -105,7 +106,7 @@ void *pmm_allocate_page(void)
     if (idx == UINT64_MAX)
     {
         KSLOG("error: no more free pages left\n");
-        return NULL; // just like good old (m|c|re)alloc
+        return (void *)(MAGIC_NUMBER); // impossible to be returned on normal operation; not page-aligned
     }
 
     // it's definitely true that setting metadata in a bitmap is faster than
@@ -126,7 +127,7 @@ void pmm_free_page(void *page)
 
         if (base_addr == (uint64_t)(page))
         {
-            if ((g_bitmap[byte] & (1 << bit)))
+            if (TESTBIT(g_bitmap[byte], 1 << bit))
                 UNSETBITVAR(g_bitmap[byte], 1 << bit);
             else
                 KSLOG("warning: page %p already free\n", page);
@@ -147,7 +148,7 @@ enum page_status pmm_get_page_status(void *page)
 
         if (base_addr == (uint64_t)(page))
         {
-            if ((g_bitmap[byte] & (1 << bit)))
+            if (TESTBIT(g_bitmap[byte], 1 << bit))
                 return PS_USED;
             else
                 return PS_FREE;
@@ -172,7 +173,7 @@ uint64_t get_first_free_idx(uint8_t *bit)
         uint64_t byte = i / CHAR_BIT;
         *bit          = i % CHAR_BIT;
 
-        if ((g_bitmap[byte] & (1 << *bit)) == 0)
+        if (!TESTBIT(g_bitmap[byte], 1 << *bit))
             return byte;
     }
 

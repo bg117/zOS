@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#include <memory/memdefs.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

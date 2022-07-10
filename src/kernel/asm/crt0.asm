@@ -101,12 +101,9 @@ _start: ; initial setup (same as in bootloader)
 
                 ; identity map kernel first
                 mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 0 * 4], dword KERNEL_SYM_PHYS(SYS_PGTAB) + 0x03
-                
+
                 ; map to 0xC0000000
                 mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 768 * 4], dword KERNEL_SYM_PHYS(SYS_PGTAB) + 0x03
-
-                ; map page directory recursively
-                mov     [KERNEL_SYM_PHYS(SYS_PGDIR) + 1023 * 4], dword KERNEL_SYM_PHYS(SYS_PGDIR) + 0x03
 
                 mov     ecx, KERNEL_SYM_PHYS(SYS_PGDIR)
                 mov     cr3, ecx
@@ -123,6 +120,8 @@ _start: ; initial setup (same as in bootloader)
 
 section .text
         .after_setup:   mov     [SYS_PGDIR + 0 * 4], dword 0
+                        ; map page directory recursively
+                        mov     [SYS_PGDIR + 1023 * 4], dword KERNEL_SYM_PHYS(SYS_PGDIR) + 0x03
 
                         ; flush TLB
                         mov     ecx, cr3
