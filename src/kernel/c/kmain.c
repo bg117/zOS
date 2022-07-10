@@ -13,7 +13,6 @@
 #include <fs/fat.h>
 
 #include <memory/mem.h>
-#include <memory/memdefs.h>
 #include <memory/mmap.h>
 #include <memory/vmm.h>
 
@@ -24,7 +23,7 @@
 #include <misc/log_macros.h>
 
 // main
-int kmain(uint8_t drive_number, FatInfo *fi, MemoryMap *mmap, uint16_t mmap_length)
+int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length)
 {
     screen_clear();
 

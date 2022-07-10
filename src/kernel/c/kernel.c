@@ -73,7 +73,7 @@ static void default_interrupt_handler(InterruptInfo *info);
 static void page_fault_handler(InterruptInfo *info);
 static void default_irq_handler(InterruptInfo *info);
 
-void kernel_init(MemoryMap *mmap, size_t mmap_length)
+void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
     KSLOG("initializing the global descriptor table\n");
     init_gdt();
@@ -113,7 +113,7 @@ void kernel_init(MemoryMap *mmap, size_t mmap_length)
     vmm_init();
 }
 
-void init_gdt()
+void init_gdt(void)
 {
     g_gdt[0] = gdt_make_entry(0x0000, 0x0000, 0x0000, 0x0000);
     g_gdt[1]
@@ -136,7 +136,7 @@ void init_gdt()
                               GDT_OF_GRANULARITY | GDT_OF_32BIT);
 }
 
-void load_gdt()
+void load_gdt(void)
 {
     gdt_descriptor_init(&g_gdt_desc, g_gdt, sizeof g_gdt / sizeof g_gdt[0]);
     gdt_descriptor_load(&g_gdt_desc, 0x08, 0x10);

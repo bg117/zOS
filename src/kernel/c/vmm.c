@@ -45,7 +45,7 @@ static void push_address(VirtualAddress virt);
 
 static VirtualAddress pop_address(void);
 
-void vmm_init()
+void vmm_init(void)
 {
     g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
     KSLOG("initial page directory located at %p\n", (void *)(g_pgdir));
@@ -110,13 +110,13 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
         void *page_tab   = pmm_allocate_page();
         g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
                                                             (PhysicalAddress)(page_tab));
-        page_flush_tlb();
+        page_reload_cr3();
     }
 
     PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
     page_tab[tab_idx] = page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, phys & 0xFFFFF000);
 
-    page_flush_tlb();
+    page_reload_cr3();
 }
 
 PhysicalAddress vmm_unmap_page(VirtualAddress virt)
@@ -151,7 +151,7 @@ PhysicalAddress vmm_unmap_page(VirtualAddress virt)
     }
 
     // flush the TLB, of course
-    page_flush_tlb();
+    page_reload_cr3();
 
     return phys;
 }
@@ -170,7 +170,7 @@ void push_address(VirtualAddress virt)
     g_stack_base[g_stack_idx] = virt & 0xFFFFF000;
 }
 
-VirtualAddress pop_address()
+VirtualAddress pop_address(void)
 {
     KSLOG("popping last free address from VMM stack\n");
     if (g_stack_idx < 0)

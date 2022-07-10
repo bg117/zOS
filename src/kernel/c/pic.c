@@ -29,7 +29,7 @@
 
 #define ICW4_8086 0x01 // 8086 mode
 
-#define IOWAIT() out_byte(UNUSED_PORT, 0)
+#define IOWAIT(void) out_byte(UNUSED_PORT, 0)
 
 static uint8_t _pic1_offset;
 static uint8_t _pic2_offset;
@@ -75,12 +75,12 @@ void pic_send_eoi(uint8_t irq)
     out_byte(PIC1_CMD, PIC_EOI);
 }
 
-uint8_t pic_get_pic1_offset()
+uint8_t pic_get_pic1_offset(void)
 {
     return _pic1_offset;
 }
 
-uint8_t pic_get_pic2_offset()
+uint8_t pic_get_pic2_offset(void)
 {
     return _pic2_offset;
 }

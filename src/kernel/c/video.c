@@ -270,7 +270,7 @@ void screen_print_char(char c)
     }
 }
 
-void screen_clear()
+void screen_clear(void)
 {
     _pos_x = 0;
     _pos_y = 0;
@@ -289,7 +289,7 @@ void screen_clear_line(int y)
     screen_move_cursor(_pos_x, _pos_y);
 }
 
-void screen_scroll()
+void screen_scroll(void)
 {
     mem_copy_with_overlap(VGA_BUFFER, VGA_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
     mem_fill(VGA_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);

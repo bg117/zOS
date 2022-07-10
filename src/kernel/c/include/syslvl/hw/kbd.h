@@ -14,6 +14,10 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Represents modifiers which, combined with the key, may produce
+ *        a different character.
+ */
 typedef enum key_modifiers
 {
     KEY_ALT   = 0x01,
@@ -21,6 +25,9 @@ typedef enum key_modifiers
     KEY_SHIFT = 0x04
 } KeyModifiers;
 
+/**
+ * @brief Represents the key read from the keyboard.
+ */
 typedef struct read_key
 {
     char         c;
@@ -30,14 +37,14 @@ typedef struct read_key
 /**
  * @brief Initializes the keyboard and its handler.
  */
-void kbd_init();
+void kbd_init(void);
 
 /**
  * @brief Gets a single character from the user.
  *
  * @return The character entered.
  */
-ReadKey kbd_get_char();
+ReadKey kbd_get_char(void);
 
 #ifdef __cplusplus
 }

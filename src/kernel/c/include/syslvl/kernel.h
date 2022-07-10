@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-typedef struct memory_map MemoryMap;
+typedef struct memory_map_entry MemoryMapEntry;
 
 /**
  * @brief Initializes the kernel.
@@ -23,7 +23,7 @@ typedef struct memory_map MemoryMap;
  * @param mmap The memory map to use.
  * @param mmap_length The length of the memory map.
  */
-void kernel_init(MemoryMap *mmap, size_t mmap_length);
+void kernel_init(MemoryMapEntry *mmap, size_t mmap_length);
 
 #ifdef __cplusplus
 }

@@ -15,6 +15,9 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Represents the status of a physical page.
+ */
 typedef enum page_status
 {
     PS_FREE,
@@ -22,7 +25,7 @@ typedef enum page_status
     PS_UNKNOWN
 } PageStatus;
 
-typedef struct memory_map MemoryMap;
+typedef struct memory_map_entry MemoryMapEntry;
 
 /**
  * @brief Initializes the physical memory manager.
@@ -30,7 +33,7 @@ typedef struct memory_map MemoryMap;
  * @param mmap The memory map of the system.
  * @param mmap_length Tells how many entries the memory map contains.
  */
-void pmm_init(MemoryMap *mmap, size_t mmap_length);
+void pmm_init(MemoryMapEntry *mmap, size_t mmap_length);
 
 /**
  * @brief Allocates a single page and marks it as used.

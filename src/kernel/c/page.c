@@ -37,7 +37,7 @@ void page_load_page_directory(struct page_directory_entry *pgd)
     __asm__ __volatile__("movl %0, %%cr3" : : "a"((uint32_t)(pgd)));
 }
 
-void page_enable_paging()
+void page_enable_paging(void)
 {
     __asm__ __volatile__(
         "movl %cr0, %eax;"
@@ -45,7 +45,7 @@ void page_enable_paging()
         "movl %eax, %cr0;"); // enable paging bit
 }
 
-void page_disable_paging()
+void page_disable_paging(void)
 {
     __asm__ __volatile__(
         "movl %cr0, %eax;"
@@ -53,7 +53,7 @@ void page_disable_paging()
         "movl %eax, %cr0;");
 }
 
-void page_flush_tlb()
+void page_reload_cr3(void)
 {
     __asm__ __volatile__(
         "movl %cr3, %ebx;"

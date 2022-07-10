@@ -33,8 +33,21 @@ void *vmm_allocate_page(void);
  */
 void vmm_free_page(void *page);
 
+/**
+ * @brief Maps the virtual address to the corresponding physical
+ *        address.
+ *
+ * @param phys The physical address to map the virtual address to.
+ * @param virt The virtual address to be mapped.
+ */
 void vmm_map_page(PhysicalAddress phys, VirtualAddress virt);
 
+/**
+ * @brief Unmaps the virtual address from the page directory/table.
+ *
+ * @param virt The virtual address/page to be unmapped.
+ * @return The physical address that the virtual page was mapped to.
+ */
 PhysicalAddress vmm_unmap_page(VirtualAddress virt);
 
 #ifdef __cplusplus

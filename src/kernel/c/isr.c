@@ -285,7 +285,7 @@ void isr_init(uint8_t code_offset)
     init_idt(code_offset);
 }
 
-void isr_load_idt()
+void isr_load_idt(void)
 {
     idt_descriptor_init(&g_idt_descriptor, g_idt, sizeof g_idt / sizeof g_idt[0]);
     idt_descriptor_load(&g_idt_descriptor);

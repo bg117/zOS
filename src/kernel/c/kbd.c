@@ -59,7 +59,7 @@ static KeyModifiers g_key_flags;
 
 static void kbd_handler(InterruptInfo *);
 
-void kbd_init()
+void kbd_init(void)
 {
     KSLOG("mapping IRQ 1 handler\n");
     isr_map_interrupt_handler(1 + pic_get_pic1_offset(), kbd_handler);
@@ -71,7 +71,7 @@ void kbd_init()
     g_key_flags = 0;
 }
 
-ReadKey kbd_get_char()
+ReadKey kbd_get_char(void)
 {
     g_got_key = 0;
     while (!g_got_key)

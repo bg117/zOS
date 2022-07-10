@@ -25,7 +25,7 @@ static uint64_t g_cycles;
 
 static void pit_handler(struct interrupt_info *);
 
-void timer_init()
+void timer_init(void)
 {
     KSLOG("mapping IRQ 0 handler\n");
     isr_map_interrupt_handler(0 + pic_get_pic1_offset(), pit_handler);

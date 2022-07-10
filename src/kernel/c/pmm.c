@@ -33,7 +33,7 @@ static uint64_t g_base;
 
 static uint64_t get_first_free_idx(uint8_t *bit);
 
-void pmm_init(MemoryMap *mmap, size_t mmap_length)
+void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
     g_bitmap = &__bitmap_start_virt;
 
@@ -159,7 +159,7 @@ enum page_status pmm_get_page_status(void *page)
     return PS_UNKNOWN;
 }
 
-uint64_t pmm_get_bitmap_length()
+uint64_t pmm_get_bitmap_length(void)
 {
     return ALIGN(g_bitmap_size, CHAR_BIT) / CHAR_BIT;
 }

@@ -14,7 +14,14 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Represents a physical memory address.
+ */
 typedef uint32_t PhysicalAddress;
+
+/**
+ * @brief Represents a logical memory address.
+ */
 typedef uint32_t VirtualAddress;
 
 #ifdef __cplusplus
