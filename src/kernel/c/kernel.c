@@ -34,6 +34,22 @@
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
 
+#define NOT_INIT_CHECK(a)                                                                                              \
+    if (!g_is_init)                                                                                                    \
+    {                                                                                                                  \
+        KSLOG("error: not initialized\n");                                                                             \
+        a;                                                                                                             \
+    }
+
+#define INIT_CHECK(a)                                                                                                  \
+    if (g_is_init)                                                                                                     \
+    {                                                                                                                  \
+        KSLOG("warning: already initialized, ignoring\n");                                                             \
+        a;                                                                                                             \
+    }
+
+static int g_is_init;
+
 static GdtEntry      g_gdt[5];
 static GdtDescriptor g_gdt_desc;
 
@@ -75,6 +91,8 @@ static void default_irq_handler(InterruptInfo *info);
 
 void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
+    INIT_CHECK(return );
+
     KSLOG("initializing the global descriptor table\n");
     init_gdt();
 
@@ -111,6 +129,21 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 
     KSLOG("enabling interrupts\n");
     core_set_interrupt_flag();
+
+    g_is_init = 1;
+}
+
+void kernel_deinit(void)
+{
+    NOT_INIT_CHECK(return );
+
+    KSLOG("deinitializing the keyboard\n");
+    kbd_deinit();
+
+    KSLOG("deinitializing the PIT\n");
+    timer_deinit();
+
+    g_is_init = 0;
 }
 
 void init_gdt(void)

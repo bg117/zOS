@@ -12,6 +12,26 @@
 extern "C" {
 #endif
 
+typedef struct __attribute__((packed)) vga_font_glyph
+{
+    uint8_t h1;
+    uint8_t h2;
+    uint8_t h3;
+    uint8_t h4;
+    uint8_t h5;
+    uint8_t h6;
+    uint8_t h7;
+    uint8_t h8;
+    uint8_t h9;
+    uint8_t h10;
+    uint8_t h11;
+    uint8_t h12;
+    uint8_t h13;
+    uint8_t h14;
+    uint8_t h15;
+    uint8_t h16;
+} VgaFontGlyph;
+
 /**
  * @brief Clears the VGA buffer.
  */

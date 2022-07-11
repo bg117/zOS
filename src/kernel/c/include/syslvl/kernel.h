@@ -25,6 +25,8 @@ typedef struct memory_map_entry MemoryMapEntry;
  */
 void kernel_init(MemoryMapEntry *mmap, size_t mmap_length);
 
+void kernel_deinit(void);
+
 #ifdef __cplusplus
 }
 #endif

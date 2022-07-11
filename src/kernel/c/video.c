@@ -78,13 +78,13 @@ static const uint8_t VGA_LENGTH = 25;
 
 static const int TAB_WIDTH = 8;
 
-static uint8_t *const VGA_BUFFER = (uint8_t *const)(0xC03FF000);
-static uint16_t       _pos_x     = 0;
-static uint16_t       _pos_y     = 0;
+static uint8_t *const VGA_TXT_BUFFER = (uint8_t *const)(0x000B8000);
+static uint16_t       g_pos_x        = 0;
+static uint16_t       g_pos_y        = 0;
 
-static volatile int _move_cursor_chr = 1;
+static volatile int g_move_cursor_chr = 1;
 
-static uint8_t _char_color = 0x07; // light gray
+static uint8_t g_char_color = 0x07; // light gray
 
 enum printf_state
 {
@@ -103,8 +103,8 @@ enum printf_length_state
 
 void screen_print_string(const char *__restrict__ s)
 {
-    int old_flag     = _move_cursor_chr;
-    _move_cursor_chr = 0;
+    int old_flag      = g_move_cursor_chr;
+    g_move_cursor_chr = 0;
 
     while (*s)
     {
@@ -112,14 +112,14 @@ void screen_print_string(const char *__restrict__ s)
         ++s;
     }
 
-    _move_cursor_chr = old_flag;
-    screen_move_cursor(_pos_x, _pos_y);
+    g_move_cursor_chr = old_flag;
+    screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_print_format_string(const char *__restrict__ fmt, ...)
 {
-    int old_flag     = _move_cursor_chr;
-    _move_cursor_chr = 0;
+    int old_flag      = g_move_cursor_chr;
+    g_move_cursor_chr = 0;
 
     va_list ap;
     va_start(ap, fmt);
@@ -218,53 +218,53 @@ void screen_print_format_string(const char *__restrict__ fmt, ...)
 
     va_end(ap);
 
-    _move_cursor_chr = old_flag;
-    screen_move_cursor(_pos_x, _pos_y);
+    g_move_cursor_chr = old_flag;
+    screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_print_char(char c)
 {
-    if (_pos_y >= VGA_LENGTH)
+    if (g_pos_y >= VGA_LENGTH)
         screen_scroll();
 
     switch (c)
     {
     case '\n':
-        _pos_x = 0;
-        ++_pos_y;
+        g_pos_x = 0;
+        ++g_pos_y;
         break;
     case '\t':
-        if (_pos_x % TAB_WIDTH == 0)
+        if (g_pos_x % TAB_WIDTH == 0)
         {
-            _pos_x += TAB_WIDTH;
+            g_pos_x += TAB_WIDTH;
         }
         else
         {
-            for (int i = 0; i < _pos_x % TAB_WIDTH; i++)
+            for (int i = 0; i < g_pos_x % TAB_WIDTH; i++)
                 screen_print_char(' ');
         }
         break;
-    case '\r': _pos_x = 0; break;
+    case '\r': g_pos_x = 0; break;
     case '\b':
-        if (_pos_x > 0)
-            --_pos_x;
+        if (g_pos_x > 0)
+            --g_pos_x;
         break;
     default:
         {
-            int position             = GET_VGA_POSITION_XY(_pos_x, _pos_y);
-            VGA_BUFFER[position]     = c;
-            VGA_BUFFER[position + 1] = _char_color;
+            int position                 = GET_VGA_POSITION_XY(g_pos_x, g_pos_y);
+            VGA_TXT_BUFFER[position]     = c;
+            VGA_TXT_BUFFER[position + 1] = g_char_color;
 
-            ++_pos_x;
+            ++g_pos_x;
 
-            if (_pos_x >= VGA_WIDTH)
+            if (g_pos_x >= VGA_WIDTH)
             {
-                _pos_x = 0;
-                ++_pos_y;
+                g_pos_x = 0;
+                ++g_pos_y;
             }
 
-            if (_move_cursor_chr)
-                screen_move_cursor(_pos_x, _pos_y);
+            if (g_move_cursor_chr)
+                screen_move_cursor(g_pos_x, g_pos_y);
         }
         break;
     }
@@ -272,30 +272,42 @@ void screen_print_char(char c)
 
 void screen_clear(void)
 {
-    _pos_x = 0;
-    _pos_y = 0;
+    g_pos_x = 0;
+    g_pos_y = 0;
 
-    mem_fill(VGA_BUFFER, 0, VGA_LENGTH * VGA_WIDTH * 2);
+    for (int i = 0; i < VGA_LENGTH; i++)
+    {
+        for (int j = 0; j < VGA_WIDTH * 2; j += 2)
+        {
+            VGA_TXT_BUFFER[i * VGA_WIDTH + j]     = '\0';
+            VGA_TXT_BUFFER[i * VGA_WIDTH + j + 1] = g_char_color;
+        }
+    }
 
-    screen_move_cursor(_pos_x, _pos_y);
+    screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_clear_line(int y)
 {
-    _pos_x = 0;
+    if (y == g_pos_y)
+        g_pos_x = 0;
 
-    mem_fill(VGA_BUFFER + VGA_WIDTH * y * 2, 0, VGA_WIDTH * 2);
+    for (int i = 0; i < VGA_WIDTH * 2; i += 2)
+    {
+        VGA_TXT_BUFFER[y * VGA_WIDTH + i]     = '\0';
+        VGA_TXT_BUFFER[y * VGA_WIDTH + i + 1] = g_char_color;
+    }
 
-    screen_move_cursor(_pos_x, _pos_y);
+    screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_scroll(void)
 {
-    mem_copy_with_overlap(VGA_BUFFER, VGA_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
-    mem_fill(VGA_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
+    mem_copy_with_overlap(VGA_TXT_BUFFER, VGA_TXT_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
+    mem_fill(VGA_TXT_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
 
-    if (_pos_y > 0)
-        --_pos_y;
+    if (g_pos_y > 0)
+        --g_pos_y;
 }
 
 void screen_move_cursor(int x, int y)
@@ -306,12 +318,12 @@ void screen_move_cursor(int x, int y)
     out_byte(0x3D4, 0x0E);
     out_byte(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 
-    _pos_x = x;
-    _pos_y = y;
+    g_pos_x = x;
+    g_pos_y = y;
 }
 
 void screen_get_cursor_position(int *x, int *y)
 {
-    *x = _pos_x;
-    *y = _pos_y;
+    *x = g_pos_x;
+    *y = g_pos_y;
 }

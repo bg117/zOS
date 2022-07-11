@@ -46,7 +46,7 @@ _start: ; fix regs
 
         ; stack
         cli
-        mov     sp, 0x1000      ; base of code (relocated)
+        mov     sp, 0x1000
         mov     bp, sp
         sti
 
@@ -153,7 +153,7 @@ global_descriptor_table:
     .load:  dw  .load - global_descriptor_table - 1
             dd  global_descriptor_table
 
-times 510-($-$$)    db  0xCC    ; fill remaining with INT3
+times 510-($-$$)    db  0x90    ; fill remaining with NOPs
 dw  0xAA55                      ; signature
 
 real:   ; get memory map
@@ -213,17 +213,39 @@ real:   ; get memory map
         mov     ax, 24                      ; 24 bytes per entry
         mul     si                          ; amount of entries
 
-        ; round up to multiple of bytes_per_sector
-        mov     bx, [bios_parameter_block.bytes_per_sector] ; multiple
-        dec     bx                                          ; multiple - 1
-        add     ax, bx                                      ; num_to_round + multiple - 1
-        xor     dx, dx
-        inc     bx
-        div     bx                                          ; (num_to_round + multiple - 1) / multiple
-        mul     bx                                          ; ((num_to_round + multiple - 1) / multiple) * multiple
-
+        add     [variables.font_buffer], ax
         add     [variables.fat_buffer], ax
         add     [variables.gen_buffer], ax
+
+        pusha
+
+        ; get font from VGA BIOS
+        mov     bp, [variables.font_buffer]
+
+        push    ds
+        push    es
+
+        mov     ax, 0x1130
+        mov     bh, 0x06
+        int     0x10
+
+        push    es
+        pop     ds
+        pop     es
+
+        mov     si, bp
+        sub     si, 0x570
+        mov     cx, 256 * 16 / 4
+        mov     di, es:[variables.font_buffer]
+        cld
+        rep     movsd
+
+        pop     ds
+
+        popa
+
+        add     word [variables.fat_buffer], 0x1000
+        add     word [variables.gen_buffer], 0x1000
 
         mov     cx, [bios_parameter_block.reserved_sectors]
         mov     ax, [bios_parameter_block.sectors_per_fat]
@@ -283,12 +305,12 @@ real:   ; get memory map
         mov     [variables.cluster_size_bytes], ax
 
         ; set up ES and BX for read operation
-        mov     ax, KERNEL_SEGMENT
-        mov     es, ax              ; ES=KERNEL_SEGMENT (0)
-        mov     bx, KERNEL_BUFFER   ; BX=KERNEL_BUFFER
+        xor     ax, ax
+        mov     es, ax
+        mov     bx, [variables.gen_buffer]
 
         ; extract first cluster
-        mov     ax, [di + 26]               ; first cluster is the 26th element in file info
+        mov     ax, es:[di + 26]            ; first cluster is the 26th element in file info
         mov     [variables.cluster], ax     ; store first cluster number
         mov     si, [variables.fat_buffer]  ; point to start of FAT
 
@@ -335,7 +357,7 @@ real:   ; get memory map
                         mov     cx, 2
                         mul     cx
                         add     si, ax
-                        mov     ax, [si]
+                        mov     ax, ds:[si]
                         pop     si
 
                         mov     cx, [variables.cluster_size_bytes]
@@ -375,7 +397,8 @@ real:   ; get memory map
         ; relocate kernel
         mov     ecx, [variables.kernel_size_bytes]
         mov     edi, 0x100000
-        mov     esi, (KERNEL_SEGMENT << 4) | KERNEL_BUFFER
+        xor     esi, esi
+        mov     si, [variables.gen_buffer]
         xor     edx, edx
         mov     eax, ecx
         mov     ecx, 4
@@ -390,13 +413,15 @@ real:   ; get memory map
         cld
         rep     movsb
 
-        ; EDI=FAT info, EBX=memory map, ECX=memory map entry count
+        ; EDI=FAT info, EBX=memory map, ECX=memory map entry count, ESI=font info
         mov     edi, fat_info
         xor     ebx, ebx
         mov     bx, [variables.mmap_buffer]
         mov     ecx, [variables.mmap_entry_count]
         xor     edx, edx
         mov     dl, [extended_boot_record.drive_number]
+        xor     esi, esi
+        mov     si, [variables.font_buffer]
 
         jmp     0x08:0x100000
 
@@ -438,13 +463,11 @@ variables:
     .kernel_size_bytes:     dd  0
     .current_fat:           dw  0
     .mmap_buffer:           dw  BUFFER
+    .font_buffer:           dw  BUFFER
     .fat_buffer:            dw  BUFFER
     .gen_buffer:            dw  BUFFER
     .mmap_entry_count:      dd  0
 
-times 1534-($-real) db 0xCC ; INT3
+times 1534-($-real) db 0x90 ; NOP
 dw                  0x55AA
-
-KERNEL_SEGMENT  equ 0
-KERNEL_BUFFER   equ 0x1FC0
 BUFFER:

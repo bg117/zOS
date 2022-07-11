@@ -40,6 +40,11 @@ typedef struct read_key
 void kbd_init(void);
 
 /**
+ * @brief Deinitializes the keyboard.
+ */
+void kbd_deinit(void);
+
+/**
  * @brief Gets a single character from the user.
  *
  * @return The character entered.

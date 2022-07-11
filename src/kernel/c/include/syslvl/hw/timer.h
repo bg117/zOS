@@ -18,6 +18,11 @@ extern "C" {
 void timer_init(void);
 
 /**
+ * @brief Deinitializes the PIC (unmaps its handler).
+ */
+void timer_deinit(void);
+
+/**
  * @brief Sets how many cycles it takes for 1 second.
  *
  * @param hz The new frequency of the PIT.

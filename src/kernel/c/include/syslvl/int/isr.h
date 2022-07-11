@@ -40,6 +40,15 @@ void isr_load_idt(void);
  */
 void isr_map_interrupt_handler(uint8_t vector, void (*handler)(InterruptInfo *));
 
+/**
+ * @brief Unmaps the custom interrupt handler assigned to the
+ *        specified interrupt vector.
+ *
+ * @param vector The vector of the interrupt for the handler to be
+ *               unmapped from.
+ */
+void isr_unmap_interrupt_handler(uint8_t vector);
+
 #ifdef __cplusplus
 }
 #endif

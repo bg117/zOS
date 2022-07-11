@@ -18,6 +18,7 @@
 
 #include <hw/kbd.h>
 #include <hw/serial.h>
+#include <hw/timer.h>
 #include <hw/video.h>
 
 #include <misc/char_macros.h>
@@ -28,14 +29,54 @@
 #define LARROW      0x4B
 #define RARROW      0x4D
 #define DARROW      0x50
-#define MAX_KBD_BUF 0x20
+#define MAX_KBD_BUF 0xFFF
 
 char *get_keyboard_input(void);
 
 // main
-int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length)
+int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length, VgaFontGlyph *vga_font_info)
 {
     screen_clear();
+
+    KSLOG("testing VGA glyphs\n");
+    for (int i = 0; i < 256; i++)
+    {
+        KSLOG(
+            "glyph %d:\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n"
+            "\t%08b\n",
+            i,
+            vga_font_info[i].h1,
+            vga_font_info[i].h2,
+            vga_font_info[i].h3,
+            vga_font_info[i].h4,
+            vga_font_info[i].h5,
+            vga_font_info[i].h6,
+            vga_font_info[i].h7,
+            vga_font_info[i].h8,
+            vga_font_info[i].h9,
+            vga_font_info[i].h10,
+            vga_font_info[i].h11,
+            vga_font_info[i].h12,
+            vga_font_info[i].h13,
+            vga_font_info[i].h14,
+            vga_font_info[i].h15,
+            vga_font_info[i].h16);
+    }
 
     screen_print_string("---------------- MEMORY MAP ----------------\n");
     screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
@@ -49,20 +90,20 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
                                    mmap[i].acpi_extended_attributes);
     }
 
+    screen_clear();
+
     KSLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
-    screen_clear();
-
-    screen_print_string("zOS version 0.01\n");
-
-    for (int i = 0; i < 0x1000; i++)
-        vmm_allocate_page();
+    screen_print_string("zOS version 0.01\nTesting delay (2s)...\n");
+    timer_wait(2000);
 
     while (1)
     {
         screen_print_string("> ");
         char *input = get_keyboard_input();
+
+        screen_print_format_string("Input: %s\n", input);
 
         if (str_is_equal(input, "exit"))
         {
@@ -70,16 +111,24 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
             break;
         }
 
-        screen_print_format_string("Input: %s\n", input);
+        screen_print_string("Error: function not yet implemented\n");
+
         vmm_free_page(input);
     }
 
     screen_clear();
+
+    KSLOG("commencing shutdown\n");
+
+    KSLOG("deinitializing the kernel\n");
+    kernel_deinit();
+
     screen_print_string("It is now safe to shut down the computer.");
 
     return 1;
 }
 
+// can probably be used if I make a command-line interpreter in the near future
 char *get_keyboard_input(void)
 {
     char   *buf = vmm_allocate_page();
