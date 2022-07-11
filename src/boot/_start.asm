@@ -234,7 +234,8 @@ real:   ; get memory map
         pop     es
 
         mov     si, bp
-        sub     si, 0x570
+        sub     si, 0x570 ; I don't know if this is actually a constant value but
+                          ; it doesn't work without this
         mov     cx, 256 * 16 / 4
         mov     di, es:[variables.font_buffer]
         cld
