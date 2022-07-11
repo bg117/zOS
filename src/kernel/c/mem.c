@@ -32,7 +32,7 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len)
     return ptr;
 }
 
-void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len)
+void *mem_copy(void *restrict dest, const void *restrict src, size_t len)
 {
     size_t i = 0;
     size_t x = len / sizeof len;
@@ -54,7 +54,7 @@ void *mem_copy(void *__restrict__ dest, const void *__restrict__ src, size_t len
     return dest;
 }
 
-void *mem_copy_with_overlap(void *__restrict__ dest, const void *__restrict__ src, size_t len)
+void *mem_copy_with_overlap(void *dest, const void *src, size_t len)
 {
     uintptr_t isrc  = (uintptr_t)(src);
     uintptr_t idest = (uintptr_t)(dest);

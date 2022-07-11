@@ -36,7 +36,7 @@ static uint64_t get_first_free_idx(uint8_t *bit);
 
 void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
-    g_bitmap = &__pmm_bitmap_start_virt;
+    g_bitmap = (uint64_t *)(&__pmm_bitmap_start_virt);
 
     g_base        = 0;
     g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;

@@ -6,17 +6,20 @@
 EXEC     := zos-dev-build.img
 FULLEXEC := ${BUILD_DIR}/${EXEC}
 
-.PHONY: all build boot kernel clean always
+.PHONY: all build boot kernel modules clean always
 
 all: build
 
-build: boot kernel ${FULLEXEC}
+build: boot kernel modules ${FULLEXEC}
 
 boot:
 	${MAKE} -C ${CURDIR}/boot
 
 kernel:
 	${MAKE} -C ${CURDIR}/kernel
+
+modules:
+	${MAKE} -C ${CURDIR}/modules
 
 clean:
 	${MAKE} -C ${CURDIR}/boot clean
@@ -31,3 +34,5 @@ ${FULLEXEC}: always
 	dd if=${BIN_DIR}/ldr.z of=$@ conv=notrunc
 
 	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::
+
+	mcopy -i ${FULLEXEC} ${BIN_DIR}/modules/ ::

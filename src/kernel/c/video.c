@@ -101,7 +101,7 @@ enum printf_length_state
     LENGTH_VERY_LONG
 };
 
-void screen_print_string(const char *__restrict__ s)
+void screen_print_string(const char *s)
 {
     int old_flag      = g_move_cursor_chr;
     g_move_cursor_chr = 0;
@@ -116,7 +116,7 @@ void screen_print_string(const char *__restrict__ s)
     screen_move_cursor(g_pos_x, g_pos_y);
 }
 
-void screen_print_format_string(const char *__restrict__ fmt, ...)
+void screen_print_format_string(const char *fmt, ...)
 {
     int old_flag      = g_move_cursor_chr;
     g_move_cursor_chr = 0;

@@ -56,7 +56,7 @@ void screen_print_char(char c);
  *
  * @param s The string of characters to write,
  */
-void screen_print_string(const char *__restrict__ s);
+void screen_print_string(const char *s);
 
 /**
  * @brief Writes a format string to the VGA buffer, and expands its
@@ -66,7 +66,7 @@ void screen_print_string(const char *__restrict__ s);
               the VGA buffer.
  * @param ... Additional arguments to be used by the format string.
  */
-void screen_print_format_string(const char *__restrict__ fmt, ...);
+void screen_print_format_string(const char *fmt, ...);
 
 /**
  * @brief Scrolls the VGA buffer by one line.

@@ -52,5 +52,5 @@ void idt_descriptor_init(IdtDescriptor *desc, IdtEntry *idt, size_t entry_count)
 
 void idt_descriptor_load(IdtDescriptor *desc)
 {
-    __asm__ __volatile__("lidt %0;" ::"m"(*desc));
+    asm volatile("lidt %0;" ::"m"(*desc));
 }

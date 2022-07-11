@@ -240,7 +240,7 @@ void default_interrupt_handler(InterruptInfo *info)
 static void page_fault_handler(InterruptInfo *info)
 {
     uint32_t cr2;
-    __asm__ __volatile__("movl %%cr2, %0" : "=r"(cr2) :); // get value of CR2 (contains the address of page fault)
+    asm volatile("movl %%cr2, %0" : "=r"(cr2) :); // get value of CR2 (contains the address of page fault)
     KSLOG("page fault@0x%08X. Error code: 0x%X\n", cr2, info->error_code);
     KSLOG(
         "register dump:\n\t"

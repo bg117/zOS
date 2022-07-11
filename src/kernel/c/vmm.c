@@ -44,7 +44,7 @@ void vmm_init(void)
     g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
     KSLOG("initial page directory located at %p\n", (void *)(g_pgdir));
 
-    g_bitmap = &__pmm_bitmap_start_virt;
+    g_bitmap = (uint64_t *)(&__pmm_bitmap_start_virt);
 
     g_base = 0;
 
@@ -133,14 +133,10 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
         void *page_tab   = pmm_allocate_page();
         g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
                                                             (PhysicalAddress)(page_tab));
-        page_reload_cr3();
     }
 
     PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
     page_tab[tab_idx] = page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, phys & 0xFFFFF000);
-
-    KSLOG("reloading CR3\n");
-    page_reload_cr3();
 }
 
 void vmm_unmap_page(VirtualAddress virt)
@@ -170,11 +166,11 @@ void vmm_unmap_page(VirtualAddress virt)
     if (is_empty)
     {
         KSLOG("found empty page table, freeing\n");
-        pmm_free_page((void *)(g_pgdir[dir_idx].address_upper_20 << 12));
+        pmm_free_page((void *)(PhysicalAddress)(g_pgdir[dir_idx].address_upper_20 << 12));
     }
 
-    // flush the TLB, of course
-    page_reload_cr3();
+    // flush the TLB entry, of course
+    page_invalidate_page((void *)(virt));
 }
 
 PhysicalAddress vmm_get_phys(VirtualAddress virt)

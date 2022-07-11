@@ -13,11 +13,10 @@ CC      := i686-elf-gcc
 LD      := i686-elf-ld
 OBJCOPY := i686-elf-objcopy
 
-TARGET := i686-pc-none-elf
-
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
 CFLAGS       := -Wall \
+				-Wextra \
 				-O0 \
 				-g \
 				-fno-stack-check \
@@ -56,7 +55,7 @@ format: ${SRCS_C} ${SRCS_H}
 build: ${FULLEXEC}
 
 clean:
-	${RM} ${OBJS_ASM} ${OBJS_C}
+	${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS}
 
 ${FULLEXEC}: ${FULLEXEC}.elf
 	${OBJCOPY} \
