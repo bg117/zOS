@@ -367,11 +367,11 @@ real:   ; get memory map
                         repe    cmpsb
 
                         pop     di
+                        pop     cx
 
                         je      .found_kernel
                         add     di, 32
 
-                        pop     cx
                         loop    .find_kernel
 
         ; intermediate (if kernel not found)
