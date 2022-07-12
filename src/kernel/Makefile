@@ -19,15 +19,9 @@ CFLAGS       := -Wall \
 				-Wextra \
 				-fno-stack-check \
 				-ffreestanding \
-				-nostdlib
-
-ifeq (${DEBUG},on)
-${info Debug build}
-CFLAGS += -O0 \
-		  -g
-else
-CFLAGS += -Os
-endif
+				-nostdlib \
+				-O0 \
+				-g
 
 CPPFLAGS     := -I${CURDIR}/c/include \
 				-I${CURDIR}/c/include/syslvl \
