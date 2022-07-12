@@ -31,13 +31,13 @@
 
 #define IOWAIT(void) out_byte(UNUSED_PORT, 0)
 
-static uint8_t _pic1_offset;
-static uint8_t _pic2_offset;
+static uint8_t g_pic1_offset;
+static uint8_t g_pic2_offset;
 
 void pic_init(uint8_t master_offset, uint8_t slave_offset)
 {
-    _pic1_offset = master_offset;
-    _pic2_offset = slave_offset;
+    g_pic1_offset = master_offset;
+    g_pic2_offset = slave_offset;
 
     out_byte(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
     IOWAIT();
@@ -77,10 +77,10 @@ void pic_send_eoi(uint8_t irq)
 
 uint8_t pic_get_pic1_offset(void)
 {
-    return _pic1_offset;
+    return g_pic1_offset;
 }
 
 uint8_t pic_get_pic2_offset(void)
 {
-    return _pic2_offset;
+    return g_pic2_offset;
 }

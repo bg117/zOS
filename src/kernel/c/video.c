@@ -78,7 +78,7 @@ static const uint8_t VGA_LENGTH = 25;
 
 static const int TAB_WIDTH = 8;
 
-static uint8_t *const VGA_TXT_BUFFER = (uint8_t *const)(0x000B8000);
+static uint8_t *const VGA_TXT_BUFFER = (uint8_t *const)0x000B8000;
 static uint16_t       g_pos_x        = 0;
 static uint16_t       g_pos_y        = 0;
 

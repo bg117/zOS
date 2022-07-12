@@ -34,7 +34,7 @@ PageTableEntry page_create_page_table_entry(uint8_t access_byte, PhysicalAddress
 
 void page_load_page_directory(PageDirectoryEntry *pgd)
 {
-    asm volatile("movl %0, %%cr3" : : "a"((uint32_t)(pgd)));
+    asm volatile("movl %0, %%cr3" : : "a"((PhysicalAddress)pgd));
 }
 
 void page_enable_paging(void)

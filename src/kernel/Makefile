@@ -17,20 +17,26 @@ LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
 CFLAGS       := -Wall \
 				-Wextra \
-				-O0 \
-				-g \
 				-fno-stack-check \
 				-ffreestanding \
 				-nostdlib
+
+ifeq (${DEBUG},on)
+${info Debug build}
+CFLAGS += -O0 \
+		  -g
+else
+CFLAGS += -Os
+endif
 
 CPPFLAGS     := -I${CURDIR}/c/include \
 				-I${CURDIR}/c/include/syslvl \
 				-Wno-unknown-pragmas \
 				-MMD
 
-LDFLAGS      := -Map=${OBJ_DIR}/${EXEC}.map \
-				-T${CURDIR}/linker.ld \
-				-L${LIBGCCDIR} \
+LDFLAGS      := -Map ${OBJ_DIR}/${EXEC}.map \
+				-T ${CURDIR}/linker.ld \
+				-L ${LIBGCCDIR} \
 				-nostdlib
 
 OBJCOPYFLAGS := -O binary \

@@ -39,7 +39,7 @@ static uint64_t g_cycles;
 
 static int g_is_init;
 
-static void pit_handler(struct interrupt_info *);
+static void pit_handler(InterruptInfo *);
 
 void timer_init(void)
 {
@@ -88,10 +88,10 @@ void timer_wait(int ms)
 
     uint64_t ticks_final = g_timer_ticks + ms / 1000 * g_cycles;
     while (g_timer_ticks < ticks_final)
-        ;
+        asm volatile("" : "+g"(g_timer_ticks)::);
 }
 
-static void pit_handler(struct interrupt_info *info)
+void pit_handler(InterruptInfo *info)
 {
     ++g_timer_ticks;
 

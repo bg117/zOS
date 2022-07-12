@@ -95,8 +95,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     KSLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
-    screen_print_string("zOS version 0.01\nTesting delay (2s)...\n");
-    timer_wait(2000);
+    screen_print_string("zOS version 0.01\n");
 
     while (1)
     {

@@ -35,7 +35,7 @@ GdtEntry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint
 void gdt_descriptor_init(GdtDescriptor *desc, GdtEntry *gdt, size_t entry_count)
 {
     desc->offset  = (uint16_t)(sizeof *gdt * entry_count - 1);
-    desc->address = (uint32_t)(gdt);
+    desc->address = (uint32_t)gdt;
 }
 
 void gdt_descriptor_load(GdtDescriptor *desc, uint16_t code_offset, uint16_t data_offset)

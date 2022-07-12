@@ -42,7 +42,7 @@ static uint32_t get_first_free_idx(uint8_t *bit);
 void vmm_init(void)
 {
     g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
-    KSLOG("initial page directory located at %p\n", (void *)(g_pgdir));
+    KSLOG("initial page directory located at %p\n", (void *)g_pgdir);
 
     g_bitmap = (uint64_t *)(&__pmm_bitmap_start_virt);
 
@@ -61,7 +61,7 @@ void vmm_init(void)
         SETBITVAR(g_bitmap[idx], 1 << bit);
     }
 
-    page_load_page_directory((PageDirectoryEntry *)((VirtualAddress)(g_pgdir)-VIRTUAL_BASE));
+    page_load_page_directory((PageDirectoryEntry *)((VirtualAddress)g_pgdir - VIRTUAL_BASE));
 }
 
 void *vmm_allocate_page()
@@ -70,34 +70,40 @@ void *vmm_allocate_page()
     uint8_t  bit;
     uint32_t idx = get_first_free_idx(&bit);
 
+    if ((PhysicalAddress)page == MAGIC_NUMBER)
+    {
+        KSLOG("error: no more physical pages left\n");
+        return (void *)MAGIC_NUMBER;
+    }
+
     if (idx == UINT32_MAX)
     {
         KSLOG("error: out of memory\n");
-        return (void *)(MAGIC_NUMBER);
+        return (void *)MAGIC_NUMBER;
     }
 
     SETBITVAR(g_bitmap[idx], 1 << bit);
 
     VirtualAddress addr = (idx * 64 + bit) * PAGE_SIZE;
-    vmm_map_page((PhysicalAddress)(page), addr);
+    vmm_map_page((PhysicalAddress)page, addr);
 
     KSLOG("returning page 0x%x\n", addr);
 
-    return (void *)(addr);
+    return (void *)addr;
 }
 
 void vmm_free_page(void *page)
 {
-    if (((VirtualAddress)(page)&0xFFF))
+    if (((VirtualAddress)page & 0xFFF))
     {
         KSLOG("error: page %p not page-aligned\n", page);
         return;
     }
 
-    PhysicalAddress phys = vmm_get_phys((VirtualAddress)(page));
-    vmm_unmap_page((VirtualAddress)(page));
+    PhysicalAddress phys = vmm_get_phys((VirtualAddress)page);
+    vmm_unmap_page((VirtualAddress)page);
 
-    pmm_free_page((void *)(phys));
+    pmm_free_page((void *)phys);
 
     PhysicalAddress base_addr = g_base;
     for (uint32_t i = 0; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
@@ -105,7 +111,7 @@ void vmm_free_page(void *page)
         uint32_t idx = i / 64;
         uint8_t  bit = i % 64;
 
-        if (base_addr == (PhysicalAddress)(page))
+        if (base_addr == (PhysicalAddress)page)
         {
             if (TESTBIT(g_bitmap[idx], 1 << bit))
                 UNSETBITVAR(g_bitmap[idx], 1 << bit);
@@ -132,7 +138,7 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 
         void *page_tab   = pmm_allocate_page();
         g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
-                                                            (PhysicalAddress)(page_tab));
+                                                            (PhysicalAddress)page_tab);
     }
 
     PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
@@ -170,7 +176,7 @@ void vmm_unmap_page(VirtualAddress virt)
     }
 
     // flush the TLB entry, of course
-    page_invalidate_page((void *)(virt));
+    page_invalidate_page((void *)virt);
 }
 
 PhysicalAddress vmm_get_phys(VirtualAddress virt)

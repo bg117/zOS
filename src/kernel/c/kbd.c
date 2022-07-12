@@ -103,13 +103,13 @@ void kbd_deinit(void)
 
 ReadKey kbd_get_char(void)
 {
-    NOT_INIT_CHECK(return );
+    ReadKey key;
+    NOT_INIT_CHECK(return key);
 
     g_got_key = 0;
     while (!g_got_key)
         ;
 
-    ReadKey key;
     key.c         = g_last_char;
     key.modifiers = g_key_flags;
     return key;

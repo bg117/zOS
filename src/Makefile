@@ -33,6 +33,8 @@ ${FULLEXEC}: always
 
 	dd if=${BIN_DIR}/ldr.z of=$@ conv=notrunc
 
-	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::
+	mmd -i ${FULLEXEC} ::SYS
 
-	mcopy -i ${FULLEXEC} ${BIN_DIR}/modules/ ::
+	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::SYS/
+
+	mcopy -i ${FULLEXEC} ${BIN_DIR}/modules/ ::SYS/

@@ -12,12 +12,12 @@ static const char POSSIBLE_CHARS[] = "zyxwvutsrqponmlkjihgfedcba9876543210123456
 
 char *int_to_string(char *buffer, int i, int base)
 {
-    return long_to_string(buffer, (long)(i), base);
+    return long_to_string(buffer, (long)i, base);
 }
 
 char *long_to_string(char *buffer, long l, int base)
 {
-    return long_long_to_string(buffer, (long long)(l), base);
+    return long_long_to_string(buffer, (long long)l, base);
 }
 
 char *long_long_to_string(char *buffer, long long l, int base)
@@ -67,12 +67,12 @@ char *long_long_to_string(char *buffer, long long l, int base)
 
 char *uint_to_string(char *buffer, unsigned int i, int base)
 {
-    return ulong_to_string(buffer, (unsigned long)(i), base);
+    return ulong_to_string(buffer, (unsigned long)i, base);
 }
 
 char *ulong_to_string(char *buffer, unsigned long l, int base)
 {
-    return ulong_long_to_string(buffer, (unsigned long long)(l), base);
+    return ulong_long_to_string(buffer, (unsigned long long)l, base);
 }
 
 char *ulong_long_to_string(char *buffer, unsigned long long l, int base)
