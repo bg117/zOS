@@ -3,6 +3,15 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
+# To use this makefile, set the MOD variable to point to the
+# directory of the module you want to build. This is similar to
+# the process of building Linux modules.
+#
+# Then, call `make build-module MOD=directory'.
+#
+# There is also an alternate target, `build-all' which calls
+# `build-module' on each directory inside this directory, `modules'.
+
 export MODULES_BIN_DIR=${BIN_DIR}/modules
 export MODULES_OBJ_DIR=${OBJ_DIR}/modules
 
@@ -43,11 +52,6 @@ build-all:
 	done
 
 build-module: check-dirs ${FULLEXEC}
-# MOD must not be empty
-	echo ${RPATH}
-	echo ${EXEC}
-	echo ${FULLEXEC}
-	echo ${SRCS}
 
 check-dirs:
 	-mkdir -p ${MODULES_BIN_DIR}
