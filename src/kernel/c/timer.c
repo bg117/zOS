@@ -93,6 +93,8 @@ void timer_wait(int ms)
 
 void pit_handler(InterruptInfo *info)
 {
+    (void)info;
+
     ++g_timer_ticks;
 
     if (g_timer_ticks % g_cycles == 0)

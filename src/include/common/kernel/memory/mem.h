@@ -26,6 +26,36 @@ extern "C" {
 void *mem_fill(void *ptr, uint8_t fill, size_t len);
 
 /**
+ * @brief Fills a block of memory with a byte.
+ *
+ * @param ptr The block of memory to fill.
+ * @param fill The byte to fill the block with.
+ * @param len The length/size of the block of memory.
+ * @return The block of memory.
+ */
+void *mem_fill8(void *ptr, uint8_t fill, size_t len);
+
+/**
+ * @brief Fills a block of memory with a word (16 bits, 2 bytes).
+ *
+ * @param ptr The block of memory to fill.
+ * @param fill The byte to fill the block with.
+ * @param len The length/size of the block of memory. Must be a multiple of 2.
+ * @return The block of memory.
+ */
+void *mem_fill16(void *ptr, uint16_t fill, uint32_t len);
+
+/**
+ * @brief Fills a block of memory with a doubleword (32 bits, 4 bytes).
+ *
+ * @param ptr The block of memory to fill.
+ * @param fill The byte to fill the block with.
+ * @param len The length/size of the block of memory. Must be a multiple of 4.
+ * @return The block of memory.
+ */
+void *mem_fill32(void *ptr, uint32_t fill, uint32_t len);
+
+/**
  * @brief Copies a block of memory to another location.
  *
  * @param dest The destination location.
@@ -33,7 +63,7 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len);
  * @param len The length of the source block to copy.
  * @return The destination block.
  */
-void *mem_copy(void *restrict dest, const void *restrict src, size_t len);
+void *mem_copy(void *restrict dest, const void *restrict src, uint32_t len);
 
 /**
  * @brief Copies a block of memory to another location.
@@ -46,7 +76,7 @@ void *mem_copy(void *restrict dest, const void *restrict src, size_t len);
  * @param len The length of the source block to copy.
  * @return The destination block.
  */
-void *mem_copy_with_overlap(void *dest, const void *src, size_t len);
+void *mem_copy_with_overlap(void *dest, const void *src, uint32_t len);
 
 #ifdef __cplusplus
 }

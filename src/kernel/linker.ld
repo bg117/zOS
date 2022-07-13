@@ -1,47 +1,65 @@
 ENTRY(_start)
-. = 0x100000;
+
+PHYS = 0x00100000;
+VIRT = 0xC0000000;
 
 SECTIONS
 {
-    __start = .;
-    .ld ALIGN(4K) : { *(.ld) }
+    . = PHYS;
 
-    . += 0xC0000000; /* higher half */
+    _sprog = .;
 
-    .text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
+    .ld ALIGN(4K) :
     {
-        __text_start = . - 0xC0000000;
+        _sld = .;
+        *(.ld)
+        eld = .;
+    }
+
+    . += VIRT; /* higher half */
+
+    .text ALIGN(4K) : AT(ADDR(.text) - VIRT)
+    {
+        _stext = .;
         *(.text)
+        _etext = .;
     }
 
-    .rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xC0000000)
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - VIRT)
     {
-        __rodata_start = . - 0xC0000000;
+        _srodata = .;
         *(.rodata)
+        _erodata = .;
     }
 
-    .data ALIGN(4K) : AT(ADDR(.data) - 0xC0000000)
+    .data ALIGN(4K) : AT(ADDR(.data) - VIRT)
     {
-        __data_start = . - 0xC0000000;
+        _sdata = .;
         *(.data)
+        _edata = .;
     }
 
-    __bss_start = . - 0xC0000000;
-    .bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000)
+    .bss ALIGN(4K) : AT(ADDR(.bss) - VIRT)
     {
-        __text_start = . - 0xC0000000;
+        _sbss = .;
         *(.bss)
+        _ebss = .;
     }
 
-    . = ALIGN(4K);
-
-    __pmm_bitmap_start = . - 0xC0000000;
-    __pmm_bitmap_start_virt = .;
+    _spmm_bitmap = .;
     . += 128K; /* the max size for a bitmap (4G) */
+    _epmm_bitmap = .;
 
-    __vmm_bitmap_start = . - 0xC0000000; /* will probably never be used; just for consistency */
-    __vmm_bitmap_start_virt = .;
-    . += 96K; /* 0xC0000000 / PAGE_SIZE / 8 */
+    _svmm_bitmap = .;
+    . += 96K; /* VIRT / PAGE_SIZE / 8 */
+    _evmm_bitmap = .;
 
-    __end = . - 0xC0000000;
+    .symtab ALIGN(4K) : AT(ADDR(.symtab) - 0xC000)
+    {
+        _ssymtab = .;
+        *(.symtab)
+        _esymtab = .;
+    }
+
+    _eprog = . - VIRT;
 }

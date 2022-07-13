@@ -24,7 +24,7 @@
 #define MAGIC_NUMBER 0xDEADC0DE
 
 /* defined in the linker script */
-extern uint8_t __start, __pmm_bitmap_start, __pmm_bitmap_start_virt, __end;
+extern uint8_t _sprog, _spmm_bitmap, _eprog;
 
 static uint64_t *g_bitmap;
 
@@ -32,11 +32,11 @@ static uint64_t *g_bitmap;
 static uint64_t        g_bitmap_size;
 static PhysicalAddress g_base;
 
-static uint64_t get_first_free_idx(uint8_t *bit);
+static uint64_t get_first_free_idx(uint64_t *bit);
 
 void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
-    g_bitmap = (uint64_t *)(&__pmm_bitmap_start_virt);
+    g_bitmap = (uint64_t *)(&_spmm_bitmap);
 
     g_base        = 0;
     g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
@@ -76,7 +76,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         for (uint64_t j = base_lower, k = 0; j < g_bitmap_size && k < length; j++, k++)
         {
             uint64_t idx = j / 64;
-            uint8_t  bit = j % 64;
+            uint64_t bit = j % 64;
 
             SETBITVAR(g_bitmap[idx], 1 << bit);
         }
@@ -85,12 +85,12 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
     KSLOG("marking kernel as used\n");
 
     // mark bitmap and kernel as used
-    uint32_t reserved = (PhysicalAddress)(&__end) - (PhysicalAddress)(&__start);
+    uint32_t reserved = (PhysicalAddress)(&_eprog) - (PhysicalAddress)(&_sprog);
     reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
-    for (uint32_t i = (PhysicalAddress)(&__start) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
+    for (uint32_t i = (PhysicalAddress)(&_sprog) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
     {
         uint64_t idx = i / 64;
-        uint8_t  bit = i % 64;
+        uint64_t bit = i % 64;
 
         SETBITVAR(g_bitmap[idx], 1 << bit);
     }
@@ -101,7 +101,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 
 void *pmm_allocate_page(void)
 {
-    uint8_t  bit;
+    uint64_t bit;
     uint64_t idx = get_first_free_idx(&bit);
 
     if (idx == UINT64_MAX)
@@ -114,7 +114,7 @@ void *pmm_allocate_page(void)
     // allocation ;)
     SETBITVAR(g_bitmap[idx], 1 << bit);
 
-    void *offset = (void *)((idx * 64 + bit) * PAGE_SIZE);
+    void *offset = (void *)(PhysicalAddress)((idx * 64 + bit) * PAGE_SIZE);
     KSLOG("returning page %p\n", offset);
     return offset;
 }
@@ -125,11 +125,11 @@ void pmm_free_page(void *page)
     for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
         uint32_t idx = i / 64;
-        uint8_t  bit = i % 64;
+        uint64_t bit = i % 64;
 
         if (base_addr == (PhysicalAddress)page)
         {
-            if (TESTBIT(g_bitmap[idx], 1 << bit))
+            if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << bit)))
                 UNSETBITVAR(g_bitmap[idx], 1 << bit);
             else
                 KSLOG("warning: page %p already free\n", page);
@@ -147,11 +147,11 @@ enum page_status pmm_get_page_status(void *page)
     for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
         uint32_t idx = i / 64;
-        uint8_t  bit = i % 64;
+        uint64_t bit = i % 64;
 
         if (base_addr == (PhysicalAddress)page)
         {
-            if (TESTBIT(g_bitmap[idx], 1 << bit))
+            if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << bit)))
                 return PS_USED;
             else
                 return PS_FREE;
@@ -167,7 +167,7 @@ uint64_t pmm_get_bitmap_length(void)
     return ALIGN(g_bitmap_size, 64) / 64;
 }
 
-uint64_t get_first_free_idx(uint8_t *bit)
+uint64_t get_first_free_idx(uint64_t *bit)
 {
     *bit = 0;
 
@@ -182,7 +182,7 @@ uint64_t get_first_free_idx(uint8_t *bit)
             continue;
         }
 
-        if (!TESTBIT(g_bitmap[idx], 1 << *bit))
+        if (!TESTBIT(g_bitmap[idx], (uint64_t)(1 << *bit)))
             return idx;
     }
 

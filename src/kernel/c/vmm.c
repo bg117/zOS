@@ -26,37 +26,37 @@
 #define VADDR_GET_PAGE_FRM_OFF(vaddr) ((vaddr)&0xFFF)
 
 /* defined in the linker script */
-extern uint8_t __start, __pmm_bitmap_start, __pmm_bitmap_start_virt, __end;
+extern uint8_t _sprog, _svmm_bitmap, _eprog;
 
-static uint64_t *g_bitmap;
+static uint32_t *g_bitmap;
 
 // size of the bitmap in bits
 static PhysicalAddress g_base;
 
-extern uint8_t SYS_PGDIR;
+extern uint32_t SYS_PGDIR;
 
 static PageDirectoryEntry *g_pgdir;
 
-static uint32_t get_first_free_idx(uint8_t *bit);
+static uint32_t get_first_free_idx(uint32_t *bit);
 
 void vmm_init(void)
 {
     g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
     KSLOG("initial page directory located at %p\n", (void *)g_pgdir);
 
-    g_bitmap = (uint64_t *)(&__pmm_bitmap_start_virt);
+    g_bitmap = (uint32_t *)(&_svmm_bitmap);
 
     g_base = 0;
 
     KSLOG("marking kernel as used\n");
 
     // mark bitmap and kernel as used
-    uint32_t reserved = (PhysicalAddress)(&__end) - (PhysicalAddress)(&__start);
+    uint32_t reserved = (PhysicalAddress)(&_eprog) - (PhysicalAddress)(&_sprog);
     reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
-    for (uint32_t i = ((PhysicalAddress)(&__start) + VIRTUAL_BASE) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
+    for (uint32_t i = ((PhysicalAddress)(&_sprog) + VIRTUAL_BASE) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
     {
         uint32_t idx = i / 64;
-        uint8_t  bit = i % 64;
+        uint32_t bit = i % 64;
 
         SETBITVAR(g_bitmap[idx], 1 << bit);
     }
@@ -67,7 +67,7 @@ void vmm_init(void)
 void *vmm_allocate_page()
 {
     void    *page = pmm_allocate_page();
-    uint8_t  bit;
+    uint32_t bit;
     uint32_t idx = get_first_free_idx(&bit);
 
     if ((PhysicalAddress)page == MAGIC_NUMBER)
@@ -109,11 +109,11 @@ void vmm_free_page(void *page)
     for (uint32_t i = 0; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
     {
         uint32_t idx = i / 64;
-        uint8_t  bit = i % 64;
+        uint32_t bit = i % 64;
 
         if (base_addr == (PhysicalAddress)page)
         {
-            if (TESTBIT(g_bitmap[idx], 1 << bit))
+            if (TESTBIT(g_bitmap[idx], (uint32_t)(1 << bit)))
                 UNSETBITVAR(g_bitmap[idx], 1 << bit);
             else
                 KSLOG("warning: page %p already free\n", page);
@@ -152,7 +152,7 @@ void vmm_unmap_page(VirtualAddress virt)
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
     PageTableEntry *page_tab      = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
-    page_tab[tab_idx]             = page_create_page_table_entry(0xDE, 0xDC0DE);
+    page_tab[tab_idx]             = page_create_page_table_entry(0xDE, 0xDC0DE000 /* shifted 12 bits to the right */);
     page_tab[tab_idx].access_byte = 0xA;
 
     int is_empty = 1;
@@ -190,22 +190,22 @@ PhysicalAddress vmm_get_phys(VirtualAddress virt)
     return phys;
 }
 
-uint32_t get_first_free_idx(uint8_t *bit)
+uint32_t get_first_free_idx(uint32_t *bit)
 {
     *bit = 0;
 
     for (uint32_t i = 0, base_addr = g_base; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
     {
-        uint32_t idx = i / 64;
-        *bit         = i % 64;
+        uint32_t idx = i / 32;
+        *bit         = i % 32;
 
-        if (g_bitmap[idx] == 0xFFFFFFFFFFFFFFFF)
+        if (g_bitmap[idx] == 0xFFFFFFFF)
         {
-            i += 63;
+            i += 31;
             continue;
         }
 
-        if (!TESTBIT(g_bitmap[idx], 1 << *bit))
+        if (!TESTBIT(g_bitmap[idx], (uint32_t)(1 << *bit)))
             return idx;
     }
 

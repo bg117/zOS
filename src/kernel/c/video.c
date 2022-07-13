@@ -32,7 +32,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             screen_print_char('0');                                                                                    \
     }                                                                                                                  \
     screen_print_format_string("%s", buf)
@@ -49,7 +49,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             screen_print_char('0');                                                                                    \
     }                                                                                                                  \
     screen_print_format_string("%s", buf)
@@ -66,7 +66,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             screen_print_char('0');                                                                                    \
     }                                                                                                                  \
     screen_print_format_string("%s", buf)
@@ -127,9 +127,9 @@ void screen_print_format_string(const char *fmt, ...)
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
-    int zero_pad  = 0;
-    int space_pad = 0;
-    int pad_len   = 0;
+    int    zero_pad  = 0;
+    int    space_pad = 0;
+    size_t pad_len   = 0;
 
     char num_buf[256];
 
@@ -275,15 +275,7 @@ void screen_clear(void)
     g_pos_x = 0;
     g_pos_y = 0;
 
-    for (int i = 0; i < VGA_LENGTH; i++)
-    {
-        for (int j = 0; j < VGA_WIDTH * 2; j += 2)
-        {
-            VGA_TXT_BUFFER[i * VGA_WIDTH + j]     = '\0';
-            VGA_TXT_BUFFER[i * VGA_WIDTH + j + 1] = g_char_color;
-        }
-    }
-
+    mem_fill16(VGA_TXT_BUFFER, 0 /* char */ | g_char_color << 8, VGA_LENGTH * VGA_WIDTH * 2);
     screen_move_cursor(g_pos_x, g_pos_y);
 }
 
@@ -292,19 +284,14 @@ void screen_clear_line(int y)
     if (y == g_pos_y)
         g_pos_x = 0;
 
-    for (int i = 0; i < VGA_WIDTH * 2; i += 2)
-    {
-        VGA_TXT_BUFFER[y * VGA_WIDTH + i]     = '\0';
-        VGA_TXT_BUFFER[y * VGA_WIDTH + i + 1] = g_char_color;
-    }
-
+    mem_fill16(VGA_TXT_BUFFER + y * VGA_WIDTH * 2, 0 | g_char_color << 8, VGA_WIDTH * 2);
     screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_scroll(void)
 {
     mem_copy_with_overlap(VGA_TXT_BUFFER, VGA_TXT_BUFFER + VGA_WIDTH * 2, VGA_WIDTH * VGA_LENGTH * 2);
-    mem_fill(VGA_TXT_BUFFER + VGA_WIDTH * (VGA_LENGTH - 1) * 2, 0, VGA_WIDTH);
+    screen_clear_line(24);
 
     if (g_pos_y > 0)
         --g_pos_y;

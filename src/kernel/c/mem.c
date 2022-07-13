@@ -11,18 +11,23 @@
 
 #include <misc/type_macros.h>
 
-void *mem_fill(void *ptr, uint8_t fill, size_t len)
+void *mem_fill(void *ptr, uint8_t fill, uint32_t len)
 {
-    size_t i = 0;
-    size_t x = len / sizeof len;
+    return mem_fill8(ptr, fill, len);
+}
+
+void *mem_fill8(void *ptr, uint8_t fill, uint32_t len)
+{
+    uint32_t i = 0;
+    uint32_t x = len / 4;
 
     uint32_t *al_ptr = ptr;
-    uint32_t  u_fill = (((fill << 8) | (fill)) << 16) | ((fill << 8) | (fill));
+    uint32_t  u_fill = fill << 8 | fill << 16 | fill << 8 | fill;
 
     for (; i < x; i++)
         al_ptr[i] = u_fill;
 
-    i *= sizeof len;
+    i *= 4;
 
     uint8_t *sec_ptr = (uint8_t *)al_ptr;
 
@@ -32,10 +37,50 @@ void *mem_fill(void *ptr, uint8_t fill, size_t len)
     return ptr;
 }
 
-void *mem_copy(void *restrict dest, const void *restrict src, size_t len)
+void *mem_fill16(void *ptr, uint16_t fill, uint32_t len)
 {
-    size_t i = 0;
-    size_t x = len / sizeof len;
+    if (len % 2 != 0)
+        return ptr; // not a multiple of 2
+
+    uint32_t i = 0;
+    uint32_t x = len / 4;
+
+    uint32_t *al_ptr = ptr;
+    uint32_t  u_fill = fill << 16 | fill;
+
+    for (; i < x; i++)
+        al_ptr[i] = u_fill;
+
+    i *= 4;
+
+    uint16_t *sec_ptr = (uint16_t *)al_ptr;
+
+    for (; i < (len - i) / 2; i++)
+        sec_ptr[i] = fill;
+
+    return ptr;
+}
+
+void *mem_fill32(void *ptr, uint32_t fill, uint32_t len)
+{
+    if (len % 4 != 0)
+        return ptr; // not a multiple of 4
+
+    uint32_t i = 0;
+    uint32_t x = len / 4;
+
+    uint32_t *al_ptr = ptr;
+
+    for (; i < x; i++)
+        al_ptr[i] = fill;
+
+    return ptr;
+}
+
+void *mem_copy(void *restrict dest, const void *restrict src, uint32_t len)
+{
+    uint32_t i = 0;
+    uint32_t x = len / 4;
 
     uint32_t       *al_dest = dest;
     const uint32_t *al_src  = src;
@@ -43,7 +88,7 @@ void *mem_copy(void *restrict dest, const void *restrict src, size_t len)
     for (; i < x; i++)
         al_dest[i] = al_src[i];
 
-    i *= sizeof len;
+    i *= 4;
 
     uint8_t       *sec_dest = (uint8_t *)al_dest;
     const uint8_t *sec_src  = (uint8_t *)al_src;
@@ -54,10 +99,10 @@ void *mem_copy(void *restrict dest, const void *restrict src, size_t len)
     return dest;
 }
 
-void *mem_copy_with_overlap(void *dest, const void *src, size_t len)
+void *mem_copy_with_overlap(void *dest, const void *src, uint32_t len)
 {
-    uintptr_t isrc  = (uintptr_t)src;
-    uintptr_t idest = (uintptr_t)dest;
+    uint32_t isrc  = (uint32_t)src;
+    uint32_t idest = (uint32_t)dest;
 
     if (isrc > idest)
         return mem_copy(dest, src, len);
@@ -65,15 +110,22 @@ void *mem_copy_with_overlap(void *dest, const void *src, size_t len)
     if (isrc == idest)
         return dest;
 
-    // do memcopy-the slow way
-    const uint8_t *psrc  = src;
-    uint8_t       *pdest = dest;
+    // optimized a bit
+    uint32_t x = len / 4;
+    uint32_t i = x;
+    uint32_t j = len;
 
-    while (len > 0)
-    {
-        pdest[len] = psrc[len];
-        --len;
-    }
+    uint32_t       *al_dest = dest + len;
+    const uint32_t *al_src  = src + len;
+
+    for (; i > 0; i--, j -= 4)
+        al_dest[i] = al_src[i];
+
+    uint8_t       *sec_dest = (uint8_t *)al_dest;
+    const uint8_t *sec_src  = (uint8_t *)al_src;
+
+    for (; j < 0; j--)
+        sec_dest[i] = sec_src[i];
 
     return dest;
 }

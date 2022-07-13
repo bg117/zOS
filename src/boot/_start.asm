@@ -192,7 +192,7 @@ real:   ; get memory map
         mov     di, BUFFER
         xor     si, si
 
-        mov     es:[di + 20], dword 1
+        mov     [es:di + 20], dword 1
 
         xor     ebx, ebx
         mov     edx, 0x534D4150
@@ -209,7 +209,7 @@ real:   ; get memory map
         jmp     .mm_intermediate
 
         .mm_lp: mov     eax, 0xE820
-                mov     es:[di + 20], dword 1
+                mov     [es:di + 20], dword 1
                 mov     ecx, 24
                 int     0x15
 
@@ -219,11 +219,11 @@ real:   ; get memory map
         .mm_intermediate:   jcxz    .mm_skip_entry
                             cmp     cl, 20
                             jbe     .mm_notext
-                            test    byte es:[di + 20], 1
+                            test    byte [es:di + 20], 1
                             je      .mm_skip_entry
 
-        .mm_notext: mov     ecx, es:[di + 8]
-                    or      ecx, es:[di + 12]
+        .mm_notext: mov     ecx, [es:di + 8]
+                    or      ecx, [es:di + 12]
                     jz      .mm_skip_entry
                     inc     si
                     add     di, 24
@@ -268,7 +268,7 @@ real:   ; get memory map
         sub     si, 0x570 ; I don't know if this is actually a constant value but
                           ; it doesn't work without this
         mov     cx, 256 * 16 / 4
-        mov     di, es:[variables.font_buffer]
+        mov     di, [es:variables.font_buffer]
         cld
         rep     movsd
 
@@ -544,7 +544,7 @@ load_directory_entry:   pusha
                                     mov     cx, 2
                                     mul     cx
                                     add     si, ax
-                                    mov     ax, ds:[si]
+                                    mov     ax, [ds:si]
                                     pop     si
 
                                     mov     cx, [variables.cluster_size_bytes]

@@ -29,7 +29,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             serial_write_char('0');                                                                                    \
     }                                                                                                                  \
     serial_write_format_string("%s", buf)
@@ -46,7 +46,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             serial_write_char('0');                                                                                    \
     }                                                                                                                  \
     serial_write_format_string("%s", buf)
@@ -63,7 +63,7 @@
                                                                                                                        \
     if (zero_pad)                                                                                                      \
     {                                                                                                                  \
-        for (int i = 0; i < pad_len - str_get_length(buf); i++)                                                        \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
             serial_write_char('0');                                                                                    \
     }                                                                                                                  \
     serial_write_format_string("%s", buf)
@@ -105,9 +105,9 @@ void serial_write_format_string(const char *__restrict__ fmt, ...)
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
-    int zero_pad  = 0;
-    int space_pad = 0;
-    int pad_len   = 0;
+    int    zero_pad  = 0;
+    int    space_pad = 0;
+    size_t pad_len   = 0;
 
     char num_buf[256];
 

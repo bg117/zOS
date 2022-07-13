@@ -24,11 +24,13 @@ section .ld
 
 global _start
 global SYS_PGDIR
-extern __bss_start
-extern __start
-extern __data_start
-extern __end
+
+extern _sbss, _ebss
+extern _sprog, _eprog
+extern _sdata
+
 extern kmain
+
 extern mem_copy
 extern mem_fill
 
@@ -37,8 +39,8 @@ _start: ; initial setup (same as in bootloader)
         push    ecx
         push    edi
 
-        mov     ecx, __end
-        mov     edi, __bss_start
+        mov     ecx, KERNEL_SYM_PHYS(_ebss)
+        mov     edi, KERNEL_SYM_PHYS(_sbss)
 
         sub     ecx, edi        ; subtract EDI from ECX (giving the total size of the bss section)
 
@@ -84,13 +86,13 @@ _start: ; initial setup (same as in bootloader)
         mov     esi, 0
         mov     ecx, 1023
 
-        .1:     cmp     esi, __start
+        .1:     cmp     esi, _sprog
                 jb      .2
 
-                cmp     esi, __end
+                cmp     esi, _eprog
                 jae     .3
 
-                cmp     esi, __data_start ; encompasses .text and .rodata
+                cmp     esi, KERNEL_SYM_PHYS(_sdata) ; encompasses .text and .rodata
                 jb      .readonly
 
                 mov     edx, esi
@@ -137,7 +139,7 @@ section .text
                         add     ebx, edx
 
                         .identity_map_vga:  or      eax, 0x03
-                                            mov     es:[ebx], eax
+                                            mov     [ebx], eax
                                             cmp     edx, ecx
                                             jae     .map_end
 

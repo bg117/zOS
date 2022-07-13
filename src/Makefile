@@ -6,6 +6,8 @@
 EXEC     := zos-dev-build.img
 FULLEXEC := ${BUILD_DIR}/${EXEC}
 
+export SRC_DIR=${CURDIR}
+
 .PHONY: all build boot kernel modules clean always
 
 all: build

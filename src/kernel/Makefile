@@ -15,30 +15,28 @@ OBJCOPY := i686-elf-objcopy
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
-CFLAGS       := -Wall \
-				-Wextra \
-				-fno-stack-check \
-				-ffreestanding \
-				-nostdlib \
-				-O0 \
-				-g
+CFLAGS := -Wall \
+		  -Wextra \
+		  -fno-stack-check \
+		  -ffreestanding \
+		  -nostdlib \
+		  -O0 \
+		  -g
 
-CPPFLAGS     := -I${CURDIR}/c/include \
-				-I${CURDIR}/c/include/syslvl \
-				-Wno-unknown-pragmas \
-				-MMD
+CPPFLAGS := -I ${SRC_DIR}/include/common/kernel \
+			-I ${SRC_DIR}/include/common/modules \
+			-MMD
 
-LDFLAGS      := -Map ${OBJ_DIR}/${EXEC}.map \
-				-T ${CURDIR}/linker.ld \
-				-L ${LIBGCCDIR} \
-				-nostdlib
+LDFLAGS := -Map ${OBJ_DIR}/${EXEC}.map \
+		   -T ${CURDIR}/linker.ld \
+		   -L ${LIBGCCDIR} \
+		   -nostdlib
 
 OBJCOPYFLAGS := -O binary \
 				--strip-unneeded
 
 SRCS_ASM := ${wildcard ${CURDIR}/asm/*.asm}
 SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
-SRCS_H   := ${wildcard ${CURDIR}/c/include/**/*.h}
 
 OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.o}}
 OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.o}}
