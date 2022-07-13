@@ -21,7 +21,7 @@ kernel:
 	${MAKE} -C ${CURDIR}/kernel
 
 modules:
-	${MAKE} -C ${CURDIR}/modules
+	${MAKE} -C ${CURDIR}/modules ${MODULES_TARGET}
 
 clean:
 	${MAKE} -C ${CURDIR}/boot clean
