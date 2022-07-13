@@ -3,16 +3,14 @@
 ; This software is released under the MIT License.
 ; https://opensource.org/licenses/MIT
 
-%ifndef quuxPRINTINCxuuq
-%define quuxPRINTINCxuuq
-
-vgautils:
+%ifndef quuxVGAINCxuuq
+%define quuxVGAINCxuuq
 
 ; --
 ; \brief            Prints the string specified.
 ; \param[in]    SI  The string to print.
 ; --
-.print: push    si
+print:  push    si
         push    ax
 
         .p_loop:    mov     ah, 0x0E
@@ -33,7 +31,7 @@ vgautils:
 ; --
 ; \brief    Clears the console.
 ; --
-.clear: mov     ax, 0x0003  ; AH=0x00, AL=0x03
+clear:  mov     ax, 0x0003  ; AH=0x00, AL=0x03
         int     0x10
         ret
 

@@ -6,10 +6,10 @@
 ASM      := nasm
 ASMFLAGS := -f bin
 
-SRCS := ${CURDIR}/_start.asm
+SRCS := ${CURDIR}/boot.asm
 INCS := ${wildcard ${CURDIR}/*.inc}
 
-EXEC     := ldr.z
+EXEC     := osldr
 FULLEXEC := ${BIN_DIR}/${EXEC}
 
 .PHONY: all build clean

@@ -3,10 +3,8 @@
 ; This software is released under the MIT License.
 ; https://opensource.org/licenses/MIT
 
-%ifndef quuxCHSINCxuuq
-%define quuxCHSINCxuuq
-
-convutils:
+%ifndef quuxCONVINCxuuq
+%define quuxCONVINCxuuq
 
 ; --
 ; \brief            Converts LBA to CHS format.
@@ -17,7 +15,7 @@ convutils:
 ; \param[out]   DH  Head index.
 ; \remarks          This assumes that the symbol bios_parameter_block is defined.
 ; --
-.lba_to_chs:    ; save clobbered registers
+lba_to_chs:     ; save clobbered registers
                 push    ax
                 push    dx      ; save DL
 

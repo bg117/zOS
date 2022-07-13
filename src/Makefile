@@ -33,7 +33,7 @@ ${FULLEXEC}: always
 	dd if=/dev/zero of=$@ bs=66060288 count=1
 	mformat -t 1024 -h 2 -s 63 -R 4 -i $@ ::
 
-	dd if=${BIN_DIR}/ldr.z of=$@ conv=notrunc
+	dd if=${BIN_DIR}/osldr of=$@ conv=notrunc
 
 	mmd -i ${FULLEXEC} ::SYS
 
