@@ -25,6 +25,10 @@ typedef struct memory_map_entry MemoryMapEntry;
  */
 void kernel_init(MemoryMapEntry *mmap, size_t mmap_length);
 
+/**
+ * @brief Deinitializes the kernel, modules, and the associated
+ *        hardware.
+ */
 void kernel_deinit(void);
 
 #ifdef __cplusplus

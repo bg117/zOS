@@ -38,46 +38,6 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 {
     screen_clear();
 
-    KSLOG("testing VGA glyphs\n");
-    for (int i = 0; i < 256; i++)
-    {
-        KSLOG(
-            "glyph %d:\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n"
-            "\t%08b\n",
-            i,
-            vga_font_info[i].h1,
-            vga_font_info[i].h2,
-            vga_font_info[i].h3,
-            vga_font_info[i].h4,
-            vga_font_info[i].h5,
-            vga_font_info[i].h6,
-            vga_font_info[i].h7,
-            vga_font_info[i].h8,
-            vga_font_info[i].h9,
-            vga_font_info[i].h10,
-            vga_font_info[i].h11,
-            vga_font_info[i].h12,
-            vga_font_info[i].h13,
-            vga_font_info[i].h14,
-            vga_font_info[i].h15,
-            vga_font_info[i].h16);
-    }
-
     screen_print_string("---------------- MEMORY MAP ----------------\n");
     screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
     for (int i = 0; i < mmap_length; i++)
@@ -95,7 +55,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     KSLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
-    screen_print_string("zOS version 0.01\n");
+    screen_print_string("zOS version 0.01\nMade with \003 by bg117\n");
 
     while (1)
     {

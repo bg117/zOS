@@ -8,6 +8,8 @@
 #ifndef quuxVIDEOHxuuq
 #define quuxVIDEOHxuuq
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
