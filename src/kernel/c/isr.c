@@ -5,9 +5,9 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <int/idt.h>
-#include <int/interrupt_info.h>
-#include <int/isr.h>
+#include <kernel/int/idt.h>
+#include <kernel/int/interrupt_info.h>
+#include <kernel/int/isr.h>
 
 // auto-generated
 #pragma region ISR stubs

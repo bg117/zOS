@@ -8,14 +8,14 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#include <ll/io.h>
+#include <kernel/ll/io.h>
 
-#include <hw/serial.h>
+#include <kernel/hw/serial.h>
 
-#include <misc/char_macros.h>
-#include <misc/num.h>
-#include <misc/strings.h>
-#include <misc/type_macros.h>
+#include <kernel/misc/char_macros.h>
+#include <kernel/misc/num.h>
+#include <kernel/misc/strings.h>
+#include <kernel/misc/type_macros.h>
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
     switch (len)                                                                                                       \

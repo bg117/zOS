@@ -7,9 +7,9 @@
 
 #include <stdint.h>
 
-#include <memory/mem.h>
+#include <kernel/memory/mem.h>
 
-#include <misc/type_macros.h>
+#include <kernel/misc/type_macros.h>
 
 void *mem_fill(void *ptr, uint8_t fill, uint32_t len)
 {

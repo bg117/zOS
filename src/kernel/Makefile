@@ -23,8 +23,7 @@ CFLAGS := -Wall \
 		  -O0 \
 		  -g
 
-CPPFLAGS := -I ${SRC_DIR}/include/common/kernel \
-			-I ${SRC_DIR}/include/common/modules \
+CPPFLAGS := -I ${SRC_DIR}/include/common \
 			-MMD
 
 LDFLAGS := -Map ${OBJ_DIR}/${EXEC}.map \

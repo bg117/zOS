@@ -5,16 +5,16 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <memory/mem.h>
-#include <memory/memdefs.h>
-#include <memory/page.h>
-#include <memory/pmm.h>
-#include <memory/vmm.h>
+#include <kernel/memory/mem.h>
+#include <kernel/memory/memdefs.h>
+#include <kernel/memory/page.h>
+#include <kernel/memory/pmm.h>
+#include <kernel/memory/vmm.h>
 
-#include <hw/serial.h>
+#include <kernel/hw/serial.h>
 
-#include <misc/bit_macros.h>
-#include <misc/log_macros.h>
+#include <kernel/misc/bit_macros.h>
+#include <kernel/misc/log_macros.h>
 
 #define PAGE_SIZE    4096
 #define VIRTUAL_BASE 0xC0000000

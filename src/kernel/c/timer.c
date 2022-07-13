@@ -7,16 +7,16 @@
 
 #include <stdint.h>
 
-#include <ll/io.h>
+#include <kernel/ll/io.h>
 
-#include <int/interrupt_info.h>
-#include <int/isr.h>
-#include <int/pic.h>
+#include <kernel/int/interrupt_info.h>
+#include <kernel/int/isr.h>
+#include <kernel/int/pic.h>
 
-#include <hw/serial.h>
-#include <hw/timer.h>
+#include <kernel/hw/serial.h>
+#include <kernel/hw/timer.h>
 
-#include <misc/log_macros.h>
+#include <kernel/misc/log_macros.h>
 
 #define NOT_INIT_CHECK(a)                                                                                              \
     if (!g_is_init)                                                                                                    \

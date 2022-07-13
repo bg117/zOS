@@ -8,16 +8,16 @@
 #include <limits.h>
 #include <stdint.h>
 
-#include <memory/mem.h>
-#include <memory/memdefs.h>
-#include <memory/mmap.h>
-#include <memory/pmm.h>
+#include <kernel/memory/mem.h>
+#include <kernel/memory/memdefs.h>
+#include <kernel/memory/mmap.h>
+#include <kernel/memory/pmm.h>
 
-#include <hw/serial.h>
+#include <kernel/hw/serial.h>
 
-#include <misc/bit_macros.h>
-#include <misc/log_macros.h>
-#include <misc/type_macros.h>
+#include <kernel/misc/bit_macros.h>
+#include <kernel/misc/log_macros.h>
+#include <kernel/misc/type_macros.h>
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000

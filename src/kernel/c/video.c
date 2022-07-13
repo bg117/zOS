@@ -9,16 +9,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <ll/io.h>
+#include <kernel/ll/io.h>
 
-#include <memory/mem.h>
+#include <kernel/memory/mem.h>
 
-#include <hw/video.h>
+#include <kernel/hw/video.h>
 
-#include <misc/char_macros.h>
-#include <misc/num.h>
-#include <misc/strings.h>
-#include <misc/type_macros.h>
+#include <kernel/misc/char_macros.h>
+#include <kernel/misc/num.h>
+#include <kernel/misc/strings.h>
+#include <kernel/misc/type_macros.h>
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
     switch (len)                                                                                                       \

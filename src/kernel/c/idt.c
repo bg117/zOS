@@ -7,12 +7,12 @@
 
 #include <stdint.h>
 
-#include <int/idt.h>
+#include <kernel/int/idt.h>
 
-#include <hw/serial.h>
+#include <kernel/hw/serial.h>
 
-#include <misc/log_macros.h>
-#include <misc/type_macros.h>
+#include <kernel/misc/log_macros.h>
+#include <kernel/misc/type_macros.h>
 
 IdtEntry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access_byte)
 {

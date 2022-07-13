@@ -8,22 +8,22 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <kernel.h>
+#include <kernel/kernel.h>
 
-#include <fs/fat.h>
+#include <kernel/fs/fat.h>
 
-#include <memory/mem.h>
-#include <memory/mmap.h>
-#include <memory/vmm.h>
+#include <kernel/memory/mem.h>
+#include <kernel/memory/mmap.h>
+#include <kernel/memory/vmm.h>
 
-#include <hw/kbd.h>
-#include <hw/serial.h>
-#include <hw/timer.h>
-#include <hw/video.h>
+#include <kernel/hw/kbd.h>
+#include <kernel/hw/serial.h>
+#include <kernel/hw/timer.h>
+#include <kernel/hw/video.h>
 
-#include <misc/char_macros.h>
-#include <misc/log_macros.h>
-#include <misc/strings.h>
+#include <kernel/misc/char_macros.h>
+#include <kernel/misc/log_macros.h>
+#include <kernel/misc/strings.h>
 
 #define UARROW      0x48
 #define LARROW      0x4B

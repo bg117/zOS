@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include <memory/memdefs.h>
+#include "memdefs.h"
 
 #ifdef __cplusplus
 extern "C" {

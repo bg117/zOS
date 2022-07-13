@@ -7,29 +7,29 @@
 
 #include <stdint.h>
 
-#include <kernel.h>
+#include <kernel/kernel.h>
 
-#include <ll/core.h>
-#include <ll/gdt.h>
+#include <kernel/ll/core.h>
+#include <kernel/ll/gdt.h>
 
-#include <int/idt.h>
-#include <int/interrupt_info.h>
-#include <int/isr.h>
-#include <int/pic.h>
+#include <kernel/int/idt.h>
+#include <kernel/int/interrupt_info.h>
+#include <kernel/int/isr.h>
+#include <kernel/int/pic.h>
 
-#include <memory/memdefs.h>
-#include <memory/mmap.h>
-#include <memory/page.h>
-#include <memory/pmm.h>
-#include <memory/vmm.h>
+#include <kernel/memory/memdefs.h>
+#include <kernel/memory/mmap.h>
+#include <kernel/memory/page.h>
+#include <kernel/memory/pmm.h>
+#include <kernel/memory/vmm.h>
 
-#include <hw/kbd.h>
-#include <hw/serial.h>
-#include <hw/timer.h>
-#include <hw/video.h>
+#include <kernel/hw/kbd.h>
+#include <kernel/hw/serial.h>
+#include <kernel/hw/timer.h>
+#include <kernel/hw/video.h>
 
-#include <misc/bit_macros.h>
-#include <misc/log_macros.h>
+#include <kernel/misc/bit_macros.h>
+#include <kernel/misc/log_macros.h>
 
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
