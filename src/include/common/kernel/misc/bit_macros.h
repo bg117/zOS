@@ -16,6 +16,6 @@
 
 #define TESTBIT(x, bit) (((x) & (bit)) == (bit))
 
-#define ALIGN(x, a) (x + a - 1) / a *a
+#define ALIGN(x, a) ((x) + (a)-1) / (a) * (a)
 
 #endif

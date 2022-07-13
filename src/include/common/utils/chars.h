@@ -5,8 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#ifndef quuxCHAR_MACROSHxuuq
-#define quuxCHAR_MACROSHxuuq
+#ifndef quuxCHARSHxuuq
+#define quuxCHARSHxuuq
 
 #define ISPRINT(x) ((x) >= ' ' && (x) <= '~')
 #define ISUPPER(x) ((x) >= 'A' && (x) <= 'Z')

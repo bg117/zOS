@@ -17,7 +17,6 @@
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
-#include <kernel/misc/type_macros.h>
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000

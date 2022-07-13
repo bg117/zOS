@@ -12,7 +12,6 @@
 #include <kernel/hw/serial.h>
 
 #include <kernel/misc/log_macros.h>
-#include <kernel/misc/type_macros.h>
 
 IdtEntry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access_byte)
 {

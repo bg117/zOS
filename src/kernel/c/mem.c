@@ -9,8 +9,6 @@
 
 #include <kernel/memory/mem.h>
 
-#include <kernel/misc/type_macros.h>
-
 void *mem_fill(void *ptr, uint8_t fill, uint32_t len)
 {
     return mem_fill8(ptr, fill, len);

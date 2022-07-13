@@ -17,7 +17,6 @@
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
-#include <kernel/misc/type_macros.h>
 
 #define NOT_INIT_CHECK(a)                                                                                              \
     if (!g_is_init)                                                                                                    \

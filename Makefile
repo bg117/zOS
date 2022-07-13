@@ -8,6 +8,7 @@ export ROOT_DIR=${CURDIR}
 export BUILD_DIR=${CURDIR}/build
 
 export BIN_DIR=${BUILD_DIR}/bin
+export LIB_DIR=${BUILD_DIR}/lib
 export OBJ_DIR=${BUILD_DIR}/obj
 
 .PHONY: all build clean check-dirs
@@ -23,3 +24,4 @@ clean:
 check-dirs:
 	-mkdir -p ${BIN_DIR}
 	-mkdir -p ${OBJ_DIR}
+	-mkdir -p ${LIB_DIR}

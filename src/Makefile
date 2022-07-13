@@ -6,16 +6,56 @@
 EXEC     := zos-dev-build.img
 FULLEXEC := ${BUILD_DIR}/${EXEC}
 
-export SRC_DIR=${CURDIR}
+BUILD_TYPE ?= debug
+CMP_BUILD_TYPE := ${shell echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]'}
 
-.PHONY: all build boot kernel modules clean always
+ifeq (${CMP_BUILD_TYPE},debug)
+COMFLAGS := -O0 \
+			-g
+else ifeq (${CMP_BUILD_TYPE},release)
+COMFLAGS := -O1 \
+			-fcaller-saves \
+			-fcode-hoisting \
+			-fcrossjumping \
+			-fcse-follow-jumps \
+			-fcse-skip-blocks \
+			-fdelete-null-pointer-checks \
+			-fdevirtualize \
+			-fdevirtualize-speculatively \
+			-ffinite-loops \
+			-fgcse \
+			-fgcse-lm  \
+			-fhoist-adjacent-loads \
+			-fipa-bit-cp \
+			-fipa-cp \
+			-fipa-icf \
+			-fipa-ra \
+			-fipa-sra \
+			-fipa-vrp \
+			-fisolate-erroneous-paths-dereference \
+			-flra-remat \
+			-finline-functions \
+			-finline-small-functions \
+			-findirect-inlining
+else
+${error Unknown build type: ${BUILD_TYPE}}
+endif
+
+export SRC_DIR=${CURDIR}
+export CFLAGS=${COMFLAGS}
+export CXXFLAGS=${COMFLAGS}
+
+.PHONY: all build boot utils kernel modules clean always
 
 all: build
 
-build: boot kernel modules ${FULLEXEC}
+build: boot utils kernel modules ${FULLEXEC}
 
 boot:
 	${MAKE} -C ${CURDIR}/boot
+
+utils:
+	${MAKE} -C ${CURDIR}/utils
 
 kernel:
 	${MAKE} -C ${CURDIR}/kernel

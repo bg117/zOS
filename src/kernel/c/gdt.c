@@ -12,7 +12,6 @@
 #include <kernel/hw/serial.h>
 
 #include <kernel/misc/log_macros.h>
-#include <kernel/misc/type_macros.h>
 
 GdtEntry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags)
 {

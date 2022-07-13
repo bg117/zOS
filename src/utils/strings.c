@@ -7,8 +7,8 @@
 
 #include <stddef.h>
 
-#include <kernel/misc/char_macros.h>
-#include <kernel/misc/strings.h>
+#include <utils/chars.h>
+#include <utils/strings.h>
 
 char *str_to_upper(char *str)
 {

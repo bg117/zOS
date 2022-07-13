@@ -21,10 +21,11 @@
 #include <kernel/hw/timer.h>
 #include <kernel/hw/video.h>
 
-#include <kernel/misc/char_macros.h>
 #include <kernel/misc/log_macros.h>
-#include <kernel/misc/sort.h>
-#include <kernel/misc/strings.h>
+
+#include <utils/chars.h>
+#include <utils/sort.h>
+#include <utils/strings.h>
 
 #define UARROW      0x48
 #define LARROW      0x4B

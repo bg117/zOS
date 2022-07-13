@@ -20,15 +20,15 @@ RPATH := ${shell realpath ${MOD}}
 EXEC     := ${shell basename ${RPATH}}.mod
 FULLEXEC := ${MODULES_BIN_DIR}/${EXEC}
 
-CC      := i686-elf-gcc
-LD      := i686-elf-ld
+CC := i686-elf-gcc
+LD := i686-elf-ld
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
 SRCS := ${wildcard ${RPATH}/*.c}
 OBJS := ${subst ${RPATH},${MODULES_OBJ_DIR}/${EXEC},${SRCS:.c=.o}}
 
-CFLAGS := -Wall \
+CFLAGS += -Wall \
 		  -Wextra \
 		  -fno-stack-check \
 		  -ffreestanding \
@@ -41,11 +41,12 @@ CPPFLAGS := -I ${SRC_DIR}/include/common \
 LDFLAGS := -fpic \
 		   -shared \
 		   -L${LIBGCCDIR} \
+		   -L${LIB_DIR} \
 		   -nostdlib
 
 HDRS := ${OBJS:.o=.d}
 
-.PHONY: build-all build-module check-dirs clean
+.PHONY: build-all build-module format check-dirs clean
 
 build-all:
 	for i in ${CURDIR}/*/; do \
@@ -54,19 +55,23 @@ build-all:
 
 build-module: check-dirs ${FULLEXEC}
 
+format: ${SRCS}
+	clang-format -i $^
+
 check-dirs:
 	-mkdir -p ${MODULES_BIN_DIR}
 	-mkdir -p ${MODULES_OBJ_DIR}/${EXEC}
 
 clean:
-	-rm -r ${MODULES_BIN_DIR} ${MODULES_OBJ_DIR}
+	${RM} -r ${MODULES_BIN_DIR} ${MODULES_OBJ_DIR}
 
 ${FULLEXEC}: ${OBJS}
 	${LD} \
 		${LDFLAGS} \
 		-o $@ \
 		$^ \
-		-lgcc
+		-lgcc \
+		-lutils
 
 ${MODULES_OBJ_DIR}/${EXEC}/%.o: ${RPATH}/%.c
 	${CC} \

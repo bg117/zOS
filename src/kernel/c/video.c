@@ -15,10 +15,9 @@
 
 #include <kernel/hw/video.h>
 
-#include <kernel/misc/char_macros.h>
-#include <kernel/misc/num.h>
-#include <kernel/misc/strings.h>
-#include <kernel/misc/type_macros.h>
+#include <utils/chars.h>
+#include <utils/num.h>
+#include <utils/strings.h>
 
 #define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
     switch (len)                                                                                                       \
