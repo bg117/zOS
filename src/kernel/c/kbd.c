@@ -67,11 +67,11 @@ static const char US_SCANCODES[128] = {
     0,                                                                             /* All other keys are undefined */
 };
 
-static char         g_last_char;
-static char         g_last_scancode;
-static volatile int g_got_key;
+static volatile char g_last_char;
+static volatile char g_last_scancode;
+static volatile int  g_got_key;
 
-static KeyModifiers g_key_flags;
+static volatile KeyModifiers g_key_flags;
 
 static void kbd_handler(InterruptInfo *);
 

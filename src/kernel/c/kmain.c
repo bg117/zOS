@@ -23,6 +23,7 @@
 
 #include <kernel/misc/char_macros.h>
 #include <kernel/misc/log_macros.h>
+#include <kernel/misc/sort.h>
 #include <kernel/misc/strings.h>
 
 #define UARROW      0x48
@@ -31,12 +32,16 @@
 #define DARROW      0x50
 #define MAX_KBD_BUF 0xFFF
 
-char *get_keyboard_input(void);
+static char *get_keyboard_input(void);
+
+static int sort_mmap(const void *i, const void *j);
 
 // main
 int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length, VgaFontGlyph *vga_font_info)
 {
     screen_clear();
+
+    sort_bubble(mmap, mmap_length, sizeof *mmap, sort_mmap);
 
     screen_print_string("---------------- MEMORY MAP ----------------\n");
     screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
@@ -178,4 +183,18 @@ char *get_keyboard_input(void)
 
     screen_print_char('\n');
     return buf;
+}
+
+static int sort_mmap(const void *i, const void *j)
+{
+    const MemoryMapEntry *d1 = i;
+    const MemoryMapEntry *d2 = j;
+
+    if (d1->base > d2->base)
+        return 1;
+
+    if (d1->base == d2->base)
+        return 0;
+
+    return -1;
 }

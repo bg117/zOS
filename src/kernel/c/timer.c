@@ -32,10 +32,10 @@
         a;                                                                                                             \
     }
 
-static uint64_t g_timer_ticks;
-static uint64_t g_seconds;
+static volatile uint64_t g_timer_ticks;
+static volatile uint64_t g_seconds;
 
-static uint64_t g_cycles;
+static volatile uint64_t g_cycles;
 
 static int g_is_init;
 

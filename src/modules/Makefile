@@ -35,7 +35,8 @@ CFLAGS := -Wall \
 		  -fpic \
 		  -nostdlib
 
-CPPFLAGS := -MMD
+CPPFLAGS := -I ${SRC_DIR}/include/common \
+			-MMD
 
 LDFLAGS := -fpic \
 		   -shared \

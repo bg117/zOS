@@ -9,6 +9,8 @@ FULLEXEC := ${BIN_DIR}/${EXEC}
 ASM      := nasm
 ASMFLAGS := -f elf32
 
+BUILD_TYPE ?= debug
+
 CC      := i686-elf-gcc
 LD      := i686-elf-ld
 OBJCOPY := i686-elf-objcopy
@@ -19,9 +21,7 @@ CFLAGS := -Wall \
 		  -Wextra \
 		  -fno-stack-check \
 		  -ffreestanding \
-		  -nostdlib \
-		  -O0 \
-		  -g
+		  -nostdlib
 
 CPPFLAGS := -I ${SRC_DIR}/include/common \
 			-MMD
@@ -30,6 +30,58 @@ LDFLAGS := -Map ${OBJ_DIR}/${EXEC}.map \
 		   -T ${CURDIR}/linker.ld \
 		   -L ${LIBGCCDIR} \
 		   -nostdlib
+
+ifeq (${BUILD_TYPE},debug)
+CFLAGS += -O0 \
+		  -g
+else ifeq (${BUILD_TYPE},release)
+# manually turn on optimizations that DON'T break the code
+CFLAGS += -O1 \
+		  -fcaller-saves \
+		  -fcode-hoisting \
+		  -fcrossjumping \
+		  -fcse-follow-jumps \
+		  -fcse-skip-blocks \
+		  -fdelete-null-pointer-checks \
+		  -fdevirtualize \
+		  -fdevirtualize-speculatively \
+		  -ffinite-loops \
+		  -fgcse \
+		  -fgcse-lm  \
+		  -fhoist-adjacent-loads \
+		  -fipa-bit-cp \
+		  -fipa-cp \
+		  -fipa-icf \
+		  -fipa-ra \
+		  -fipa-sra \
+		  -fipa-vrp \
+		  -fisolate-erroneous-paths-dereference \
+		  -flra-remat \
+		  -finline-functions \
+		  -finline-small-functions \
+		  -findirect-inlining \
+		  -fpeephole2 \
+		  -freorder-blocks-and-partition \
+		  -frerun-cse-after-loop  \
+		  -fschedule-insns \
+		  -fschedule-insns2 \
+		  -fsched-interblock \
+		  -fsched-spec \
+		  -fstore-merging \
+		  -fstrict-aliasing \
+		  -fthread-jumps \
+		  -ftree-builtin-call-dce \
+		  -ftree-loop-vectorize \
+		  -ftree-pre \
+		  -ftree-slp-vectorize \
+		  -ftree-switch-conversion \
+		  -ftree-tail-merge \
+		  -ftree-vrp \
+		  -fvect-cost-model=very-cheap \
+		  -foptimize-sibling-calls \
+		  -foptimize-strlen \
+		  -fpartial-inlining
+endif
 
 OBJCOPYFLAGS := -O binary \
 				--strip-unneeded
