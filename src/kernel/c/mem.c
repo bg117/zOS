@@ -124,7 +124,7 @@ void *mem_copy_with_overlap(void *dest, const void *src, uint32_t len)
     uint8_t       *sec_dest = (uint8_t *)al_dest;
     const uint8_t *sec_src  = (uint8_t *)al_src;
 
-    for (; j < 0; j--)
+    for (; j > 0; j--)
         sec_dest[i] = sec_src[i];
 
     return dest;
