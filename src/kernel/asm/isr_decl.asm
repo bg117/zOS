@@ -3,8 +3,6 @@
 ; This software is released under the MIT License.
 ; https://opensource.org/licenses/MIT
 
-bits 32
-
 ;**************************
 ;                         *
 ;   x86 helper routines   *

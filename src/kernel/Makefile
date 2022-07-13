@@ -7,7 +7,7 @@ EXEC     := zs
 FULLEXEC := ${BIN_DIR}/${EXEC}
 
 ASM      := nasm
-ASMFLAGS := -f elf
+ASMFLAGS := -f elf32
 
 CC      := i686-elf-gcc
 LD      := i686-elf-ld
