@@ -1,4 +1,4 @@
-ENTRY(kstartup)
+ENTRY(startup)
 
 PHYS = 0x00100000;
 VIRT = 0xC0000000;
