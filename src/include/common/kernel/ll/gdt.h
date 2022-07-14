@@ -20,26 +20,26 @@ extern "C" {
  */
 typedef enum gdt_access_flags
 {
-    GDT_AX_PRESENT = 0b10000000,
+    GDT_AX_PRESENT = 0x80,
 
     // DPL
-    GDT_AX_PRIV_RING0 = 0b00000000,
-    GDT_AX_PRIV_RING1 = 0b01000000,
-    GDT_AX_PRIV_RING2 = 0b00100000,
-    GDT_AX_PRIV_RING3 = 0b01100000,
+    GDT_AX_PRIV_RING0 = 0x00,
+    GDT_AX_PRIV_RING1 = 0x20,
+    GDT_AX_PRIV_RING2 = 0x40,
+    GDT_AX_PRIV_RING3 = 0x60,
 
-    GDT_AX_CODE = 0b00010000,
-    GDT_AX_DATA = 0b00010000,
+    GDT_AX_CODE = 0x10,
+    GDT_AX_DATA = 0x10,
 
-    GDT_AX_EXECUTABLE = 0b00001000,
+    GDT_AX_EXECUTABLE = 0x08,
 
-    GDT_AX_CODE_CONFORMING = 0b00000100,
-    GDT_AX_DATA_DIRECTION  = 0b00000100,
+    GDT_AX_CODE_CONFORMING = 0x04,
+    GDT_AX_DATA_DIRECTION  = 0x04,
 
-    GDT_AX_CODE_READABLE = 0b00000010,
-    GDT_AX_DATA_WRITABLE = 0b00000010,
+    GDT_AX_CODE_READABLE = 0x02,
+    GDT_AX_DATA_WRITABLE = 0x02,
 
-    GDT_AX_ACCESSED = 0b00000001
+    GDT_AX_ACCESSED = 0x01
 } GdtAccessFlags;
 
 /**
@@ -47,8 +47,8 @@ typedef enum gdt_access_flags
  */
 typedef enum gdt_other_flags
 {
-    GDT_OF_GRANULARITY = 0b1000,
-    GDT_OF_32BIT       = 0b0100,
+    GDT_OF_GRANULARITY = 0x08,
+    GDT_OF_32BIT       = 0x04,
 } GdtOtherFlags;
 
 /**

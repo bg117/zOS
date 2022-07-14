@@ -20,18 +20,18 @@ extern "C" {
  */
 typedef enum idt_access_flags
 {
-    IDT_AX_PRESENT = 0b10000000,
+    IDT_AX_PRESENT = 0x80,
 
     // gate type
-    IDT_AX_I386_TASK = 0b00000101,
-    IDT_AX_I386_INT  = 0b00001110,
-    IDT_AX_I386_TRAP = 0b00001111,
+    IDT_AX_I386_TASK = 0x05,
+    IDT_AX_I386_INT  = 0x0E,
+    IDT_AX_I386_TRAP = 0x0F,
 
     // DPL
-    IDT_AX_RING0 = 0b00000000,
-    IDT_AX_RING1 = 0b00100000,
-    IDT_AX_RING2 = 0b01000000,
-    IDT_AX_RING3 = 0b01100000
+    IDT_AX_RING0 = 0x00,
+    IDT_AX_RING1 = 0x20,
+    IDT_AX_RING2 = 0x40,
+    IDT_AX_RING3 = 0x60
 } IdtAccessFlags;
 
 /**
@@ -58,12 +58,12 @@ typedef struct __attribute__((packed)) idt_descriptor
 /**
  * @brief Creates an IDT entry.
  *
- * @param isr The interrupt service routine to use.
+ * @param isr The pointer to the interrupt service routine to use.
  * @param code_segment The code segment to use (from GDT).
  * @param access_byte The present, privilege, and type flags.
  * @return A idt_entry struct populated with the provided arguments.
  */
-IdtEntry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access_byte);
+IdtEntry idt_make_entry(void (*isr)(void), uint16_t code_segment, uint8_t access_byte);
 
 /**
  * @brief Creates an IDT entry.

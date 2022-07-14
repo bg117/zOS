@@ -37,14 +37,14 @@ void pic_send_eoi(uint8_t irq);
  *
  * @return The offset.
  */
-uint8_t pic_get_pic1_offset();
+uint8_t pic_get_pic1_offset(void);
 
 /**
  * @brief Retrieves the offset to the interrupt vector handling IRQs 8-15.
  *
  * @return The offset.
  */
-uint8_t pic_get_pic2_offset();
+uint8_t pic_get_pic2_offset(void);
 
 #ifdef __cplusplus
 }

@@ -21,16 +21,16 @@ extern "C" {
  */
 typedef enum page_directory_access_flags
 {
-    PGD_AX_PRESENT      = 0b00000001,
-    PGD_AX_READ         = 0b00000000,
-    PGD_AX_WRITE        = 0b00000010,
-    PGD_AX_KERNEL       = 0b00000000,
-    PGD_AX_USER         = 0b00000100,
-    PGD_AX_WRITE_THRU   = 0b00001000,
-    PGD_AX_CACHE        = 0b00010000,
-    PGD_AX_ACCESSED     = 0b00100000,
-    PGD_AX_PAGE_SIZE_4K = 0b00000000,
-    PGD_AX_PAGE_SIZE_4M = 0b10000000
+    PGD_AX_PRESENT      = 0x01,
+    PGD_AX_READ         = 0x00,
+    PGD_AX_WRITE        = 0x02,
+    PGD_AX_KERNEL       = 0x00,
+    PGD_AX_USER         = 0x04,
+    PGD_AX_WRITE_THRU   = 0x08,
+    PGD_AX_CACHE        = 0x10,
+    PGD_AX_ACCESSED     = 0x20,
+    PGD_AX_PAGE_SIZE_4K = 0x00,
+    PGD_AX_PAGE_SIZE_4M = 0x80
 } PageDirectoryAccessFlags;
 
 /**
@@ -38,13 +38,13 @@ typedef enum page_directory_access_flags
  */
 typedef enum page_table_access_flags
 {
-    PGT_AX_PRESENT  = 0b00000001,
-    PGT_AX_READ     = 0b00000000,
-    PGT_AX_WRITE    = 0b00000010,
-    PGT_AX_KERNEL   = 0b00000000,
-    PGT_AX_USER     = 0b00000100,
-    PGT_AX_ACCESSED = 0b00100000,
-    PGT_AX_DIRTY    = 0b01000000
+    PGT_AX_PRESENT  = 0x01,
+    PGT_AX_READ     = 0x00,
+    PGT_AX_WRITE    = 0x02,
+    PGT_AX_KERNEL   = 0x00,
+    PGT_AX_USER     = 0x04,
+    PGT_AX_ACCESSED = 0x20,
+    PGT_AX_DIRTY    = 0x40
 } PageTableAccessFlags;
 
 /**
