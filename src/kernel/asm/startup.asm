@@ -18,9 +18,9 @@
 
 %define KERNEL_SYM_PHYS(x) ((x) - 0xC0000000)
 
-section .ld
+section .startup
 
-global _start
+global startup
 global SYS_PGDIR
 
 extern _sbss, _ebss
@@ -32,7 +32,8 @@ extern kmain
 extern mem_copy
 extern mem_fill
 
-_start: ; initial setup (same as in bootloader)
+startup:
+        ; initial setup (same as in bootloader)
         ; clear .bss
         push    ecx
         push    edi

@@ -20,8 +20,8 @@ RPATH := ${shell realpath ${MOD}}
 EXEC     := ${shell basename ${RPATH}}.mod
 FULLEXEC := ${MODULES_BIN_DIR}/${EXEC}
 
-CC := i686-elf-gcc
-LD := i686-elf-ld
+CC := ${TARGET}gcc
+LD := ${TARGET}ld
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
@@ -40,8 +40,8 @@ CPPFLAGS := -I ${SRC_DIR}/include/common \
 
 LDFLAGS := -fpic \
 		   -shared \
-		   -L${LIBGCCDIR} \
-		   -L${LIB_DIR} \
+		   -L ${LIBGCCDIR} \
+		   -L ${LIB_DIR} \
 		   -nostdlib
 
 HDRS := ${OBJS:.o=.d}

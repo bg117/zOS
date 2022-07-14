@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(kstartup)
 
 PHYS = 0x00100000;
 VIRT = 0xC0000000;
@@ -9,11 +9,11 @@ SECTIONS
 
     _sprog = .;
 
-    .ld ALIGN(4K) :
+    .startup ALIGN(4K) :
     {
-        _sld = .;
-        *(.ld)
-        eld = .;
+        _sstartup = .;
+        *(.startup)
+        _estartup = .;
     }
 
     . += VIRT; /* higher half */
@@ -39,6 +39,13 @@ SECTIONS
         _edata = .;
     }
 
+    .symtab ALIGN(4K) : AT(ADDR(.symtab) - VIRT)
+    {
+        _ssymtab = .;
+        *(.symtab)
+        _esymtab = .;
+    }
+
     .bss ALIGN(4K) : AT(ADDR(.bss) - VIRT)
     {
         _sbss = .;
@@ -53,13 +60,6 @@ SECTIONS
     _svmm_bitmap = .;
     . += 96K; /* VIRT / PAGE_SIZE / 8 */
     _evmm_bitmap = .;
-
-    .symtab ALIGN(4K) : AT(ADDR(.symtab) - 0xC000)
-    {
-        _ssymtab = .;
-        *(.symtab)
-        _esymtab = .;
-    }
 
     _eprog = . - VIRT;
 }

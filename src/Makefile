@@ -44,6 +44,7 @@ endif
 export SRC_DIR=${CURDIR}
 export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
+export TARGET=i686-elf-
 
 .PHONY: all build boot utils kernel modules clean always
 

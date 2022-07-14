@@ -6,8 +6,8 @@
 EXEC     := libutils.a
 FULLEXEC := ${LIB_DIR}/${EXEC}
 
-CC := i686-elf-gcc
-AR := i686-elf-ar
+CC := ${TARGET}gcc
+AR := ${TARGET}ar
 
 SRCS := ${wildcard ${CURDIR}/*.c}
 OBJS := ${subst ${CURDIR},${OBJ_DIR},${SRCS:.c=.utils.o}}

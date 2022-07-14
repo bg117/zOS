@@ -12,7 +12,6 @@
 
 #include <kernel/fs/fat.h>
 
-#include <kernel/memory/mem.h>
 #include <kernel/memory/mmap.h>
 #include <kernel/memory/vmm.h>
 
@@ -24,6 +23,7 @@
 #include <kernel/misc/log_macros.h>
 
 #include <utils/chars.h>
+#include <utils/mem.h>
 #include <utils/sort.h>
 #include <utils/strings.h>
 

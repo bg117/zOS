@@ -8,7 +8,6 @@
 #include <limits.h>
 #include <stdint.h>
 
-#include <kernel/memory/mem.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/mmap.h>
 #include <kernel/memory/pmm.h>
@@ -17,6 +16,8 @@
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
+
+#include <utils/mem.h>
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000

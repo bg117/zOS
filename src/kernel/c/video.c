@@ -11,11 +11,10 @@
 
 #include <kernel/ll/io.h>
 
-#include <kernel/memory/mem.h>
-
 #include <kernel/hw/video.h>
 
 #include <utils/chars.h>
+#include <utils/mem.h>
 #include <utils/num.h>
 #include <utils/strings.h>
 

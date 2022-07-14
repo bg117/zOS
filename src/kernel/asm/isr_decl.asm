@@ -16,19 +16,21 @@
 ;
 ;
 
+section .text
+
 extern __dispatch_exception
 
 %macro isr_errcode_stub 1
 global __isr_stub_%+%1
 __isr_stub_%+%1:    push    %1
-                    jmp     _isr_ind
+                    jmp     isr_ind
 %endmacro
 
 %macro isr_noerrcode_stub 1
 global __isr_stub_%+%1
 __isr_stub_%+%1:    push    0
                     push    %1
-                    jmp     _isr_ind
+                    jmp     isr_ind
 %endmacro
 
 isr_noerrcode_stub 0
@@ -288,7 +290,7 @@ isr_noerrcode_stub 253
 isr_noerrcode_stub 254
 isr_noerrcode_stub 255
 
-_isr_ind:   pushad
+isr_ind:    pushad
             cld
 
             xor     eax, eax

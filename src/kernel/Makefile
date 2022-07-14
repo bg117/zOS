@@ -9,11 +9,9 @@ FULLEXEC := ${BIN_DIR}/${EXEC}
 ASM      := nasm
 ASMFLAGS := -f elf32
 
-BUILD_TYPE ?= debug
-
-CC      := i686-elf-gcc
-LD      := i686-elf-ld
-OBJCOPY := i686-elf-objcopy
+CC      := ${TARGET}gcc
+LD      := ${TARGET}ld
+OBJCOPY := ${TARGET}objcopy
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
@@ -56,13 +54,13 @@ build: ${FULLEXEC}
 clean:
 	${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS}
 
-${FULLEXEC}: ${FULLEXEC}.elf
+${FULLEXEC}: ${FULLEXEC}.r
 	${OBJCOPY} \
 		${OBJCOPYFLAGS} \
 		$< \
 		$@
 
-${FULLEXEC}.elf: ${OBJS_ASM} ${OBJS_C}
+${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
 	${LD} \
 		${LDFLAGS} \
 		-o $@ \
