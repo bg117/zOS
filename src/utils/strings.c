@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 
+#include <stdint.h>
 #include <utils/chars.h>
 #include <utils/strings.h>
 
@@ -47,16 +48,16 @@ size_t str_get_length(const char *str)
     return i;
 }
 
-int str_is_equal(const char *s1, const char *s2)
+int str_compare(const char *s1, const char *s2)
 {
-    while (*s1 && *s2)
-    {
-        if (*s1 != *s2)
-            return 0;
+    const uint8_t *us1 = (const uint8_t *)s1;
+    const uint8_t *us2 = (const uint8_t *)s2;
 
-        ++s1;
-        ++s2;
+    while (*us1 == *us2 && *us1 != '\0')
+    {
+        us1++;
+        us2++;
     }
 
-    return 1;
+    return (*us1 > *us2) - (*us1 < *us2);
 }

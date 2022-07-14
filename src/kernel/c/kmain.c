@@ -74,7 +74,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
         screen_print_format_string("Input: %s\n", input);
 
-        if (str_is_equal(input, "exit"))
+        if (str_compare(input, "exit") == 0)
         {
             vmm_free_page(input);
             break;
