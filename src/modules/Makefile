@@ -16,15 +16,15 @@ export MODULES_BIN_DIR=${BIN_DIR}/modules
 export MODULES_OBJ_DIR=${OBJ_DIR}/modules
 
 ifdef MOD
-RPATH = ${shell realpath ${MOD}}
+	RPATH = ${realpath ${MOD}}
 
-EXEC     = ${shell basename ${RPATH}}.mod
-FULLEXEC = ${MODULES_BIN_DIR}/${EXEC}
+	EXEC     = ${notdir ${RPATH}}.mod
+	FULLEXEC = ${MODULES_BIN_DIR}/${EXEC}
 
-SRCS = ${wildcard ${RPATH}/*.c}
-OBJS = ${subst ${RPATH},${MODULES_OBJ_DIR}/${EXEC},${SRCS:.c=.o}}
+	SRCS = ${wildcard ${RPATH}/*.c}
+	OBJS = ${subst ${RPATH},${MODULES_OBJ_DIR}/${EXEC},${SRCS:.c=.o}}
 
-HDRS = ${OBJS:.o=.d}
+	HDRS = ${OBJS:.o=.d}
 endif
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
@@ -82,7 +82,7 @@ ${FULLEXEC}: ${OBJS}
 		-lgcc
 
 ${MODULES_OBJ_DIR}/${EXEC}/%.o: ${RPATH}/%.c
-	@echo Compiling $<...
+	@echo Compiling module ${EXEC}: ${notdir $<}
 	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \

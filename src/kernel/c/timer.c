@@ -88,7 +88,7 @@ void timer_wait(int ms)
 
     uint64_t ticks_final = g_timer_ticks + ms / 1000 * g_cycles;
     while (g_timer_ticks < ticks_final)
-        asm volatile("" : "+g"(g_timer_ticks)::);
+        __asm__ volatile("" : "+g"(g_timer_ticks)::);
 }
 
 void pit_handler(InterruptInfo *info)

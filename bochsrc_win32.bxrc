@@ -1,0 +1,4 @@
+megs: 16
+ata0-master: type=disk, path=build/zos-dev-build.img, cylinders=1024, heads=2, spt=63
+boot: disk
+display_library: win32, options=gui_debug

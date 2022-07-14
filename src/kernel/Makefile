@@ -69,7 +69,7 @@ ${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
 		-lgcc
 
 ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
-	@echo Compiling $<...
+	@echo Compiling kernel: ${notdir $<}
 	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \
@@ -78,7 +78,7 @@ ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
 		$<
 
 ${OBJ_DIR}/%.o: ${CURDIR}/asm/%.asm
-	@echo Assembling $<...
+	@echo Assembling kernel: ${notdir $<}
 	@${AS} \
 		${ASFLAGS} \
 		-o $@ \

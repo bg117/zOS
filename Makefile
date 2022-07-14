@@ -19,35 +19,35 @@ COMFLAGS := -Wall \
 			-Wstrict-prototypes
 
 ifeq (${CMP_BUILD_TYPE},debug)
-COMFLAGS += -O0 \
-			-g
+	COMFLAGS += -O0 \
+				-g
 else ifeq (${CMP_BUILD_TYPE},release)
-COMFLAGS += -O1 \
-			-fcaller-saves \
-			-fcode-hoisting \
-			-fcrossjumping \
-			-fcse-follow-jumps \
-			-fcse-skip-blocks \
-			-fdelete-null-pointer-checks \
-			-fdevirtualize \
-			-fdevirtualize-speculatively \
-			-ffinite-loops \
-			-fgcse \
-			-fgcse-lm  \
-			-fhoist-adjacent-loads \
-			-fipa-bit-cp \
-			-fipa-cp \
-			-fipa-icf \
-			-fipa-ra \
-			-fipa-sra \
-			-fipa-vrp \
-			-fisolate-erroneous-paths-dereference \
-			-flra-remat \
-			-finline-functions \
-			-finline-small-functions \
-			-findirect-inlining
+	COMFLAGS += -O1 \
+				-fcaller-saves \
+				-fcode-hoisting \
+				-fcrossjumping \
+				-fcse-follow-jumps \
+				-fcse-skip-blocks \
+				-fdelete-null-pointer-checks \
+				-fdevirtualize \
+				-fdevirtualize-speculatively \
+				-ffinite-loops \
+				-fgcse \
+				-fgcse-lm  \
+				-fhoist-adjacent-loads \
+				-fipa-bit-cp \
+				-fipa-cp \
+				-fipa-icf \
+				-fipa-ra \
+				-fipa-sra \
+				-fipa-vrp \
+				-fisolate-erroneous-paths-dereference \
+				-flra-remat \
+				-finline-functions \
+				-finline-small-functions \
+				-findirect-inlining
 else
-${error Unknown build type: ${BUILD_TYPE}}
+	${error Unknown build type: ${BUILD_TYPE}}
 endif
 
 export TARGET=i686-elf-
@@ -72,9 +72,32 @@ export SYSROOT=${BUILD_DIR}/root
 export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
 
-.PHONY: all build clean check-dirs
+CMP_SERIAL_STDOUT := ${shell echo ${SERIAL_STDOUT} | tr '[:upper:]' '[:lower:]'}
+QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw
+
+ifeq (${CMP_SERIAL_STDOUT},yes)
+	QEMUFLAGS += -serial stdio
+else ifeq (${CMP_SERIAL_STDOUT},${filter ${CMP_SERIAL_STDOUT},no })
+	ifneq (${SERIAL_OUTPUT},)
+		QEMUFLAGS += -serial file:${SERIAL_OUTPUT}
+	endif
+endif
+
+ifeq (${OS},Windows_NT)
+	BOCHSRC := bochsrc_win32.bxrc
+else
+	BOCHSRC := bochsrc_unix.bxrc
+endif
+
+ALL_TARGETS := all help build clean run-qemu run-bochs check-dirs
+
+.PHONY: ${ALL_TARGETS}
 
 all: check-dirs build
+
+help:
+	@echo Targets:
+	@echo ${ALL_TARGETS}
 
 build:
 	@echo Building sources...
@@ -87,6 +110,17 @@ clean:
 	@echo Cleaning build directory...
 
 	@${RM} -r ${BUILD_DIR}
+
+run-qemu:
+	@echo Running zOS on QEMU...
+	qemu-system-i386 \
+		${QEMUFLAGS}
+
+run-bochs:
+	@echo Running zOS on Bochs...
+	bochs \
+		-q \
+		-f ${BOCHSRC}
 
 check-dirs:
 	@echo Checking if build directories exist...

@@ -34,12 +34,12 @@ PageTableEntry page_create_page_table_entry(uint8_t access_byte, PhysicalAddress
 
 void page_load_page_directory(PageDirectoryEntry *pgd)
 {
-    asm volatile("movl %0, %%cr3" : : "a"((PhysicalAddress)pgd));
+    __asm__ volatile("movl %0, %%cr3" : : "a"((PhysicalAddress)pgd));
 }
 
 void page_enable_paging(void)
 {
-    asm volatile(
+    __asm__ volatile(
         "movl %cr0, %eax;"
         "orl $0x80000000, %eax;"
         "movl %eax, %cr0;"); // enable paging bit
@@ -47,7 +47,7 @@ void page_enable_paging(void)
 
 void page_disable_paging(void)
 {
-    asm volatile(
+    __asm__ volatile(
         "movl %cr0, %eax;"
         "andl $0x7FFFFFFF, %eax;"
         "movl %eax, %cr0;");
@@ -55,12 +55,12 @@ void page_disable_paging(void)
 
 void page_reload_cr3(void)
 {
-    asm volatile(
+    __asm__ volatile(
         "movl %cr3, %ebx;"
         "movl %ebx, %cr3;");
 }
 
 void page_invalidate_page(void *page)
 {
-    asm volatile("invlpg (%0)" ::"r"(page) : "memory");
+    __asm__ volatile("invlpg (%0)" ::"r"(page) : "memory");
 }

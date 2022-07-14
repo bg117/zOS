@@ -39,7 +39,7 @@ void gdt_descriptor_init(GdtDescriptor *desc, GdtEntry *gdt, size_t entry_count)
 
 void gdt_descriptor_load(GdtDescriptor *desc, uint16_t code_offset, uint16_t data_offset)
 {
-    asm volatile(
+    __asm__ volatile(
         "lgdt %0;"
         "pushl %1;"
         "pushl $.L1;"

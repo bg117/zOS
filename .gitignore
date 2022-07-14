@@ -5,6 +5,8 @@
 *.img
 *.log
 
+!bochsrc_*.bxrc
+
 *.obj
 *.o
 

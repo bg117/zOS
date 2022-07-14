@@ -9,15 +9,15 @@
 
 void core_halt(void)
 {
-    asm volatile("hlt");
+    __asm__ volatile("hlt");
 }
 
 void core_set_interrupt_flag(void)
 {
-    asm volatile("sti");
+    __asm__ volatile("sti");
 }
 
 void core_clear_interrupt_flag(void)
 {
-    asm volatile("cli");
+    __asm__ volatile("cli");
 }

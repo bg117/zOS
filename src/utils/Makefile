@@ -37,14 +37,14 @@ clean:
 	@${RM} ${OBJS} ${FULLEXEC}
 
 ${FULLEXEC}: ${OBJS}
-	@echo Archiving objects { $^ } into a library...
+	@echo Archiving objects into a library...
 	@${AR} \
 		${ARFLAGS} \
 		$@ \
 		$^
 
 ${OBJ_DIR}/%.utils.o: ${CURDIR}/%.c
-	@echo Compiling $<...
+	@echo Compiling libutils: ${notdir $<}...
 	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \

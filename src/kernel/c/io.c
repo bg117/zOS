@@ -12,25 +12,25 @@
 uint8_t in_byte(uint16_t port)
 {
     uint8_t ret = 0;
-    asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+    __asm__ volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
 
     return ret;
 }
 
 void out_byte(uint16_t port, uint8_t byte)
 {
-    asm volatile("outb %0, %1" ::"a"(byte), "Nd"(port));
+    __asm__ volatile("outb %0, %1" ::"a"(byte), "Nd"(port));
 }
 
 uint16_t in_word(uint16_t port)
 {
     uint16_t ret = 0;
-    asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+    __asm__ volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
 
     return ret;
 }
 
 void out_word(uint16_t port, uint16_t word)
 {
-    asm volatile("outw %0, %1" ::"a"(word), "Nd"(port));
+    __asm__ volatile("outw %0, %1" ::"a"(word), "Nd"(port));
 }

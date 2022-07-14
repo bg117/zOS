@@ -40,6 +40,10 @@ static int sort_mmap(const void *i, const void *j);
 // main
 int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length, VgaFontGlyph *vga_font_info)
 {
+    (void)drive_number;
+    (void)fi;
+    (void)vga_font_info;
+
     screen_clear();
 
     sort_bubble(mmap, mmap_length, sizeof *mmap, sort_mmap);

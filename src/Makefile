@@ -8,7 +8,7 @@ FULLEXEC := ${BUILD_DIR}/${EXEC}
 
 export SRC_DIR=${CURDIR}
 
-.PHONY: all build boot utils kernel modules sysroot clean always
+.PHONY: all help build boot utils kernel modules sysroot clean always
 
 all: build
 
@@ -43,7 +43,7 @@ clean:
 always:
 
 ${FULLEXEC}: always
-	@echo Creating hard disk image: $@...
+	@echo Creating hard disk image: ${EXEC}...
 
 	@dd if=/dev/zero of=$@ bs=66060288 count=1
 	@mformat -t 1024 -h 2 -s 63 -R 4 -i $@ ::
