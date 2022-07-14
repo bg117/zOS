@@ -89,7 +89,7 @@ void *mem_copy(void *restrict dest, const void *restrict src, uint32_t len)
     i *= 4;
 
     uint8_t       *sec_dest = (uint8_t *)al_dest;
-    const uint8_t *sec_src  = (uint8_t *)al_src;
+    const uint8_t *sec_src  = (const uint8_t *)al_src;
 
     for (; i < len; i++)
         sec_dest[i] = sec_src[i];
@@ -113,14 +113,14 @@ void *mem_copy_with_overlap(void *dest, const void *src, uint32_t len)
     uint32_t i = x;
     uint32_t j = len;
 
-    uint32_t       *al_dest = dest + len;
-    const uint32_t *al_src  = src + len;
+    uint32_t       *al_dest = (uint32_t *)dest + len;
+    const uint32_t *al_src  = (const uint32_t *)src + len;
 
     for (; i > 0; i--, j -= 4)
         al_dest[i] = al_src[i];
 
     uint8_t       *sec_dest = (uint8_t *)al_dest;
-    const uint8_t *sec_src  = (uint8_t *)al_src;
+    const uint8_t *sec_src  = (const uint8_t *)al_src;
 
     for (; j > 0; j--)
         sec_dest[i] = sec_src[i];
