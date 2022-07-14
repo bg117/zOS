@@ -87,7 +87,7 @@ void serial_write_char(char c)
     out_byte(0x3F8, c);
 }
 
-void serial_write_string(const char *__restrict__ s)
+void serial_write_string(const char *s)
 {
     while (*s)
     {
@@ -96,7 +96,7 @@ void serial_write_string(const char *__restrict__ s)
     }
 }
 
-void serial_write_format_string(const char *__restrict__ fmt, ...)
+void serial_write_format_string(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

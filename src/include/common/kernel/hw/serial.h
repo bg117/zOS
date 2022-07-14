@@ -25,7 +25,7 @@ void serial_write_char(char c);
  *
  * @param s The string to write.
  */
-void serial_write_string(const char *__restrict__ s);
+void serial_write_string(const char *s);
 
 /**
  * @brief Appends a format string to the serial
@@ -35,7 +35,7 @@ void serial_write_string(const char *__restrict__ s);
               the serial port.
  * @param ... Additional arguments to be used by the format string.
  */
-void serial_write_format_string(const char *__restrict__ fmt, ...);
+void serial_write_format_string(const char *fmt, ...);
 
 #ifdef __cplusplus
 }
