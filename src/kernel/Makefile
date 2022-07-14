@@ -52,7 +52,7 @@ format: ${SRCS_C} ${SRCS_H}
 build: ${FULLEXEC}
 
 clean:
-	${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS}
+	${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS} ${FULLEXEC} ${FULLEXEC}.r
 
 ${FULLEXEC}: ${FULLEXEC}.r
 	${OBJCOPY} \

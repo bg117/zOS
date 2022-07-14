@@ -72,6 +72,7 @@ sysroot:
 clean:
 	${MAKE} -C ${CURDIR}/boot clean
 	${MAKE} -C ${CURDIR}/kernel clean
+	${RM} -r ${SYSROOT}
 
 always:
 

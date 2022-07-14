@@ -35,7 +35,7 @@ format: ${SRCS}
 	clang-format -i $^
 
 clean:
-	${RM} ${OBJS}
+	${RM} ${OBJS} ${FULLEXEC}
 
 ${FULLEXEC}: ${OBJS}
 	${AR} \
