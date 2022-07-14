@@ -13,7 +13,7 @@
 
 #include <kernel/misc/log_macros.h>
 
-IdtEntry idt_make_entry(void *isr, uint16_t code_segment, uint8_t access_byte)
+IdtEntry idt_make_entry(void (*isr)(void), uint16_t code_segment, uint8_t access_byte)
 {
     IdtEntry entry;
     uint32_t offset = (uint32_t)isr;

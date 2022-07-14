@@ -103,6 +103,9 @@ void kbd_deinit(void)
 ReadKey kbd_get_char(void)
 {
     ReadKey key;
+    key.c         = '\0';
+    key.modifiers = 0;
+
     NOT_INIT_CHECK(return key);
 
     g_got_key = 0;
@@ -122,6 +125,8 @@ ReadKey kbd_get_char(void)
 
 void kbd_handler(InterruptInfo *info)
 {
+    (void)info;
+
     uint8_t read;
     int     is_ready = 0;
 
