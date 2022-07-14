@@ -3,8 +3,7 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
-ASM      := nasm
-ASMFLAGS := -f bin
+ASFLAGS := -f bin
 
 SRCS := ${CURDIR}/boot.asm
 INCS := ${wildcard ${CURDIR}/*.inc}
@@ -16,13 +15,17 @@ FULLEXEC := ${BIN_DIR}/${EXEC}
 
 all: build
 
-build: ${FULLEXEC}
+build:
+	@echo Building bootloader...
+	@${MAKE} ${FULLEXEC}
 
 clean:
-	${RM} ${FULLEXEC}
+	@echo Cleaning up bootloader binary...
+	@${RM} ${FULLEXEC}
 
 ${FULLEXEC}: ${SRCS} ${INCS}
-	${ASM} \
-		${ASMFLAGS} \
+	@echo Assembling bootloader...
+	@${AS} \
+		${ASFLAGS} \
 		-o $@ \
 		$<

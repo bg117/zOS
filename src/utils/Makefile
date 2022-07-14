@@ -6,21 +6,16 @@
 EXEC     := libutils.a
 FULLEXEC := ${LIB_DIR}/${EXEC}
 
-CC := ${TARGET}gcc
-AR := ${TARGET}ar
-
 SRCS := ${wildcard ${CURDIR}/*.c}
 OBJS := ${subst ${CURDIR},${OBJ_DIR},${SRCS:.c=.utils.o}}
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
-CFLAGS += -Wall \
-		  -Wextra \
-		  -fno-stack-check \
+CFLAGS += -fno-stack-check \
 		  -ffreestanding \
 		  -nostdlib
 
-CPPFLAGS := -I ${SRC_DIR}/include/common \
+CPPFLAGS += -I ${SRC_DIR}/include/common \
 			-MMD
 
 ARFLAGS := crs
@@ -29,22 +24,28 @@ ARFLAGS := crs
 
 all: build
 
-build: ${FULLEXEC}
+build:
+	@echo Building libutils sources...
+	@${MAKE} ${FULLEXEC}
 
 format: ${SRCS}
-	clang-format -i $^
+	@echo Formatting libutils sources...
+	@clang-format -i $^
 
 clean:
-	${RM} ${OBJS} ${FULLEXEC}
+	@echo Cleaning up libutils binaries.
+	@${RM} ${OBJS} ${FULLEXEC}
 
 ${FULLEXEC}: ${OBJS}
-	${AR} \
+	@echo Archiving objects { $^ } into a library...
+	@${AR} \
 		${ARFLAGS} \
 		$@ \
 		$^
 
 ${OBJ_DIR}/%.utils.o: ${CURDIR}/%.c
-	${CC} \
+	@echo Compiling $<...
+	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \
 		-c \

@@ -15,22 +15,21 @@
 export MODULES_BIN_DIR=${BIN_DIR}/modules
 export MODULES_OBJ_DIR=${OBJ_DIR}/modules
 
-RPATH := ${shell realpath ${MOD}}
+ifdef MOD
+RPATH = ${shell realpath ${MOD}}
 
-EXEC     := ${shell basename ${RPATH}}.mod
-FULLEXEC := ${MODULES_BIN_DIR}/${EXEC}
+EXEC     = ${shell basename ${RPATH}}.mod
+FULLEXEC = ${MODULES_BIN_DIR}/${EXEC}
 
-CC := ${TARGET}gcc
-LD := ${TARGET}ld
+SRCS = ${wildcard ${RPATH}/*.c}
+OBJS = ${subst ${RPATH},${MODULES_OBJ_DIR}/${EXEC},${SRCS:.c=.o}}
+
+HDRS = ${OBJS:.o=.d}
+endif
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
-SRCS := ${wildcard ${RPATH}/*.c}
-OBJS := ${subst ${RPATH},${MODULES_OBJ_DIR}/${EXEC},${SRCS:.c=.o}}
-
-CFLAGS += -Wall \
-		  -Wextra \
-		  -fno-stack-check \
+CFLAGS += -fno-stack-check \
 		  -ffreestanding \
 		  -fpic \
 		  -nostdlib
@@ -44,37 +43,47 @@ LDFLAGS := -fpic \
 		   -L ${LIB_DIR} \
 		   -nostdlib
 
-HDRS := ${OBJS:.o=.d}
-
 .PHONY: build-all build-module format check-dirs clean
 
 build-all:
-	for i in ${CURDIR}/*/; do \
+	@echo Building all modules in current directory...
+
+	@for i in ${CURDIR}/*/; do \
 		${MAKE} build-module MOD=$$i; \
 	done
 
-build-module: check-dirs ${FULLEXEC}
+build-module:
+	@echo Building module: ${EXEC}
+
+	@${MAKE} check-dirs
+	@${MAKE} ${FULLEXEC}
 
 format: ${SRCS}
-	clang-format -i $^
+	@echo Formatting source files...
+	@clang-format -i $^
 
 check-dirs:
-	-mkdir -p ${MODULES_BIN_DIR}
-	-mkdir -p ${MODULES_OBJ_DIR}/${EXEC}
+	@echo Checking if module directories exist...
+
+	@-mkdir -p ${MODULES_BIN_DIR}
+	@-mkdir -p ${MODULES_OBJ_DIR}/${EXEC}
 
 clean:
-	${RM} -r ${MODULES_BIN_DIR} ${MODULES_OBJ_DIR}
+	@echo Cleaning up module directories...
+	@${RM} -r ${MODULES_BIN_DIR} ${MODULES_OBJ_DIR}
 
 ${FULLEXEC}: ${OBJS}
-	${LD} \
+	@echo Linking module...
+	@${LD} \
 		${LDFLAGS} \
 		-o $@ \
 		$^ \
-		-lgcc \
-		-lutils
+		-lutils \
+		-lgcc
 
 ${MODULES_OBJ_DIR}/${EXEC}/%.o: ${RPATH}/%.c
-	${CC} \
+	@echo Compiling $<...
+	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \
 		-c \

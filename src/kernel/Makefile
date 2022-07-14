@@ -6,23 +6,17 @@
 EXEC     := zs
 FULLEXEC := ${BIN_DIR}/${EXEC}
 
-ASM      := nasm
-ASMFLAGS := -f elf32
-
-CC      := ${TARGET}gcc
-LD      := ${TARGET}ld
-OBJCOPY := ${TARGET}objcopy
-
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
-CFLAGS += -Wall \
-		  -Wextra \
-		  -fno-stack-check \
+ASFLAGS := -f elf32
+
+CFLAGS += -fno-stack-check \
 		  -ffreestanding \
 		  -nostdlib
 
 CPPFLAGS := -I ${SRC_DIR}/include/common \
-			-MMD
+			-MMD \
+			-Wno-unknown-pragmas
 
 LDFLAGS := -Map ${OBJ_DIR}/${EXEC}.map \
 		   -T ${CURDIR}/linker.ld \
@@ -47,21 +41,27 @@ HDRS := ${OBJS_C:.o=.d}
 all: format build
 
 format: ${SRCS_C} ${SRCS_H}
-	clang-format -i $^
+	@echo Formatting kernel sources...
+	@clang-format -i $^
 
-build: ${FULLEXEC}
+build:
+	@echo Building kernel...
+	@${MAKE} ${FULLEXEC}
 
 clean:
-	${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS} ${FULLEXEC} ${FULLEXEC}.r
+	@echo Cleaning up kernel binaries...
+	@${RM} ${OBJS_ASM} ${OBJS_C} ${HDRS} ${FULLEXEC} ${FULLEXEC}.r
 
 ${FULLEXEC}: ${FULLEXEC}.r
-	${OBJCOPY} \
+	@echo Creating final kernel binary...
+	@${OBJCOPY} \
 		${OBJCOPYFLAGS} \
 		$< \
 		$@
 
 ${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
-	${LD} \
+	@echo Linking into temporary ELF object...
+	@${LD} \
 		${LDFLAGS} \
 		-o $@ \
 		$^ \
@@ -69,7 +69,8 @@ ${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
 		-lgcc
 
 ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
-	${CC} \
+	@echo Compiling $<...
+	@${CC} \
 		${CFLAGS} \
 		${CPPFLAGS} \
 		-c \
@@ -77,8 +78,9 @@ ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
 		$<
 
 ${OBJ_DIR}/%.o: ${CURDIR}/asm/%.asm
-	${ASM} \
-		${ASMFLAGS} \
+	@echo Assembling $<...
+	@${AS} \
+		${ASFLAGS} \
 		-o $@ \
 		$<
 
