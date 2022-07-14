@@ -11,6 +11,8 @@ export BIN_DIR=${BUILD_DIR}/bin
 export LIB_DIR=${BUILD_DIR}/lib
 export OBJ_DIR=${BUILD_DIR}/obj
 
+export SYSROOT=${BUILD_DIR}/root
+
 .PHONY: all build clean check-dirs
 
 all: check-dirs build
@@ -25,3 +27,4 @@ check-dirs:
 	-mkdir -p ${BIN_DIR}
 	-mkdir -p ${OBJ_DIR}
 	-mkdir -p ${LIB_DIR}
+	-mkdir -p ${SYSROOT}

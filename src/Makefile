@@ -46,11 +46,11 @@ export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
 export TARGET=i686-elf-
 
-.PHONY: all build boot utils kernel modules clean always
+.PHONY: all build boot utils kernel modules sysroot clean always
 
 all: build
 
-build: boot utils kernel modules ${FULLEXEC}
+build: boot utils kernel modules sysroot ${FULLEXEC}
 
 boot:
 	${MAKE} -C ${CURDIR}/boot
@@ -64,6 +64,11 @@ kernel:
 modules:
 	${MAKE} -C ${CURDIR}/modules ${MODULES_TARGET}
 
+sysroot:
+	-mkdir -p ${SYSROOT}/sys
+	cp -a ${BIN_DIR}/zs ${SYSROOT}/sys/
+	cp -a ${BIN_DIR}/modules/ ${SYSROOT}/sys/
+
 clean:
 	${MAKE} -C ${CURDIR}/boot clean
 	${MAKE} -C ${CURDIR}/kernel clean
@@ -76,8 +81,4 @@ ${FULLEXEC}: always
 
 	dd if=${BIN_DIR}/osldr of=$@ conv=notrunc
 
-	mmd -i ${FULLEXEC} ::SYS
-
-	mcopy -i ${FULLEXEC} ${BIN_DIR}/zs ::SYS/
-
-	mcopy -i ${FULLEXEC} ${BIN_DIR}/modules/ ::SYS/
+	mcopy -sp -i ${FULLEXEC} ${SYSROOT}/* ::
