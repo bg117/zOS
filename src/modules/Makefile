@@ -37,8 +37,7 @@ CFLAGS += -fno-stack-check \
 CPPFLAGS := -I ${SRC_DIR}/include/common \
 			-MMD
 
-LDFLAGS := -fpic \
-		   -shared \
+LDFLAGS := -r \
 		   -L ${LIBGCCDIR} \
 		   -L ${LIB_DIR} \
 		   -nostdlib
@@ -49,7 +48,9 @@ build-all:
 	@echo Building all modules in current directory...
 
 	@for i in ${CURDIR}/*/; do \
-		${MAKE} build-module MOD=$$i; \
+		if [ -d "$$i" ]; then \
+			${MAKE} build-module MOD=$$i; \
+		fi \
 	done
 
 build-module:

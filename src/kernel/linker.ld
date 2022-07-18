@@ -25,6 +25,20 @@ SECTIONS
         _etext = .;
     }
 
+    .init ALIGN(4K) : AT(ADDR(.init) - VIRT)
+    {
+        _sinit = .;
+        *(.init)
+        _einit = .;
+    }
+
+    .deinit ALIGN(4K) : AT(ADDR(.deinit) - VIRT)
+    {
+        _sdeinit = .;
+        *(.deinit)
+        _edeinit = .;
+    }
+
     .rodata ALIGN(4K) : AT(ADDR(.rodata) - VIRT)
     {
         _srodata = .;
