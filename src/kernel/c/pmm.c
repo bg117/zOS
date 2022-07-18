@@ -6,6 +6,7 @@
  */
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <kernel/memory/memdefs.h>
@@ -32,7 +33,7 @@ static uint64_t *g_bitmap;
 static uint64_t        g_bitmap_size;
 static PhysicalAddress g_base;
 
-static uint64_t get_first_free_idx(uint64_t *bit);
+static uint64_t get_first_n_free_idx(int n, uint64_t *bit);
 
 void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
@@ -101,44 +102,68 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 
 void *pmm_allocate_page(void)
 {
-    uint64_t bit;
-    uint64_t idx = get_first_free_idx(&bit);
-
-    if (idx == UINT64_MAX)
-    {
-        KSLOG("error: no more free pages left\n");
-        return (void *)MAGIC_NUMBER; // impossible to be returned on normal operation; not page-aligned
-    }
-
-    // it's definitely true that setting metadata in a bitmap is faster than
-    // allocation ;)
-    SETBITVAR(g_bitmap[idx], 1 << bit);
-
-    void *offset = (void *)(PhysicalAddress)((idx * 64 + bit) * PAGE_SIZE);
-    KSLOG("returning page %p\n", offset);
-    return offset;
+    return pmm_allocate_pages(1); // cool trick guys
 }
 
 void pmm_free_page(void *page)
 {
-    PhysicalAddress base_addr = g_base;
-    for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    pmm_free_pages(page, 1);
+}
+
+void *pmm_allocate_pages(int n)
+{
+    KSLOG("allocating %d physical page%s\n", n, n > 1 ? "s" : "");
+
+    uint64_t bit;
+    uint64_t idx = get_first_n_free_idx(n, &bit);
+
+    if (idx == UINT64_MAX)
     {
-        uint32_t idx = i / 64;
+        KSLOG("error: cannot find %d page%s of contiguous memory\n", n, n > 1 ? "s" : "");
+        return (void *)MAGIC_NUMBER; // impossible to be returned on normal operation; not page-aligned
+    }
+
+    // get the bit-level index to the bitmap
+    uint64_t i = idx * 64 + bit;
+    for (int j = 0; i < g_bitmap_size && j < n; j++, i++)
+    {
+        // it's definitely true that setting metadata in a bitmap is faster than
+        // allocation ;)
+        SETBITVAR(g_bitmap[i / 64], 1 << (i % 64));
+    }
+
+    void *offset = (void *)(PhysicalAddress)((idx * 64 + bit) * PAGE_SIZE);
+    KSLOG("returning page base %p\n", offset);
+    return offset;
+}
+
+void pmm_free_pages(void *page_base, int n)
+{
+    KSLOG("freeing %d physical page%s\n", n, n > 1 ? "s" : "");
+
+    PhysicalAddress base_addr = g_base;
+    for (uint64_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    {
+        uint64_t idx = i / 64;
         uint64_t bit = i % 64;
 
-        if (base_addr == (PhysicalAddress)page)
+        if (base_addr == (PhysicalAddress)page_base)
         {
             if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << bit)))
-                UNSETBITVAR(g_bitmap[idx], 1 << bit);
+            {
+                for (int j = 0; j < n; j++, i++)
+                    UNSETBITVAR(g_bitmap[i / 64], 1 << (i % 64));
+            }
             else
-                KSLOG("warning: page %p already free\n", page);
+            {
+                KSLOG("warning: %d page%s starting from %p already free\n", n, n > 1 ? "s" : "", page_base);
+            }
 
             return;
         }
     }
 
-    KSLOG("error: page %p cannot be found in the bitmap\n", page);
+    KSLOG("error: page %p cannot be found in the bitmap\n", page_base);
 }
 
 enum page_status pmm_get_page_status(void *page)
@@ -167,23 +192,47 @@ uint64_t pmm_get_bitmap_length(void)
     return ALIGN(g_bitmap_size, 64) / 64;
 }
 
-uint64_t get_first_free_idx(uint64_t *bit)
+uint64_t get_first_n_free_idx(int n, uint64_t *bit)
 {
-    *bit = 0;
+    bool found = true;
+    *bit       = 0;
 
     for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
         uint64_t idx = i / 64;
         *bit         = i % 64;
 
-        if (g_bitmap[idx] == 0xFFFFFFFFFFFFFFFF)
+        // if all bits set, no free page for this index
+        if (g_bitmap[idx] == UINT64_MAX)
         {
-            i += 63;
+            i += 63; // because continue runs the increment instruction
             continue;
         }
 
-        if (!TESTBIT(g_bitmap[idx], (uint64_t)(1 << *bit)))
-            return idx;
+        // if current bit is set, continue
+        if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << *bit)))
+            continue;
+
+        // if not, look for n free blocks
+        uint64_t init_idx = idx, init_bit = *bit;
+
+        for (int j = 0; i < g_bitmap_size && j < n; j++, i++)
+        {
+            idx  = i / 64;
+            *bit = i % 64;
+
+            if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << *bit)))
+            {
+                found = false;
+                break;
+            }
+        }
+
+        if (found)
+        {
+            *bit = init_bit;
+            return init_idx;
+        }
     }
 
     return UINT64_MAX; // this is impossible to reach

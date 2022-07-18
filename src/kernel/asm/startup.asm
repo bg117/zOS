@@ -190,4 +190,3 @@ SDRIVE_NUMBER:      resd 1
 alignb 0x1000
 resq 0x1000
 STACK_TOP:
-

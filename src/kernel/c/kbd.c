@@ -18,22 +18,6 @@
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
 
-#define NOT_INIT_CHECK(a)                                                                                              \
-    if (!g_is_init)                                                                                                    \
-    {                                                                                                                  \
-        KSLOG("error: not initialized\n");                                                                             \
-        a;                                                                                                             \
-    }
-
-#define INIT_CHECK(a)                                                                                                  \
-    if (g_is_init)                                                                                                     \
-    {                                                                                                                  \
-        KSLOG("warning: already initialized, ignoring\n");                                                             \
-        a;                                                                                                             \
-    }
-
-static int g_is_init;
-
 static const char US_SCANCODES[128] = {
     0,    27,   '1', '2', '3', '4', '5', '6', '7',  '8', '9', '0', '-', '=', '\b', /* Backspace */
     '\t',                                                                          /* Tab */
@@ -76,8 +60,6 @@ static void kbd_handler(InterruptInfo *);
 
 void kbd_init(void)
 {
-    INIT_CHECK(return );
-
     KSLOG("mapping IRQ 1 handler\n");
     isr_map_interrupt_handler(1 + pic_get_pic1_offset(), kbd_handler);
 
@@ -86,27 +68,17 @@ void kbd_init(void)
     g_got_key       = 0;
 
     g_key_flags = 0;
-
-    g_is_init = 1;
 }
 
 void kbd_deinit(void)
 {
-    NOT_INIT_CHECK(return );
-
     KSLOG("unmapping IRQ 1 handler\n");
     isr_unmap_interrupt_handler(1 + pic_get_pic1_offset());
-
-    g_is_init = 0;
 }
 
 ReadKey kbd_get_char(void)
 {
     ReadKey key;
-    key.c         = '\0';
-    key.modifiers = 0;
-
-    NOT_INIT_CHECK(return key);
 
     g_got_key = 0;
     while (!g_got_key)

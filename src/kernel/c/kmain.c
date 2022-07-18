@@ -26,6 +26,7 @@
 #include <utils/mem.h>
 #include <utils/sort.h>
 #include <utils/strings.h>
+#include "kernel/memory/pmm.h"
 
 #define UARROW      0x48
 #define LARROW      0x4B
@@ -67,6 +68,9 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     screen_print_string("zOS version 0.01\nMade with \003 by bg117\n");
 
+    // PMM contiguous memory test
+    void *ten_pages = pmm_allocate_pages(10);
+
     while (1)
     {
         screen_print_string("> ");
@@ -86,6 +90,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     }
 
     screen_clear();
+    pmm_free_pages(ten_pages, 10);
 
     KSLOG("commencing shutdown\n");
 

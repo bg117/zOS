@@ -50,6 +50,21 @@ void *pmm_allocate_page(void);
 void pmm_free_page(void *page);
 
 /**
+ * @brief Allocates n pages and marks them as used.
+ *
+ * @return The allocated page. 4096 bytes multiplied by n.
+ */
+void *pmm_allocate_pages(int n);
+
+/**
+ * @brief Frees the specified pages.
+ *
+ * @param page_base The base address of the pages to be freed.
+ *                  Must be page-aligned.
+ */
+void pmm_free_pages(void *page_base, int n);
+
+/**
  * @brief Gets the status of a page, whether free, used, or unknown.
  *
  * @param page The page to get the status of.

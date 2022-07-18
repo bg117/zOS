@@ -17,7 +17,7 @@
 
 #include <utils/mem.h>
 
-#define PAGE_SIZE    4096
+#define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000
 #define MAGIC_NUMBER 0xDEADC0DE
 #define BITMAP_BITS  786432 // up to 0xC0000000 only
