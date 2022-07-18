@@ -22,9 +22,9 @@ sys_dir_not_found:  mov     si, SYS_DIR_NOT_FOUND_MSG
                     call    print
                     jmp     wait_key_and_reboot
 
-modules_dir_not_found:  mov     si, MODULES_DIR_NOT_FOUND_MSG
-                        call    print
-                        jmp     wait_key_and_reboot
+; modules_dir_not_found:  mov     si, MODULES_DIR_NOT_FOUND_MSG
+;                         call    print
+;                         jmp     wait_key_and_reboot
 
 ata_mod_not_found:  mov     si, ATA_MOD_NOT_FOUND_MSG
                     call    print

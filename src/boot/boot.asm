@@ -409,41 +409,41 @@ real:   ; get memory map
 
         pop     cx
 
-        mov     di, [gen_buffer] ; still contains SYS
+        ; mov     di, [gen_buffer] ; still contains SYS
 
-        ; locate and load MODULES folder
-        .find_mod_dir:  push    cx
-                        push    di
+        ; ; locate and load MODULES folder
+        ; .find_mod_dir:  push    cx
+        ;                 push    di
 
-                        mov     cx, 11
-                        mov     si, MODULES_DIR
-                        repe    cmpsb
+        ;                 mov     cx, 11
+        ;                 mov     si, MODULES_DIR
+        ;                 repe    cmpsb
 
-                        pop     di
-                        pop     cx
+        ;                 pop     di
+        ;                 pop     cx
 
-                        je      .found_mod_dir
-                        add     di, 32 ; next entry
+        ;                 je      .found_mod_dir
+        ;                 add     di, 32 ; next entry
 
-                        loop    .find_mod_dir
+        ;                 loop    .find_mod_dir
 
-        jmp     modules_dir_not_found
+        ; jmp     modules_dir_not_found
 
-        .found_mod_dir: ; DI will be pointing to the directory entry of MODULES
+        ; .found_mod_dir: ; DI will be pointing to the directory entry of MODULES
 
-        ; set up ES and BX for read operation
-        xor     ax, ax
-        mov     es, ax
-        mov     bx, [gen_buffer]
+        ; ; set up ES and BX for read operation
+        ; xor     ax, ax
+        ; mov     es, ax
+        ; mov     bx, [gen_buffer]
 
-        ; read entry
-        mov     si, [fat_buffer]  ; point to start of FAT
+        ; ; read entry
+        ; mov     si, [fat_buffer]  ; point to start of FAT
 
-        call    load_directory_entry
+        ; call    load_directory_entry
 
-        mov     ax, [gen_buffer]  ; initial value of file_buffer; cur_file_size_bytes probably changed
-        add     ax, [cur_file_size_bytes]
-        mov     [file_buffer], ax
+        ; mov     ax, [gen_buffer]  ; initial value of file_buffer; cur_file_size_bytes probably changed
+        ; add     ax, [cur_file_size_bytes]
+        ; mov     [file_buffer], ax
 
         SWITCH_TO_PROTECTED_MODE
 
@@ -507,7 +507,6 @@ FAILED_TO_GET_MMAP_MSG:     db  'Failed to get memory map', 0
 KERNEL_NOT_FOUND_MSG:       db  'Kernel SYS/ZS not found', 0
 ATA_MOD_NOT_FOUND_MSG:      db  'ATA driver SYS/MODULES/ATA.MOD not found', 0
 SYS_DIR_NOT_FOUND_MSG:      db  'SYS directory not found', 0
-MODULES_DIR_NOT_FOUND_MSG:  db  'SYS/MODULES directory not found'
 FAILED_TO_READ_FAT_MSG:     db  'Failed to read the FAT', 0
 KERNEL_FILE:                db  'ZS         '
 SYS_DIR:                    db  'SYS        '
