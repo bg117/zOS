@@ -23,11 +23,12 @@ PageDirectoryEntry page_create_page_directory_entry(uint8_t access_byte, Physica
     return entry;
 }
 
-PageTableEntry page_create_page_table_entry(uint8_t access_byte, PhysicalAddress address)
+PageTableEntry page_create_page_table_entry(uint8_t access_byte, PageFrameStatusFlags status, PhysicalAddress address)
 {
     PageTableEntry entry;
-    entry.access_byte      = access_byte;
-    entry.address_upper_20 = (address & 0xFFFFF000) >> 12;
+    entry.access_byte       = access_byte;
+    entry.page_frame_status = status;
+    entry.address_upper_20  = (address & 0xFFFFF000) >> 12;
 
     return entry;
 }

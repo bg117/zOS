@@ -71,12 +71,15 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     // PMM contiguous memory test
     void *ten_pages = pmm_allocate_pages(10);
 
+    // VMM contiguous memory test
+    void *v_ten_pages = vmm_allocate_pages(10);
+
     while (1)
     {
         screen_print_string("> ");
         char *input = get_keyboard_input();
 
-        screen_print_format_string("Input: %s\n", input);
+        screen_print_format_string("Input: \"%s\"\n", input);
 
         if (str_compare(input, "exit") == 0)
         {
@@ -91,6 +94,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     screen_clear();
     pmm_free_pages(ten_pages, 10);
+    vmm_free_pages(v_ten_pages, 10);
 
     KSLOG("commencing shutdown\n");
 
@@ -200,11 +204,5 @@ static int sort_mmap(const void *i, const void *j)
     const MemoryMapEntry *d1 = i;
     const MemoryMapEntry *d2 = j;
 
-    if (d1->base > d2->base)
-        return 1;
-
-    if (d1->base == d2->base)
-        return 0;
-
-    return -1;
+    return (d1->base > d2->base) - (d1->base < d2->base);
 }

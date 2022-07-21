@@ -16,10 +16,15 @@
 extern "C" {
 #endif
 
+typedef struct page_directory_entry PageDirectoryEntry;
+
 /**
  * @brief Initializes the virtual memory manager.
+ *
+ * @param pgd_phys The physical address of the initial page directory to use.
+ * @param pgd_virt The virtual address of the initial page directory to use.
  */
-void vmm_init(void);
+void vmm_init(PhysicalAddress pgd_phys, VirtualAddress pgd_virt);
 
 /**
  * @brief Allocates a single page of virtual memory.
@@ -34,6 +39,22 @@ void *vmm_allocate_page(void);
  * @param page The page to free.
  */
 void vmm_free_page(void *page);
+
+/**
+ * @brief Allocates n pages of contiguous virtual memory.
+ *
+ * @param n The amount of contiguous pages to allocate.
+ * @return The base of the contiguous pages allocated.
+ */
+void *vmm_allocate_pages(int n);
+
+/**
+ * @brief Frees n pages starting from page_base.
+ *
+ * @param page_base The base of the contiguous virtual pages to free.
+ * @param n The amount of pages to free.
+ */
+void vmm_free_pages(void *page_base, int n);
 
 /**
  * @brief Maps the virtual address to the corresponding physical
@@ -58,6 +79,13 @@ void vmm_unmap_page(VirtualAddress virt);
  * @return The physical address that the virtual page is mapped to.
  */
 PhysicalAddress vmm_get_phys(VirtualAddress virt);
+
+/**
+ * @brief Uses the specified page directory for mapping pages.
+ *
+ * @param pgd The page directory to use.
+ */
+void vmm_switch(PageDirectoryEntry *pgd);
 
 #ifdef __cplusplus
 }

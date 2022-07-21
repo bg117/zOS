@@ -48,6 +48,15 @@ typedef enum page_table_access_flags
 } PageTableAccessFlags;
 
 /**
+ * @brief Represents the status of a page frame.
+ */
+typedef enum page_frame_status_flags
+{
+    PGF_STATUS_USED = 0x01,
+    PGF_STATUS_FREE = 0x00
+} PageFrameStatusFlags;
+
+/**
  * @brief Represents a page directory entry, used by the Memory Management
  *        Unit.
  */
@@ -64,8 +73,11 @@ typedef struct __attribute__((packed)) page_directory_entry
  */
 typedef struct __attribute__((packed)) page_table_entry
 {
-    uint8_t         access_byte;
-    uint8_t         reserved : 4;
+    uint8_t access_byte;
+
+    /* originally the 'AVAILABLE' half-byte, we
+       repurpose it to contain the status of the page frame */
+    uint8_t         page_frame_status : 4;
     PhysicalAddress address_upper_20 : 20;
 } PageTableEntry;
 
@@ -83,10 +95,11 @@ PageDirectoryEntry page_create_page_directory_entry(uint8_t access_byte, Physica
  * @brief Creates a single page table entry with the specified attributes.
  *
  * @param access_byte The access flags of the entry.
+ * @param status The status of the page frame the entry points to.
  * @param address The address of the page frame that this entry points to.
  * @return The page table entry created.
  */
-PageTableEntry page_create_page_table_entry(uint8_t access_byte, PhysicalAddress address);
+PageTableEntry page_create_page_table_entry(uint8_t access_byte, PageFrameStatusFlags status, PhysicalAddress address);
 
 /**
  * @brief Loads the specified page directory into the CR3 register.

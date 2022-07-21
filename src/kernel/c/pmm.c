@@ -194,13 +194,13 @@ uint64_t pmm_get_bitmap_length(void)
 
 uint64_t get_first_n_free_idx(int n, uint64_t *bit)
 {
-    bool found = true;
-    *bit       = 0;
+    *bit = 0;
 
-    for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; base_addr += PAGE_SIZE)
     {
-        uint64_t idx = i / 64;
-        *bit         = i % 64;
+        bool     found = true;
+        uint64_t idx   = i / 64;
+        *bit           = i % 64;
 
         // if all bits set, no free page for this index
         if (g_bitmap[idx] == UINT64_MAX)
@@ -211,7 +211,10 @@ uint64_t get_first_n_free_idx(int n, uint64_t *bit)
 
         // if current bit is set, continue
         if (TESTBIT(g_bitmap[idx], (uint64_t)(1 << *bit)))
+        {
+            i++;
             continue;
+        }
 
         // if not, look for n free blocks
         uint64_t init_idx = idx, init_bit = *bit;

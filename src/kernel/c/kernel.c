@@ -34,6 +34,8 @@
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
 
+extern PageDirectoryEntry SYS_PGDIR;
+
 static GdtEntry      g_gdt[5];
 static GdtDescriptor g_gdt_desc;
 
@@ -85,7 +87,7 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
     pmm_init(mmap, mmap_length);
 
     KSLOG("initializing the virtual memory manager\n");
-    vmm_init();
+    vmm_init((PhysicalAddress)&SYS_PGDIR - 0xC0000000, (VirtualAddress)&SYS_PGDIR);
 
     KSLOG("initializing the Programmable Interrupt Controller\n");
     pic_init(PIC1_OFFSET, PIC2_OFFSET);

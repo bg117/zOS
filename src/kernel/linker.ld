@@ -57,9 +57,5 @@ SECTIONS
     . += 128K; /* the max size for a bitmap (4G) */
     _epmm_bitmap = .;
 
-    _svmm_bitmap = .;
-    . += 96K; /* VIRT / PAGE_SIZE / 8 */
-    _evmm_bitmap = .;
-
     _eprog = . - VIRT;
 }

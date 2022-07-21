@@ -5,6 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <stdbool.h>
+
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
@@ -20,115 +22,82 @@
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000
 #define MAGIC_NUMBER 0xDEADC0DE
-#define BITMAP_BITS  786432 // up to 0xC0000000 only
 
 #define VADDR_GET_PAGE_DIR_IDX(vaddr) (((vaddr) >> 22) & 0x3FF)
 #define VADDR_GET_PAGE_TAB_IDX(vaddr) (((vaddr) >> 12) & 0x3FF)
 #define VADDR_GET_PAGE_FRM_OFF(vaddr) ((vaddr)&0xFFF)
 
-/* defined in the linker script */
-extern uint8_t _sprog, _svmm_bitmap, _eprog;
-
-static uint32_t *g_bitmap;
-
-// size of the bitmap in bits
-static PhysicalAddress g_base;
-
 extern uint32_t SYS_PGDIR;
 
 static PageDirectoryEntry *g_pgdir;
 
-static uint32_t get_first_free_idx(uint32_t *bit);
+static VirtualAddress get_free_base(int n);
 
-void vmm_init(void)
+void vmm_init(PhysicalAddress pgd_phys, VirtualAddress pgd_virt)
 {
-    g_pgdir = (PageDirectoryEntry *)(&SYS_PGDIR);
-    KSLOG("initial page directory located at %p\n", (void *)g_pgdir);
+    page_load_page_directory((PageDirectoryEntry *)pgd_phys);
+    g_pgdir = (PageDirectoryEntry *)pgd_virt;
+}
 
-    g_bitmap = (uint32_t *)(&_svmm_bitmap);
+void vmm_switch(PageDirectoryEntry *pgd)
+{
+    KSLOG("switching to new page directory located at 0x%08X\n", (PhysicalAddress)vmm_get_phys((VirtualAddress)pgd));
 
-    g_base = 0;
-
-    KSLOG("marking kernel as used\n");
-
-    // mark bitmap and kernel as used
-    uint32_t reserved = (PhysicalAddress)(&_eprog) - (PhysicalAddress)(&_sprog);
-    reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
-    for (uint32_t i = ((PhysicalAddress)(&_sprog) + VIRTUAL_BASE) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
-    {
-        uint32_t idx = i / 64;
-        uint32_t bit = i % 64;
-
-        SETBITVAR(g_bitmap[idx], 1 << bit);
-    }
-
-    page_load_page_directory((PageDirectoryEntry *)((VirtualAddress)g_pgdir - VIRTUAL_BASE));
+    page_load_page_directory((PageDirectoryEntry *)vmm_get_phys((VirtualAddress)pgd));
+    g_pgdir = pgd;
 }
 
 void *vmm_allocate_page()
 {
-    void    *page = pmm_allocate_page();
-    uint32_t bit;
-    uint32_t idx = get_first_free_idx(&bit);
-
-    if ((PhysicalAddress)page == MAGIC_NUMBER)
-    {
-        KSLOG("error: no more physical pages left\n");
-        return (void *)MAGIC_NUMBER;
-    }
-
-    if (idx == UINT32_MAX)
-    {
-        KSLOG("error: out of memory\n");
-        return (void *)MAGIC_NUMBER;
-    }
-
-    SETBITVAR(g_bitmap[idx], 1 << bit);
-
-    VirtualAddress addr = (idx * 64 + bit) * PAGE_SIZE;
-    vmm_map_page((PhysicalAddress)page, addr);
-
-    KSLOG("returning page 0x%x\n", addr);
-
-    return (void *)addr;
+    return vmm_allocate_pages(1);
 }
 
 void vmm_free_page(void *page)
 {
-    if (((VirtualAddress)page & 0xFFF))
+    vmm_free_pages(page, 1);
+}
+
+void *vmm_allocate_pages(int n)
+{
+    if (n == 0)
     {
-        KSLOG("error: page %p not page-aligned\n", page);
+        KSLOG("error: trying to allocate 0 pages\n");
+        return (void *)MAGIC_NUMBER;
+    }
+
+    VirtualAddress base = get_free_base(n), addr = base;
+
+    if (base == MAGIC_NUMBER)
+    {
+        KSLOG("error: cannot find %d %s\n", n, n > 1 ? "contiguous pages" : "page");
+        return (void *)MAGIC_NUMBER;
+    }
+
+    for (int i = 0; i < n; i++, base += PAGE_SIZE)
+        vmm_map_page((PhysicalAddress)pmm_allocate_page(), base);
+
+    return (void *)addr;
+}
+
+void vmm_free_pages(void *page_base, int n)
+{
+    if (n == 0)
+    {
+        KSLOG("error: trying to allocate 0 pages\n");
         return;
     }
 
-    PhysicalAddress phys = vmm_get_phys((VirtualAddress)page);
-    vmm_unmap_page((VirtualAddress)page);
-
-    pmm_free_page((void *)phys);
-
-    PhysicalAddress base_addr = g_base;
-    for (uint32_t i = 0; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
+    VirtualAddress base = (VirtualAddress)page_base;
+    for (int i = 0; i < n; i++, base += PAGE_SIZE)
     {
-        uint32_t idx = i / 64;
-        uint32_t bit = i % 64;
-
-        if (base_addr == (PhysicalAddress)page)
-        {
-            if (TESTBIT(g_bitmap[idx], (uint32_t)(1 << bit)))
-                UNSETBITVAR(g_bitmap[idx], 1 << bit);
-            else
-                KSLOG("warning: page %p already free\n", page);
-
-            return;
-        }
+        pmm_free_page((void *)vmm_get_phys(base));
+        vmm_unmap_page(base);
     }
-
-    KSLOG("error: page %p cannot be found in the bitmap\n", page);
 }
 
 void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 {
-    KSLOG("mapping page 0x%X to physical address 0x%X\n", virt, phys);
+    KSLOG("mapping page 0x%08X to physical address 0x%08X\n", virt, phys);
 
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
@@ -143,28 +112,32 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
     }
 
     PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
-    page_tab[tab_idx] = page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, phys & 0xFFFFF000);
+    if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
+    {
+        KSLOG("error: trying to map physical 0x%08X to used page 0x%08X\n", phys, virt);
+        return;
+    }
+
+    page_tab[tab_idx] = page_create_page_table_entry(
+        PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, PGF_STATUS_USED, phys & 0xFFFFF000);
 }
 
 void vmm_unmap_page(VirtualAddress virt)
 {
-    KSLOG("unmapping page 0x%X\n", virt);
+    KSLOG("unmapping page 0x%08X\n", virt);
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
-    PageTableEntry *page_tab      = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
-    page_tab[tab_idx]             = page_create_page_table_entry(0xDE, 0xDC0DE000 /* shifted 12 bits to the right */);
-    page_tab[tab_idx].access_byte = 0xA;
+    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+    SETBITVAR(page_tab[tab_idx].page_frame_status, PGF_STATUS_FREE);
 
-    int is_empty = 1;
+    bool is_empty = true;
     // check if the page table is empty
-    for (int i = 0; i < 1024; i++)
+    for (int i = 0; i < PAGE_SIZE; i++)
     {
-        // looks like 0xDEADCODE
-        if (!(page_tab[i].access_byte == 0xDE && page_tab[i].reserved == 0xA
-              && page_tab[i].address_upper_20 == 0xDC0DE))
+        if (TESTBIT(page_tab[i].page_frame_status, PGF_STATUS_USED))
         {
-            is_empty = 0;
+            is_empty = false;
             break;
         }
     }
@@ -174,6 +147,7 @@ void vmm_unmap_page(VirtualAddress virt)
     {
         KSLOG("found empty page table, freeing\n");
         pmm_free_page((void *)(PhysicalAddress)(g_pgdir[dir_idx].address_upper_20 << 12));
+        g_pgdir[dir_idx] = page_create_page_directory_entry(0, 0);
     }
 
     // flush the TLB entry, of course
@@ -191,24 +165,27 @@ PhysicalAddress vmm_get_phys(VirtualAddress virt)
     return phys;
 }
 
-uint32_t get_first_free_idx(uint32_t *bit)
+VirtualAddress get_free_base(int n)
 {
-    *bit = 0;
-
-    for (uint32_t i = 0, base_addr = g_base; i < BITMAP_BITS; i++, base_addr += PAGE_SIZE)
+    VirtualAddress base = 0;
+    for (VirtualAddress lim = base; lim < VIRTUAL_BASE;)
     {
-        uint32_t idx = i / 32;
-        *bit         = i % 32;
-
-        if (g_bitmap[idx] == 0xFFFFFFFF)
+        VirtualAddress init_addr = lim;
+        bool           found     = true;
+        for (int i = 0; i < n; i++, lim += PAGE_SIZE)
         {
-            i += 31;
-            continue;
+            uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
+            uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
+
+            PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+
+            if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
+                found = false;
         }
 
-        if (!TESTBIT(g_bitmap[idx], (uint32_t)(1 << *bit)))
-            return idx;
+        if (found)
+            return init_addr;
     }
 
-    return UINT32_MAX; // this is impossible to reach
+    return MAGIC_NUMBER;
 }
