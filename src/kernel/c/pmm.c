@@ -19,6 +19,7 @@
 #include <kernel/misc/log_macros.h>
 
 #include <utils/mem.h>
+#include "kernel/memory/page.h"
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000
@@ -133,7 +134,7 @@ void *pmm_allocate_pages(int n)
     }
 
     void *offset = (void *)(PhysicalAddress)((idx * 64 + bit) * PAGE_SIZE);
-    KSLOG("returning page base %p\n", offset);
+    KSLOG("returning page base 0x%08X\n", (PhysicalAddress)offset);
     return offset;
 }
 
@@ -156,14 +157,17 @@ void pmm_free_pages(void *page_base, int n)
             }
             else
             {
-                KSLOG("warning: %d page%s starting from %p already free\n", n, n > 1 ? "s" : "", page_base);
+                KSLOG("warning: %d page%s starting from 0x%08X already free\n",
+                      n,
+                      n > 1 ? "s" : "",
+                      (PhysicalAddress)page_base);
             }
 
             return;
         }
     }
 
-    KSLOG("error: page %p cannot be found in the bitmap\n", page_base);
+    KSLOG("error: page 0x%08X cannot be found in the bitmap\n", (PhysicalAddress)page_base);
 }
 
 enum page_status pmm_get_page_status(void *page)
@@ -183,7 +187,7 @@ enum page_status pmm_get_page_status(void *page)
         }
     }
 
-    KSLOG("warning: cannot get status of page %p\n", page);
+    KSLOG("warning: cannot get status of page 0x%08X\n", (PhysicalAddress)page);
     return PS_UNKNOWN;
 }
 
@@ -196,7 +200,7 @@ uint64_t get_first_n_free_idx(int n, uint64_t *bit)
 {
     *bit = 0;
 
-    for (uint64_t i = 0, base_addr = g_base; i < g_bitmap_size; base_addr += PAGE_SIZE)
+    for (uint64_t i = 0; i < g_bitmap_size;)
     {
         bool     found = true;
         uint64_t idx   = i / 64;
@@ -205,7 +209,7 @@ uint64_t get_first_n_free_idx(int n, uint64_t *bit)
         // if all bits set, no free page for this index
         if (g_bitmap[idx] == UINT64_MAX)
         {
-            i += 63; // because continue runs the increment instruction
+            i += 64;
             continue;
         }
 
