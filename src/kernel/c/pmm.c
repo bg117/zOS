@@ -28,19 +28,36 @@
 /* defined in the linker script */
 extern uint8_t _sprog, _spmm_bitmap, _eprog;
 
-static uint64_t *g_bitmap;
+static uint64_t *g_bitmap; // more efficient comparison; 64 bits each
 
 // size of the bitmap in bits
-static uint64_t        g_bitmap_size;
+static uint32_t        g_bitmap_size;
 static PhysicalAddress g_base;
 
-static uint64_t get_first_n_free_idx(int n, uint64_t *bit);
+static uint32_t get_first_n_free_idx(int n, uint32_t *bit);
 
 void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
     g_bitmap = (uint64_t *)(&_spmm_bitmap);
+    g_base   = 0;
 
-    g_base        = 0;
+    // limit address space to UINT32_MAX (0xFFFFFFFF)
+    for (size_t i = 0; i < mmap_length; i++)
+    {
+        if ((uint64_t)mmap[i].base > UINT32_MAX)
+        {
+            mmap_length = i;
+            break;
+        }
+
+        if ((uint64_t)mmap[i].base + mmap[i].length > UINT32_MAX)
+        {
+            mmap_length    = i + 1; // current index
+            mmap[i].length = UINT32_MAX - mmap[i].base;
+        }
+    }
+
+    // now, the memory map is limited to 0xFFFFFFFF
     g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
     g_bitmap_size = ALIGN(g_bitmap_size, PAGE_SIZE) / PAGE_SIZE;
 
@@ -53,8 +70,8 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 
         KSLOG("found reserved area (%d), marking as used\n", i);
 
-        uint64_t base_lower = mmap[i].base;
-        uint64_t base_upper;
+        uint32_t base_lower = mmap[i].base; // limited to 32 bits
+        uint32_t base_upper;
         // get length of usable areas
         while (i < mmap_length && mmap[i].type != 0x01)
             ++i;
@@ -74,11 +91,11 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         base_lower = base_lower / PAGE_SIZE;
         base_upper = ALIGN(base_upper, PAGE_SIZE) / PAGE_SIZE;
 
-        uint64_t length = base_upper - base_lower;
-        for (uint64_t j = base_lower, k = 0; j < g_bitmap_size && k < length; j++, k++)
+        uint32_t length = base_upper - base_lower;
+        for (uint32_t j = base_lower, k = 0; j < g_bitmap_size && k < length; j++, k++)
         {
-            uint64_t idx = j / 64;
-            uint64_t bit = j % 64;
+            uint32_t idx = j / 64;
+            uint32_t bit = j % 64;
 
             SETBITVAR(g_bitmap[idx], 1 << bit);
         }
@@ -91,8 +108,8 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
     reserved          = ALIGN(reserved, PAGE_SIZE) / PAGE_SIZE;
     for (uint32_t i = (PhysicalAddress)(&_sprog) / PAGE_SIZE, j = 0; j < reserved; i++, j++)
     {
-        uint64_t idx = i / 64;
-        uint64_t bit = i % 64;
+        uint32_t idx = i / 64;
+        uint32_t bit = i % 64;
 
         SETBITVAR(g_bitmap[idx], 1 << bit);
     }
@@ -115,17 +132,17 @@ void *pmm_allocate_pages(int n)
 {
     KSLOG("allocating %d physical page%s\n", n, n > 1 ? "s" : "");
 
-    uint64_t bit;
-    uint64_t idx = get_first_n_free_idx(n, &bit);
+    uint32_t bit;
+    uint32_t idx = get_first_n_free_idx(n, &bit);
 
-    if (idx == UINT64_MAX)
+    if (idx == UINT32_MAX)
     {
         KSLOG("error: cannot find %d page%s of contiguous memory\n", n, n > 1 ? "s" : "");
         return (void *)MAGIC_NUMBER; // impossible to be returned on normal operation; not page-aligned
     }
 
     // get the bit-level index to the bitmap
-    uint64_t i = idx * 64 + bit;
+    uint32_t i = idx * 64 + bit;
     for (int j = 0; i < g_bitmap_size && j < n; j++, i++)
     {
         // it's definitely true that setting metadata in a bitmap is faster than
@@ -143,10 +160,10 @@ void pmm_free_pages(void *page_base, int n)
     KSLOG("freeing %d physical page%s\n", n, n > 1 ? "s" : "");
 
     PhysicalAddress base_addr = g_base;
-    for (uint64_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
+    for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
-        uint64_t idx = i / 64;
-        uint64_t bit = i % 64;
+        uint32_t idx = i / 64;
+        uint32_t bit = i % 64;
 
         if (base_addr == (PhysicalAddress)page_base)
         {
@@ -176,7 +193,7 @@ enum page_status pmm_get_page_status(void *page)
     for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
     {
         uint32_t idx = i / 64;
-        uint64_t bit = i % 64;
+        uint32_t bit = i % 64;
 
         if (base_addr == (PhysicalAddress)page)
         {
@@ -196,14 +213,14 @@ uint64_t pmm_get_bitmap_length(void)
     return ALIGN(g_bitmap_size, 64) / 64;
 }
 
-uint64_t get_first_n_free_idx(int n, uint64_t *bit)
+uint32_t get_first_n_free_idx(int n, uint32_t *bit)
 {
     *bit = 0;
 
-    for (uint64_t i = 0; i < g_bitmap_size;)
+    for (uint32_t i = 0; i < g_bitmap_size;)
     {
         bool     found = true;
-        uint64_t idx   = i / 64;
+        uint32_t idx   = i / 64;
         *bit           = i % 64;
 
         // if all bits set, no free page for this index
@@ -221,7 +238,7 @@ uint64_t get_first_n_free_idx(int n, uint64_t *bit)
         }
 
         // if not, look for n free blocks
-        uint64_t init_idx = idx, init_bit = *bit;
+        uint32_t init_idx = idx, init_bit = *bit;
 
         for (int j = 0; i < g_bitmap_size && j < n; j++, i++)
         {
@@ -242,5 +259,5 @@ uint64_t get_first_n_free_idx(int n, uint64_t *bit)
         }
     }
 
-    return UINT64_MAX; // this is impossible to reach
+    return UINT32_MAX; // this is impossible to reach
 }

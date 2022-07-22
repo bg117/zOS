@@ -7,7 +7,7 @@ EXEC     := libutils.a
 FULLEXEC := ${LIB_DIR}/${EXEC}
 
 SRCS := ${wildcard ${CURDIR}/*.c}
-OBJS := ${subst ${CURDIR},${OBJ_DIR},${SRCS:.c=.utils.o}}
+OBJS := ${subst ${CURDIR},${OBJ_DIR},${SRCS:.c=.utils.c.o}}
 
 LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 
@@ -22,7 +22,7 @@ ARFLAGS := crs
 
 .PHONY: all build format clean
 
-all: build
+all: format build
 
 build:
 	@echo Building libutils sources...
@@ -43,7 +43,7 @@ ${FULLEXEC}: ${OBJS}
 		$@ \
 		$^
 
-${OBJ_DIR}/%.utils.o: ${CURDIR}/%.c
+${OBJ_DIR}/%.utils.c.o: ${CURDIR}/%.c
 	@echo Compiling libutils: ${notdir $<}...
 	@${CC} \
 		${CFLAGS} \

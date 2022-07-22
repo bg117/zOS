@@ -31,8 +31,8 @@ SRCS_ASM := ${wildcard ${CURDIR}/asm/*.asm}
 SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
 SRCS_H   := ${wildcard ${SRC_DIR}/include/common/kernel/*.h}
 
-OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.o}}
-OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.o}}
+OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.k.asm.o}}
+OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.k.c.o}}
 
 HDRS := ${OBJS_C:.o=.d}
 
@@ -68,7 +68,7 @@ ${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
 		-lutils \
 		-lgcc
 
-${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
+${OBJ_DIR}/%.k.c.o: ${CURDIR}/c/%.c
 	@echo Compiling kernel: ${notdir $<}
 	@${CC} \
 		${CFLAGS} \
@@ -77,7 +77,7 @@ ${OBJ_DIR}/%.o: ${CURDIR}/c/%.c
 		-o $@ \
 		$<
 
-${OBJ_DIR}/%.o: ${CURDIR}/asm/%.asm
+${OBJ_DIR}/%.k.asm.o: ${CURDIR}/asm/%.asm
 	@echo Assembling kernel: ${notdir $<}
 	@${AS} \
 		${ASFLAGS} \

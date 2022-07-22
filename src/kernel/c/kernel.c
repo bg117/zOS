@@ -5,6 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <kernel/kernel.h>
@@ -30,6 +31,7 @@
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
+#include "utils/strings.h"
 
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
@@ -145,6 +147,22 @@ void init_gdt(void)
                               0x0000,
                               GDT_AX_PRESENT | GDT_AX_PRIV_RING3 | GDT_AX_DATA | GDT_AX_DATA_WRITABLE,
                               GDT_OF_GRANULARITY | GDT_OF_32BIT);
+}
+
+void kernel_panic(const char *file, int line, const char *msg)
+{
+    bool nomsg = str_compare(msg, EMPTY_PANIC_MSG) == 0;
+
+    KSLOG("kernel panic thrown at %s:%d\n", file, line);
+    if (!nomsg)
+        KSLOG("message: %s\n", msg);
+
+    screen_print_string("--------------- KERNEL PANIC ---------------\n");
+    screen_print_format_string("A kernel panic occurred at line %d of %s.\n", line, file);
+    if (!nomsg)
+        screen_print_format_string("Extra information: %s\n", msg);
+
+    __asm__ volatile("nop; cli; hlt");
 }
 
 void load_gdt(void)

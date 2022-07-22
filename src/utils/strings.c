@@ -5,9 +5,10 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <stdbool.h>
 #include <stddef.h>
-
 #include <stdint.h>
+
 #include <utils/chars.h>
 #include <utils/strings.h>
 
@@ -60,4 +61,44 @@ int str_compare(const char *s1, const char *s2)
     }
 
     return (*us1 > *us2) - (*us1 < *us2);
+}
+
+const char *str_get_first_occ(const char *s, char c)
+{
+    if (c == '\0')
+        return s + str_get_length(s);
+
+    size_t i = 0;
+    while (s[i] != '\0')
+    {
+        if (s[i] == c)
+            return s + i;
+    }
+
+    return NULL;
+}
+
+static volatile bool g_always_true = true;
+
+const char *str_get_last_occ(const char *s, char c)
+{
+    size_t i = str_get_length(s);
+    if (c == '\0')
+        return s + i;
+
+    while (g_always_true)
+    {
+        if (s[i] == c)
+            return s + i;
+
+        if (i == 0)
+            break;
+
+        --i;
+    }
+
+    if (i == 0 && s[i] != c)
+        return NULL;
+
+    return s + i;
 }

@@ -73,7 +73,8 @@ export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
 
 CMP_SERIAL_STDOUT := ${shell echo ${SERIAL_STDOUT} | tr '[:upper:]' '[:lower:]'}
-QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw
+QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw \
+					 -m 5G
 
 ifeq (${CMP_SERIAL_STDOUT},yes)
 	QEMUFLAGS += -serial stdio
@@ -113,12 +114,12 @@ clean:
 
 run-qemu:
 	@echo Running zOS on QEMU...
-	qemu-system-i386 \
+	@qemu-system-i386 \
 		${QEMUFLAGS}
 
 run-bochs:
 	@echo Running zOS on Bochs...
-	bochs \
+	@bochs \
 		-q \
 		-f ${BOCHSRC}
 

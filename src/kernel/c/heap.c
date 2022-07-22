@@ -27,3 +27,11 @@ void heap_init(size_t init_size)
     g_total_pages = ALIGN(init_size, PAGE_SIZE);
     vmm_allocate_pages(g_total_pages);
 }
+
+void *heap_allocate(size_t size)
+{
+}
+
+void heap_free(void *ptr)
+{
+}
