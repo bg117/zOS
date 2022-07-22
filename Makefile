@@ -7,8 +7,12 @@ ifndef VERBOSE
 MAKEFLAGS += --no-print-directory
 endif
 
-BUILD_TYPE ?= debug
-CMP_BUILD_TYPE := ${shell echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]'}
+BUILD_TYPE    ?= debug
+SERIAL_STDOUT ?=
+SERIAL_OUTPUT ?=
+
+CMP_BUILD_TYPE    := ${shell echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]'}
+CMP_SERIAL_STDOUT := ${shell echo ${SERIAL_STDOUT} | tr '[:upper:]' '[:lower:]'}
 
 COMFLAGS := -Wall \
 			-Wextra \
@@ -22,30 +26,13 @@ ifeq (${CMP_BUILD_TYPE},debug)
 	COMFLAGS += -O0 \
 				-g
 else ifeq (${CMP_BUILD_TYPE},release)
-	COMFLAGS += -O1 \
-				-fcaller-saves \
-				-fcode-hoisting \
-				-fcrossjumping \
-				-fcse-follow-jumps \
-				-fcse-skip-blocks \
-				-fdelete-null-pointer-checks \
-				-fdevirtualize \
-				-fdevirtualize-speculatively \
-				-ffinite-loops \
-				-fgcse \
-				-fgcse-lm  \
-				-fhoist-adjacent-loads \
-				-fipa-bit-cp \
-				-fipa-cp \
-				-fipa-icf \
-				-fipa-ra \
-				-fipa-sra \
-				-fipa-vrp \
-				-fisolate-erroneous-paths-dereference \
-				-flra-remat \
-				-finline-functions \
-				-finline-small-functions \
-				-findirect-inlining
+	COMFLAGS += -O2 \
+				-fno-align-functions \
+				-fno-align-jumps \
+				-fno-align-labels \
+				-fno-align-loops \
+				-fno-prefetch-loop-arrays \
+				-fno-expensive-optimizations
 else
 	${error Unknown build type: ${BUILD_TYPE}}
 endif
@@ -72,8 +59,7 @@ export SYSROOT=${BUILD_DIR}/root
 export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
 
-CMP_SERIAL_STDOUT := ${shell echo ${SERIAL_STDOUT} | tr '[:upper:]' '[:lower:]'}
-QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw
+QEMUFLAGS := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw
 
 ifeq (${CMP_SERIAL_STDOUT},yes)
 	QEMUFLAGS += -serial stdio

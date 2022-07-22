@@ -11,6 +11,7 @@ LIBGCCDIR := ${shell dirname `${CC} -print-libgcc-file-name`}
 ASFLAGS := -f elf32
 
 CFLAGS += -fno-stack-check \
+		  -fno-strict-aliasing \
 		  -ffreestanding \
 		  -nostdlib
 
