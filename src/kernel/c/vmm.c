@@ -30,8 +30,6 @@
 
 #define GET_RECURSIVE_PAGE_TAB(dir_idx) (RECURSIVE_PAGE_TAB_BASE + (dir_idx)*PAGE_SIZE)
 
-extern uint32_t SYS_PGDIR;
-
 static PageDirectoryEntry *g_pgdir;
 
 static VirtualAddress get_free_base(int n);
