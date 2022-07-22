@@ -12,7 +12,9 @@
 
 #include <kernel/fs/fat.h>
 
+#include <kernel/memory/heap.h>
 #include <kernel/memory/mmap.h>
+#include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
 
 #include <kernel/hw/kbd.h>
@@ -26,13 +28,12 @@
 #include <utils/mem.h>
 #include <utils/sort.h>
 #include <utils/strings.h>
-#include "kernel/memory/pmm.h"
 
 #define UARROW      0x48
 #define LARROW      0x4B
 #define RARROW      0x4D
 #define DARROW      0x50
-#define MAX_KBD_BUF 0xFFF
+#define MAX_KBD_BUF 919
 
 static char *get_keyboard_input(void);
 
@@ -72,6 +73,9 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     // VMM contiguous memory test
     void *v_ten_pages = vmm_allocate_pages(10);
+    // heap test
+    void *p = heap_allocate(23);
+    heap_free(p);
 
     while (1)
     {
@@ -82,13 +86,13 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
         if (str_compare(input, "exit") == 0)
         {
-            vmm_free_page(input);
+            heap_free(input);
             break;
         }
 
         screen_print_string("Error: function not yet implemented\n");
 
-        vmm_free_page(input);
+        heap_free(input);
     }
 
     screen_clear();
@@ -108,7 +112,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 // can probably be used if I make a command-line interpreter in the near future
 char *get_keyboard_input(void)
 {
-    char   *buf = vmm_allocate_page();
+    char   *buf = heap_allocate(MAX_KBD_BUF);
     int     idx = 0;
     int     top = 0;
     ReadKey key = kbd_get_char();

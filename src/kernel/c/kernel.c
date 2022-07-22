@@ -18,6 +18,7 @@
 #include <kernel/int/isr.h>
 #include <kernel/int/pic.h>
 
+#include <kernel/memory/heap.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/mmap.h>
 #include <kernel/memory/page.h>
@@ -31,7 +32,8 @@
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
-#include "utils/strings.h"
+
+#include <utils/strings.h>
 
 #define PIC1_OFFSET 0x20
 #define PIC2_OFFSET 0x28
@@ -90,6 +92,9 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 
     KSLOG("initializing the virtual memory manager\n");
     vmm_init((PhysicalAddress)&SYS_PGDIR - 0xC0000000, (VirtualAddress)&SYS_PGDIR);
+
+    KSLOG("initializing the kernel heap\n");
+    heap_init(8192);
 
     KSLOG("initializing the Programmable Interrupt Controller\n");
     pic_init(PIC1_OFFSET, PIC2_OFFSET);

@@ -95,7 +95,7 @@ startup:
                 jb      .readonly
 
                 mov     edx, esi
-                or      edx, 0x03   ; read-write, present
+                or      edx, 0x103   ; AVAILABLE=1, read-write, present
                 mov     es:[edi], edx
                 jmp     .2
 
@@ -135,9 +135,10 @@ section .text
                         mov     ecx, 191 * 4 ; 0x000BF000
                         mov     eax, 0xA0000
                         mov     ebx, SYS_PGTAB_VGA
+                        mov     [ebx], dword 0x00000100 ; mark first page (0x0000-0x0FFF) as not present, AVAILABLE=1 for null check
                         add     ebx, edx
 
-                        .identity_map_vga:  or      eax, 0x03
+                        .identity_map_vga:  or      eax, 0x103 ; AVAILABLE=1
                                             mov     [ebx], eax
                                             cmp     edx, ecx
                                             jae     .map_end
