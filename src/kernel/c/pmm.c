@@ -52,8 +52,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 
         if ((uint64_t)mmap[i].base + mmap[i].length > UINT32_MAX)
         {
-            mmap_length = i + 1; // current index
-            uint64_t bs = mmap[i].base, len = mmap[i].length;
+            mmap_length    = i + 1; // current index
             mmap[i].length = UINT32_MAX - mmap[i].base;
             break;
         }
