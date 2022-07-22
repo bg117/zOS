@@ -10,9 +10,8 @@ Roadmap:
 - [x] Keyboard input
 - [x] Physical and virtual memory management
 - [x] Heap
-- [ ] Module loading
-- [ ] Device drivers
 - [ ] Virtual file system
+- [ ] Device drivers
 - [ ] Dynamic linking
 - [ ] Userspace
 - [ ] Graphics mode
