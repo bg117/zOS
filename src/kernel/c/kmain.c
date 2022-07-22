@@ -33,7 +33,7 @@
 #define LARROW      0x4B
 #define RARROW      0x4D
 #define DARROW      0x50
-#define MAX_KBD_BUF 919
+#define MAX_KBD_BUF 920
 
 static char *get_keyboard_input(void);
 
@@ -112,7 +112,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 // can probably be used if I make a command-line interpreter in the near future
 char *get_keyboard_input(void)
 {
-    char   *buf = heap_allocate(8192);
+    char   *buf = heap_allocate(MAX_KBD_BUF);
     int     idx = 0;
     int     top = 0;
     ReadKey key = kbd_get_char();

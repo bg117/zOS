@@ -9,7 +9,7 @@ Roadmap:
 - [x] Screen printing
 - [x] Keyboard input
 - [x] Physical and virtual memory management
-- [ ] Heap
+- [x] Heap
 - [ ] Module loading
 - [ ] Device drivers
 - [ ] Virtual file system
