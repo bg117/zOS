@@ -73,8 +73,7 @@ export CFLAGS=${COMFLAGS}
 export CXXFLAGS=${COMFLAGS}
 
 CMP_SERIAL_STDOUT := ${shell echo ${SERIAL_STDOUT} | tr '[:upper:]' '[:lower:]'}
-QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw \
-					 -m 5G
+QEMUFLAGS         := -drive file=${BUILD_DIR}/zos-dev-build.img,format=raw
 
 ifeq (${CMP_SERIAL_STDOUT},yes)
 	QEMUFLAGS += -serial stdio

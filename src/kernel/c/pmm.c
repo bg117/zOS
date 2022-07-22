@@ -52,14 +52,17 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
 
         if ((uint64_t)mmap[i].base + mmap[i].length > UINT32_MAX)
         {
-            mmap_length    = i + 1; // current index
+            mmap_length = i + 1; // current index
+            uint64_t bs = mmap[i].base, len = mmap[i].length;
             mmap[i].length = UINT32_MAX - mmap[i].base;
+            break;
         }
     }
 
     // now, the memory map is limited to 0xFFFFFFFF
-    g_bitmap_size = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
-    g_bitmap_size = ALIGN(g_bitmap_size, PAGE_SIZE) / PAGE_SIZE;
+    uint64_t interm = mmap[mmap_length - 1].base + mmap[mmap_length - 1].length - mmap[0].base;
+    interm          = ALIGN(interm, PAGE_SIZE);
+    g_bitmap_size   = interm / PAGE_SIZE;
 
     // mark reserved areas as used
     for (size_t i = 0; i < mmap_length; i++)
