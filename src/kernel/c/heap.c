@@ -5,6 +5,7 @@
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
 
+#include <kernel/memory/heap.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
@@ -117,6 +118,23 @@ void *heap_allocate(size_t size)
 
     KSLOG("returning block at address 0x%08X\n", ret);
     return (void *)ret;
+}
+
+void *heap_reallocate(void *old_ptr, size_t new_size)
+{
+    KSLOG("reallocating block 0x%08X to new size of %u\n", (MemoryAddress)old_ptr, new_size);
+
+    if (new_size == 0)
+    {
+        KSLOG("error: cannot reallocate block to size 0\n");
+        return NULL; // original pointer is unmodified
+    }
+
+    void *new_blk = heap_allocate(new_size);
+    mem_copy(new_blk, old_ptr, new_size);
+
+    heap_free(old_ptr);
+    return new_blk;
 }
 
 void heap_free(void *ptr)

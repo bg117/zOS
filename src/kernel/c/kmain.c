@@ -78,6 +78,8 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     void *q = heap_allocate(34);
     void *r = heap_allocate(245);
     void *s = heap_allocate(sizeof(int));
+    p       = heap_reallocate(p, 27);
+
     void *t = heap_allocate(20 * sizeof(void *));
 
     heap_free(p);
