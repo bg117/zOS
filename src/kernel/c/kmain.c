@@ -49,16 +49,15 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     sort_bubble(mmap, mmap_length, sizeof *mmap, sort_mmap);
 
-    screen_print_string("---------------- MEMORY MAP ----------------\n");
-    screen_print_format_string("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
+    KSLOG("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
     for (int i = 0; i < mmap_length; i++)
     {
-        screen_print_format_string("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
-                                   i,
-                                   mmap[i].base,
-                                   mmap[i].length,
-                                   mmap[i].type,
-                                   mmap[i].acpi_extended_attributes);
+        KSLOG("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
+              i,
+              mmap[i].base,
+              mmap[i].length,
+              mmap[i].type,
+              mmap[i].acpi_extended_attributes);
     }
 
     screen_clear();
