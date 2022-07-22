@@ -20,7 +20,8 @@ COMFLAGS := -Wall \
 			-Wshadow \
 			-Wcast-qual \
 			-Wpointer-arith \
-			-Wstrict-prototypes
+			-Wstrict-prototypes \
+			-pipe
 
 ifeq (${CMP_BUILD_TYPE},debug)
 	COMFLAGS += -O0 \
@@ -32,7 +33,9 @@ else ifeq (${CMP_BUILD_TYPE},release)
 				-fno-align-labels \
 				-fno-align-loops \
 				-fno-prefetch-loop-arrays \
-				-fno-expensive-optimizations
+				-fno-expensive-optimizations \
+				-fno-reorder-blocks \
+				-fno-reorder-blocks-and-partition
 else
 	${error Unknown build type: ${BUILD_TYPE}}
 endif

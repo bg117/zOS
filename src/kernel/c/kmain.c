@@ -75,6 +75,11 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     void *v_ten_pages = vmm_allocate_pages(10);
     // heap test
     void *p = heap_allocate(23);
+    void *q = heap_allocate(34);
+    void *r = heap_allocate(245);
+    void *s = heap_allocate(sizeof(int));
+    void *t = heap_allocate(20 * sizeof(void *));
+
     heap_free(p);
 
     while (1)
@@ -94,6 +99,11 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
         heap_free(input);
     }
+
+    heap_free(q);
+    heap_free(r);
+    heap_free(s);
+    heap_free(t);
 
     screen_clear();
     pmm_free_pages(ten_pages, 10);
