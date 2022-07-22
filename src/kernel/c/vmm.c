@@ -131,16 +131,11 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 
 void vmm_unmap_page(VirtualAddress virt)
 {
-    if (virt == 0x9000)
-        __asm__ volatile("nop");
-
     KSLOG("unmapping page 0x%08X\n", virt);
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
-    PageTableEntry *page_tab      = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
-    VirtualAddress  page_tab_virt = (VirtualAddress)page_tab;
-    PageTableEntry *ent           = &page_tab[tab_idx];
+    PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
 
     if (!TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
         KSLOG("warning: address 0x%08X already unmapped, ignoring\n", virt);
