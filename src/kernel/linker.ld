@@ -39,19 +39,14 @@ SECTIONS
         _edata = .;
     }
 
-    .symtab ALIGN(4K) : AT(ADDR(.symtab) - VIRT)
-    {
-        _ssymtab = .;
-        *(.symtab)
-        _esymtab = .;
-    }
-
     .bss ALIGN(4K) : AT(ADDR(.bss) - VIRT)
     {
         _sbss = .;
         *(.bss)
         _ebss = .;
     }
+
+    . = ALIGN(4K);
 
     _spmm_bitmap = .;
     . += 128K; /* the max size for a bitmap (4G) */

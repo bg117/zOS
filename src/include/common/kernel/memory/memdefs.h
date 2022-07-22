@@ -15,14 +15,19 @@ extern "C" {
 #endif
 
 /**
+ * @brief Represents a generic memory address.
+ */
+typedef uint32_t MemoryAddress;
+
+/**
  * @brief Represents a physical memory address.
  */
-typedef uint32_t PhysicalAddress;
+typedef MemoryAddress PhysicalAddress;
 
 /**
  * @brief Represents a logical memory address.
  */
-typedef uint32_t VirtualAddress;
+typedef MemoryAddress VirtualAddress;
 
 #ifdef __cplusplus
 }

@@ -181,6 +181,15 @@ VirtualAddress get_free_base(int n)
         uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
         uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
 
+        bool is_present = TESTBIT(g_pgdir[dir_idx].access_byte, PGD_AX_PRESENT);
+
+        if (!is_present)
+        {
+            void *page_tab   = pmm_allocate_page();
+            g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
+                                                                (PhysicalAddress)page_tab);
+        }
+
         PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
 
         if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
@@ -196,13 +205,34 @@ VirtualAddress get_free_base(int n)
             dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
             tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
 
+            is_present = TESTBIT(g_pgdir[dir_idx].access_byte, PGD_AX_PRESENT);
+
+            if (!is_present)
+            {
+                page_tab         = pmm_allocate_page();
+                g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
+                                                                    (PhysicalAddress)page_tab);
+            }
+
             page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
 
             if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
-            {
                 found = false;
-                break;
+
+            if (!is_present)
+            {
+                pmm_free_page((void *)(g_pgdir[dir_idx].address_upper_20 << 12));
+                g_pgdir[dir_idx] = page_create_page_directory_entry(0, 0);
             }
+
+            if (!found)
+                break;
+        }
+
+        if (!is_present)
+        {
+            pmm_free_page((void *)(g_pgdir[dir_idx].address_upper_20 << 12));
+            g_pgdir[dir_idx] = page_create_page_directory_entry(0, 0);
         }
 
         if (found)
