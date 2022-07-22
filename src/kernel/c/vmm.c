@@ -19,13 +19,16 @@
 
 #include <utils/mem.h>
 
-#define PAGE_SIZE    0x1000
-#define VIRTUAL_BASE 0xC0000000
-#define MAGIC_NUMBER 0xDEADC0DE
+#define PAGE_SIZE               0x1000
+#define VIRTUAL_BASE            0xC0000000
+#define MAGIC_NUMBER            0xDEADC0DE
+#define RECURSIVE_PAGE_TAB_BASE 0xFFC00000
 
 #define VADDR_GET_PAGE_DIR_IDX(vaddr) (((vaddr) >> 22) & 0x3FF)
 #define VADDR_GET_PAGE_TAB_IDX(vaddr) (((vaddr) >> 12) & 0x3FF)
 #define VADDR_GET_PAGE_FRM_OFF(vaddr) ((vaddr)&0xFFF)
+
+#define GET_RECURSIVE_PAGE_TAB(dir_idx) (RECURSIVE_PAGE_TAB_BASE + (dir_idx)*PAGE_SIZE)
 
 extern uint32_t SYS_PGDIR;
 
@@ -65,6 +68,8 @@ void *vmm_allocate_pages(int n)
         return (void *)MAGIC_NUMBER;
     }
 
+    KSLOG("allocating %d page%s\n", n, n > 1 ? "s" : "");
+
     VirtualAddress base = get_free_base(n), addr = base;
 
     if (base == MAGIC_NUMBER)
@@ -83,9 +88,11 @@ void vmm_free_pages(void *page_base, int n)
 {
     if (n == 0)
     {
-        KSLOG("error: trying to allocate 0 pages\n");
+        KSLOG("error: trying to free 0 pages\n");
         return;
     }
+
+    KSLOG("freeing %d page%s\n", n, n > 1 ? "s" : "");
 
     VirtualAddress base = (VirtualAddress)page_base;
     for (int i = 0; i < n; i++, base += PAGE_SIZE)
@@ -111,7 +118,7 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
                                                             (PhysicalAddress)page_tab);
     }
 
-    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+    PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
     if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
     {
         KSLOG("error: trying to map physical 0x%08X to used page 0x%08X\n", phys, virt);
@@ -124,16 +131,25 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 
 void vmm_unmap_page(VirtualAddress virt)
 {
+    if (virt == 0x9000)
+        __asm__ volatile("nop");
+
     KSLOG("unmapping page 0x%08X\n", virt);
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
-    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
-    SETBITVAR(page_tab[tab_idx].page_frame_status, PGF_STATUS_FREE);
+    PageTableEntry *page_tab      = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
+    VirtualAddress  page_tab_virt = (VirtualAddress)page_tab;
+    PageTableEntry *ent           = &page_tab[tab_idx];
+
+    if (!TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
+        KSLOG("warning: address 0x%08X already unmapped, ignoring\n", virt);
+    else
+        UNSETBITVAR(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED);
 
     bool is_empty = true;
     // check if the page table is empty
-    for (int i = 0; i < PAGE_SIZE; i++)
+    for (int i = 0; i < 1024; i++)
     {
         if (TESTBIT(page_tab[i].page_frame_status, PGF_STATUS_USED))
         {
@@ -159,7 +175,7 @@ PhysicalAddress vmm_get_phys(VirtualAddress virt)
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
-    PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+    PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
     PhysicalAddress phys     = page_tab[tab_idx].address_upper_20 << 12;
 
     return phys;
@@ -167,20 +183,33 @@ PhysicalAddress vmm_get_phys(VirtualAddress virt)
 
 VirtualAddress get_free_base(int n)
 {
-    VirtualAddress base = 0;
-    for (VirtualAddress lim = base; lim < VIRTUAL_BASE;)
+    for (VirtualAddress lim = 0; lim < VIRTUAL_BASE;)
     {
+        uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
+        uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
+
+        PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
+
+        if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
+        {
+            lim += PAGE_SIZE;
+            continue;
+        }
+
         VirtualAddress init_addr = lim;
         bool           found     = true;
         for (int i = 0; i < n; i++, lim += PAGE_SIZE)
         {
-            uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
-            uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
+            dir_idx = VADDR_GET_PAGE_DIR_IDX(lim);
+            tab_idx = VADDR_GET_PAGE_TAB_IDX(lim);
 
-            PageTableEntry *page_tab = (PageTableEntry *)(0xFFC00000 + dir_idx * PAGE_SIZE);
+            page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
 
             if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
+            {
                 found = false;
+                break;
+            }
         }
 
         if (found)
