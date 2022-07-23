@@ -13,6 +13,7 @@
 #include <kernel/memory/vmm.h>
 
 #include <kernel/hw/serial.h>
+#include <kernel/hw/video.h>
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
@@ -36,6 +37,8 @@ static VirtualAddress get_free_base(int n);
 
 void vmm_init(PhysicalAddress pgd_phys, VirtualAddress pgd_virt)
 {
+    KSVLOG("using initial kernel page directory located at 0x%08X\n", pgd_virt);
+
     page_load_page_directory((PageDirectoryEntry *)pgd_phys);
     g_pgdir = (PageDirectoryEntry *)pgd_virt;
 }

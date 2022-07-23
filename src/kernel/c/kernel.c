@@ -81,53 +81,53 @@ static void default_irq_handler(InterruptInfo *info);
 
 void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
-    KSLOG("initializing the global descriptor table\n");
+    KSVLOG("initializing the global descriptor table\n");
     init_gdt();
 
-    KSLOG("loading the GDT\n");
+    KSVLOG("loading the GDT\n");
     load_gdt();
 
-    KSLOG("initializing the physical memory manager\n");
+    KSVLOG("initializing the physical memory manager\n");
     pmm_init(mmap, mmap_length);
 
-    KSLOG("initializing the virtual memory manager\n");
+    KSVLOG("initializing the virtual memory manager\n");
     vmm_init((PhysicalAddress)&SYS_PGDIR - 0xC0000000, (VirtualAddress)&SYS_PGDIR);
 
-    KSLOG("initializing the kernel heap\n");
+    KSVLOG("initializing the kernel heap\n");
     heap_init(8192);
 
-    KSLOG("initializing the Programmable Interrupt Controller\n");
+    KSVLOG("initializing the Programmable Interrupt Controller\n");
     pic_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    KSLOG("initializing interrupt service routines\n");
+    KSVLOG("initializing interrupt service routines\n");
     isr_init(0x08);
 
-    KSLOG("mapping default interrupt handler\n");
+    KSVLOG("mapping default interrupt handler\n");
     for (int i = 0; i < 256; i++)
         isr_map_interrupt_handler(i, default_interrupt_handler);
 
     isr_map_interrupt_handler(14, page_fault_handler);
 
-    KSLOG("mapping default IRQ handlers\n");
+    KSVLOG("mapping default IRQ handlers\n");
     for (int i = 0; i < 16; i++)
         isr_map_interrupt_handler(i + PIC1_OFFSET, default_irq_handler);
 
     isr_load_idt();
 
-    KSLOG("initializing hardware peripherals\n");
+    KSVLOG("initializing hardware peripherals\n");
     timer_init();
     kbd_init();
 
-    KSLOG("enabling interrupts\n");
+    KSVLOG("enabling interrupts\n");
     core_set_interrupt_flag();
 }
 
 void kernel_deinit(void)
 {
-    KSLOG("deinitializing the keyboard\n");
+    KSVLOG("deinitializing the keyboard\n");
     kbd_deinit();
 
-    KSLOG("deinitializing the PIT\n");
+    KSVLOG("deinitializing the PIT\n");
     timer_deinit();
 }
 

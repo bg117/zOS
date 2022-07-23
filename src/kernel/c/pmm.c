@@ -11,15 +11,16 @@
 
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/mmap.h>
+#include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
 
 #include <kernel/hw/serial.h>
+#include <kernel/hw/video.h>
 
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
 
 #include <utils/mem.h>
-#include "kernel/memory/page.h"
 
 #define PAGE_SIZE    0x1000
 #define VIRTUAL_BASE 0xC0000000
@@ -70,7 +71,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         if (mmap[i].type != 0x02)
             continue;
 
-        KSLOG("found reserved area (%d), marking as used\n", i);
+        KSVLOG("found reserved area (%d), marking as used\n", i);
 
         uint32_t base_lower = mmap[i].base; // limited to 32 bits
         uint32_t base_upper;
@@ -103,7 +104,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         }
     }
 
-    KSLOG("marking kernel as used\n");
+    KSVLOG("marking kernel as used\n");
 
     // mark bitmap and kernel as used
     uint32_t reserved = (PhysicalAddress)(&_eprog) - (PhysicalAddress)(&_sprog);

@@ -15,6 +15,7 @@
 
 #include <kernel/hw/serial.h>
 #include <kernel/hw/timer.h>
+#include <kernel/hw/video.h>
 
 #include <kernel/misc/log_macros.h>
 
@@ -27,7 +28,7 @@ static void pit_handler(InterruptInfo *);
 
 void timer_init(void)
 {
-    KSLOG("mapping IRQ 0 handler\n");
+    KSVLOG("mapping IRQ 0 handler\n");
     isr_map_interrupt_handler(0 + pic_get_pic1_offset(), pit_handler);
 
     timer_set_cycle(100);
@@ -38,7 +39,7 @@ void timer_init(void)
 
 void timer_deinit(void)
 {
-    KSLOG("unmapping IRQ 0 handler\n");
+    KSVLOG("unmapping IRQ 0 handler\n");
     isr_unmap_interrupt_handler(0 + pic_get_pic1_offset());
 }
 

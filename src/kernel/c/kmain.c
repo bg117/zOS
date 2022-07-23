@@ -35,6 +35,16 @@
 #define DARROW      0x50
 #define MAX_KBD_BUF 920
 
+#define malloc(x)     heap_allocate(x)
+#define realloc(p, x) heap_reallocate(p, x)
+#define free(p)       heap_free(p)
+#define calloc(n, x)  /* GNU extension */                                                                              \
+    ({                                                                                                                 \
+        void *p = heap_allocate((x) * (n));                                                                            \
+        mem_fill(p, 0, (x) * (n));                                                                                     \
+        p;                                                                                                             \
+    })
+
 static char *get_keyboard_input(void);
 
 static int sort_mmap(const void *i, const void *j);
@@ -50,23 +60,21 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     sort_bubble(mmap, mmap_length, sizeof *mmap, sort_mmap);
 
-    KSLOG("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
+    KSVLOG("%hu %s in the memory map\n", mmap_length, mmap_length > 1 ? "entries" : "entry");
     for (int i = 0; i < mmap_length; i++)
     {
-        KSLOG("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
-              i,
-              mmap[i].base,
-              mmap[i].length,
-              mmap[i].type,
-              mmap[i].acpi_extended_attributes);
+        KSVLOG("%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
+               i,
+               mmap[i].base,
+               mmap[i].length,
+               mmap[i].type,
+               mmap[i].acpi_extended_attributes);
     }
 
-    screen_clear();
-
-    KSLOG("initializing the kernel\n");
+    KSVLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
-    screen_print_string("zOS version 0.01\nMade with \003 by bg117\n");
+    screen_print_string("\nzOS version 0.01\nMade with \003 by bg117\n");
 
     // PMM contiguous memory test
     void *ten_pages = pmm_allocate_pages(10);
@@ -74,49 +82,65 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     // VMM contiguous memory test
     void *v_ten_pages = vmm_allocate_pages(10);
     // heap test
-    void *p = heap_allocate(23);
-    void *q = heap_allocate(34);
-    void *r = heap_allocate(245);
-    void *s = heap_allocate(sizeof(int));
-    p       = heap_reallocate(p, 27);
+    void *p = malloc(23);
+    void *q = malloc(34);
+    void *r = malloc(245);
+    void *s = malloc(sizeof(int));
+    p       = realloc(p, 27);
 
-    void *t = heap_allocate(20 * sizeof(void *));
+    void *t = malloc(20 * sizeof(void *));
 
-    heap_free(p);
+    free(p);
 
     while (1)
     {
         screen_print_string("> ");
         char *input = get_keyboard_input();
 
-        screen_print_format_string("Input: \"%s\"\n", input);
-
         if (str_compare(input, "exit") == 0)
         {
             heap_free(input);
             break;
         }
+        else if (str_compare(input, "clear") == 0)
+        {
+            screen_clear();
+        }
+        else if (str_compare(input, "help") == 0)
+        {
+            screen_print_string(
+                "Help\n\tclear: clears the screen\n\texit: exits the operating system, freeing all resources in the "
+                "process\n\thelp: show this help message\n");
+        }
+        else
+        {
+            goto other;
+        }
 
+        free(input);
+        continue;
+
+    other:
+        screen_print_format_string("Input: \"%s\"\n", input);
         screen_print_string("Error: function not yet implemented\n");
-
-        heap_free(input);
+        free(input);
     }
 
-    heap_free(q);
-    heap_free(r);
-    heap_free(s);
-    heap_free(t);
+    free(q);
+    free(r);
+    free(s);
+    free(t);
 
     screen_clear();
     pmm_free_pages(ten_pages, 10);
     vmm_free_pages(v_ten_pages, 10);
 
-    KSLOG("commencing shutdown\n");
+    KSVLOG("commencing shutdown\n");
 
-    KSLOG("deinitializing the kernel\n");
+    KSVLOG("deinitializing the kernel\n");
     kernel_deinit();
 
-    screen_print_string("It is now safe to shut down the computer.");
+    screen_print_string("\nIt is now safe to shut down the computer.");
 
     return 1;
 }
@@ -124,7 +148,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 // can probably be used if I make a command-line interpreter in the near future
 char *get_keyboard_input(void)
 {
-    char   *buf = heap_allocate(MAX_KBD_BUF);
+    char   *buf = calloc(MAX_KBD_BUF, sizeof *buf);
     int     idx = 0;
     int     top = 0;
     ReadKey key = kbd_get_char();

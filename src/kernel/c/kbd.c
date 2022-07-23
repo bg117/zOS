@@ -50,6 +50,39 @@ static const char US_SCANCODES[128] = {
     0,                                                                             /* All other keys are undefined */
 };
 
+static const char US_SCANCODES_UPR[128] = {
+    0,    27,  '!', '@', '#',  '$', '%', '^', '&',  '*', /* 9 */
+    '(',  ')', '_', '+', '\b',                           /* Backspace */
+    '\t',                                                /* Tab */
+    'Q',  'W', 'E', 'R',                                 /* 19 */
+    'T',  'Y', 'U', 'I', 'O',  'P', '{', '}', '\n',      /* Enter key */
+    0,                                                   /* 29   - Control */
+    'A',  'S', 'D', 'F', 'G',  'H', 'J', 'K', 'L',  ':', /* 39 */
+    '"',  '~', 0,                                        /* Left shift */
+    '|',  'Z', 'X', 'C', 'V',  'B', 'N',                 /* 49 */
+    'M',  '<', '>', '?', 0,                              /* Right shift */
+    '*',  0,                                             /* Alt */
+    ' ',                                                 /* Space bar */
+    0,                                                   /* Caps lock */
+    0,                                                   /* 59 - F1 key ... > */
+    0,    0,   0,   0,   0,    0,   0,   0,   0,         /* < ... F10 */
+    0,                                                   /* 69 - Num lock*/
+    0,                                                   /* Scroll Lock */
+    0,                                                   /* Home key */
+    0,                                                   /* Up Arrow */
+    0,                                                   /* Page Up */
+    '-',  0,                                             /* Left Arrow */
+    0,    0,                                             /* Right Arrow */
+    '+',  0,                                             /* 79 - End key*/
+    0,                                                   /* Down Arrow */
+    0,                                                   /* Page Down */
+    0,                                                   /* Insert Key */
+    0,                                                   /* Delete Key */
+    0,    0,   0,   0,                                   /* F11 Key */
+    0,                                                   /* F12 Key */
+    0,                                                   /* All other keys are undefined */
+};
+
 static volatile char g_last_char;
 static volatile char g_last_scancode;
 static volatile int  g_got_key;
@@ -60,7 +93,7 @@ static void kbd_handler(InterruptInfo *);
 
 void kbd_init(void)
 {
-    KSLOG("mapping IRQ 1 handler\n");
+    KSVLOG("mapping IRQ 1 handler\n");
     isr_map_interrupt_handler(1 + pic_get_pic1_offset(), kbd_handler);
 
     g_last_char     = 0;
@@ -72,7 +105,7 @@ void kbd_init(void)
 
 void kbd_deinit(void)
 {
-    KSLOG("unmapping IRQ 1 handler\n");
+    KSVLOG("unmapping IRQ 1 handler\n");
     isr_unmap_interrupt_handler(1 + pic_get_pic1_offset());
 }
 
@@ -139,7 +172,7 @@ void kbd_handler(InterruptInfo *info)
         }
         else
         {
-            g_last_char     = US_SCANCODES[read];
+            g_last_char     = TESTBIT(g_key_flags, KEY_SHIFT) ? US_SCANCODES_UPR[read] : US_SCANCODES[read];
             g_last_scancode = read;
 
             g_got_key = 1;
