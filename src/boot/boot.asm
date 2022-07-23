@@ -253,8 +253,8 @@ real:   ; get memory map
         pop     es
 
         mov     si, bp
-        sub     si, 570h    ; I don't know if this is actually a constant value but
-                            ; it doesn't work without this
+        ; sub     si, 570h    ; I don't know if this is actually a constant value but
+        ;                     ; it doesn't work without this
         mov     cx, 256 * 16 / 4
         mov     di, [es:font_buffer]
         cld

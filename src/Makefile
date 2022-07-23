@@ -32,9 +32,7 @@ sysroot:
 	@-mkdir -p ${SYSROOT}/sys
 	@cp -a ${BIN_DIR}/zs ${SYSROOT}/sys/
 
-	@if [ -f ${BIN_DIR}/modules/ ]; then \
-		cp -a ${BIN_DIR}/modules/ ${SYSROOT}/sys/; \
-	fi
+	@cp -a ${RESOURCES_DIR}/ ${SYSROOT}/sys
 
 clean:
 	@echo Cleaning up sources...

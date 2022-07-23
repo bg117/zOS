@@ -57,6 +57,8 @@ export BIN_DIR=${BUILD_DIR}/bin
 export LIB_DIR=${BUILD_DIR}/lib
 export OBJ_DIR=${BUILD_DIR}/obj
 
+export RESOURCES_DIR=${CURDIR}/resources
+
 export SYSROOT=${BUILD_DIR}/root
 
 export CFLAGS=${COMFLAGS}
