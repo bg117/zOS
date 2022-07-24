@@ -118,12 +118,23 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
     core_set_interrupt_flag();
 
     KSVLOG("identifying ata0-master\n");
-    AtaIdentifyStatus stat = ata_identify(ATA_BUS_PRIMARY, ATA_DEVICE_MASTER);
+
+    // for the meantime we'll have to trust that the boot disk is ata0-master
+    AtaInfo           ata_info;
+    AtaIdentifyStatus stat = ata_identify(ATA_BUS_PRIMARY, ATA_DEVICE_MASTER, &ata_info);
     if (stat != ATA_IDENTIFY_STATUS_OK)
     {
         PANIC("ata0-master identification failed\n");
         return;
     }
+
+    // log ATA information
+    KSVLOG("ata0-master:\n\tIs hard disk: %s\n\tSupports LBA48: %s\n\tTotal LBA28 sectors: %u\n\tTotal LBA48 sectors: "
+           "%llu\n",
+           ata_info.is_hard_disk ? "yes" : "no",
+           ata_info.supports_lba48 ? "yes" : "no",
+           ata_info.lba28_total_sectors,
+           ata_info.lba48_total_sectors);
 }
 
 void kernel_deinit(void)

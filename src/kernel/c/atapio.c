@@ -11,6 +11,7 @@
 #include <kernel/ll/io.h>
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
+#include <stddef.h>
 
 #define ATA_CMD_IDENTIFY 0xEC
 
@@ -41,13 +42,13 @@ enum ata_status
 #define DELAY_READ_STAT(io)                         \
     ({                                              \
         uint8_t __stat__;                           \
-        for (int i = 0; i < 15; i++)                \
+        for (size_t i = 0; i < 15; i++)             \
             __stat__ = in_byte(io + ATA_IO_STATUS); \
                                                     \
         __stat__;                                   \
     })
 
-AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev)
+AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
 {
     int port = ATA_PORT_PRIMARY;
     // select drive
@@ -108,5 +109,12 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev)
     KSVLOG("successfully identified device: ata%d-%s\n",
            bus == ATA_BUS_PRIMARY ? 0 : 1,
            dev == ATA_DEVICE_MASTER ? "master" : "slave");
+
+    info->is_hard_disk        = TESTBIT(buf[0], 0);
+    info->supports_lba48      = TESTBIT(buf[83], 1 << 10);
+    info->lba28_total_sectors = ((uint32_t *)buf)[60 / 2];
+    info->lba48_total_sectors = ((uint64_t *)buf)[100 / 4];
+    info->bus                 = bus;
+    info->device              = dev;
     return ATA_IDENTIFY_STATUS_OK;
 }

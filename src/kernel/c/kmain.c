@@ -68,7 +68,8 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     KSVLOG("initializing the kernel\n");
     kernel_init(mmap, mmap_length);
 
-    screen_print_string("\nzOS version 0.01\nMade with \003 by bg117\n");
+    screen_clear();
+    screen_print_string("zOS version 0.01\nMade with \003 by bg117\n");
 
     // PMM contiguous memory test
     void *ten_pages = pmm_allocate_pages(10);
@@ -125,7 +126,6 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     free(s);
     free(t);
 
-    screen_clear();
     pmm_free_pages(ten_pages, 10);
     vmm_free_pages(v_ten_pages, 10);
 
@@ -134,7 +134,8 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     KSVLOG("deinitializing the kernel\n");
     kernel_deinit();
 
-    screen_print_string("\nIt is now safe to shut down the computer.");
+    screen_clear();
+    screen_print_string("It is now safe to shut down the computer.");
 
     return 1;
 }
