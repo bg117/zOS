@@ -5,19 +5,15 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdint.h>
-
-#include <kernel/ll/io.h>
-
-#include <kernel/int/interrupt_info.h>
-#include <kernel/int/isr.h>
-#include <kernel/int/pic.h>
-
 #include <kernel/hw/serial.h>
 #include <kernel/hw/timer.h>
 #include <kernel/hw/video.h>
-
+#include <kernel/int/interrupt_info.h>
+#include <kernel/int/isr.h>
+#include <kernel/int/pic.h>
+#include <kernel/ll/io.h>
 #include <kernel/misc/log_macros.h>
+#include <stdint.h>
 
 static volatile uint64_t g_timer_ticks;
 static volatile uint64_t g_seconds;

@@ -5,9 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdint.h>
-
 #include <kernel/ll/io.h>
+#include <stdint.h>
 
 uint8_t in_byte(uint16_t port)
 {

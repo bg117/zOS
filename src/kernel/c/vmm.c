@@ -5,19 +5,15 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdbool.h>
-
+#include <kernel/hw/serial.h>
+#include <kernel/hw/video.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
-
-#include <kernel/hw/serial.h>
-#include <kernel/hw/video.h>
-
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
-
+#include <stdbool.h>
 #include <utils/mem.h>
 
 #define PAGE_SIZE               0x1000
@@ -114,9 +110,9 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
     {
         KSLOG("page table not present, creating one\n");
 
-        void *page_tab   = pmm_allocate_page();
-        g_pgdir[dir_idx] = page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL,
-                                                            (PhysicalAddress)page_tab);
+        void *page_tab = pmm_allocate_page();
+        g_pgdir[dir_idx] =
+            page_create_page_directory_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, (PhysicalAddress)page_tab);
     }
 
     PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
@@ -126,8 +122,8 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
         return;
     }
 
-    page_tab[tab_idx] = page_create_page_table_entry(
-        PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, PGF_STATUS_USED, phys & 0xFFFFF000);
+    page_tab[tab_idx] =
+        page_create_page_table_entry(PGD_AX_PRESENT | PGD_AX_WRITE | PGD_AX_KERNEL, PGF_STATUS_USED, phys & 0xFFFFF000);
 }
 
 void vmm_unmap_page(VirtualAddress virt)

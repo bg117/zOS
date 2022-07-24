@@ -5,13 +5,10 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdint.h>
-
-#include <kernel/ll/gdt.h>
-
 #include <kernel/hw/serial.h>
-
+#include <kernel/ll/gdt.h>
 #include <kernel/misc/log_macros.h>
+#include <stdint.h>
 
 GdtEntry gdt_make_entry(uint32_t limit, uint32_t base, uint8_t access_byte, uint8_t flags)
 {
@@ -39,17 +36,16 @@ void gdt_descriptor_init(GdtDescriptor *desc, GdtEntry *gdt, size_t entry_count)
 
 void gdt_descriptor_load(GdtDescriptor *desc, uint16_t code_offset, uint16_t data_offset)
 {
-    __asm__ volatile(
-        "lgdt %0;"
-        "pushl %1;"
-        "pushl $.L1;"
-        "lret;"
-        ".L1:;"
-        "movw %2, %%ds;"
-        "movw %2, %%es;"
-        "movw %2, %%fs;"
-        "movw %2, %%gs;"
-        "movw %2, %%ss;"
-        :
-        : "m"(*desc), "c"((uint32_t)code_offset), "a"(data_offset));
+    __asm__ volatile("lgdt %0;"
+                     "pushl %1;"
+                     "pushl $.L1;"
+                     "lret;"
+                     ".L1:;"
+                     "movw %2, %%ds;"
+                     "movw %2, %%es;"
+                     "movw %2, %%fs;"
+                     "movw %2, %%gs;"
+                     "movw %2, %%ss;"
+                     :
+                     : "m"(*desc), "c"((uint32_t)code_offset), "a"(data_offset));
 }

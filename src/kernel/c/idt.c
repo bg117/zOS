@@ -5,13 +5,10 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdint.h>
-
-#include <kernel/int/idt.h>
-
 #include <kernel/hw/serial.h>
-
+#include <kernel/int/idt.h>
 #include <kernel/misc/log_macros.h>
+#include <stdint.h>
 
 IdtEntry idt_make_entry(void (*isr)(void), uint16_t code_segment, uint8_t access_byte)
 {

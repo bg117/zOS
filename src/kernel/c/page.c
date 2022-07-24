@@ -5,11 +5,10 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stddef.h>
-
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
+#include <stddef.h>
 
 #define PAGE_SIZE 4096
 
@@ -40,25 +39,22 @@ void page_load_page_directory(PageDirectoryEntry *pgd)
 
 void page_enable_paging(void)
 {
-    __asm__ volatile(
-        "movl %cr0, %eax;"
-        "orl $0x80000000, %eax;"
-        "movl %eax, %cr0;"); // enable paging bit
+    __asm__ volatile("movl %cr0, %eax;"
+                     "orl $0x80000000, %eax;"
+                     "movl %eax, %cr0;"); // enable paging bit
 }
 
 void page_disable_paging(void)
 {
-    __asm__ volatile(
-        "movl %cr0, %eax;"
-        "andl $0x7FFFFFFF, %eax;"
-        "movl %eax, %cr0;");
+    __asm__ volatile("movl %cr0, %eax;"
+                     "andl $0x7FFFFFFF, %eax;"
+                     "movl %eax, %cr0;");
 }
 
 void page_reload_cr3(void)
 {
-    __asm__ volatile(
-        "movl %cr3, %ebx;"
-        "movl %ebx, %cr3;");
+    __asm__ volatile("movl %cr3, %ebx;"
+                     "movl %ebx, %cr3;");
 }
 
 void page_invalidate_page(void *page)

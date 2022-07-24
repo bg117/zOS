@@ -5,25 +5,19 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stddef.h>
-#include <stdint.h>
-
-#include <kernel/kernel.h>
-
 #include <kernel/fs/fat.h>
-
-#include <kernel/memory/heap.h>
-#include <kernel/memory/mmap.h>
-#include <kernel/memory/pmm.h>
-#include <kernel/memory/vmm.h>
-
 #include <kernel/hw/kbd.h>
 #include <kernel/hw/serial.h>
 #include <kernel/hw/timer.h>
 #include <kernel/hw/video.h>
-
+#include <kernel/kernel.h>
+#include <kernel/memory/heap.h>
+#include <kernel/memory/mmap.h>
+#include <kernel/memory/pmm.h>
+#include <kernel/memory/vmm.h>
 #include <kernel/misc/log_macros.h>
-
+#include <stddef.h>
+#include <stdint.h>
 #include <utils/chars.h>
 #include <utils/mem.h>
 #include <utils/sort.h>
@@ -38,11 +32,11 @@
 #define malloc(x)     heap_allocate(x)
 #define realloc(p, x) heap_reallocate(p, x)
 #define free(p)       heap_free(p)
-#define calloc(n, x)  /* GNU extension */                                                                              \
-    ({                                                                                                                 \
-        void *p = heap_allocate((x) * (n));                                                                            \
-        mem_fill(p, 0, (x) * (n));                                                                                     \
-        p;                                                                                                             \
+#define calloc(n, x)  /* GNU extension */   \
+    ({                                      \
+        void *p = heap_allocate((x) * (n)); \
+        mem_fill(p, 0, (x) * (n));          \
+        p;                                  \
     })
 
 static char *get_keyboard_input(void);
@@ -186,7 +180,8 @@ char *get_keyboard_input(void)
             }
             break;
         case UARROW:
-        case DARROW: break;
+        case DARROW:
+            break;
         case '\b':
             {
                 if (idx <= 0)

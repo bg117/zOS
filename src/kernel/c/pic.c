@@ -5,11 +5,9 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <stdint.h>
-
-#include <kernel/ll/io.h>
-
 #include <kernel/int/pic.h>
+#include <kernel/ll/io.h>
+#include <stdint.h>
 
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0

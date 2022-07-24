@@ -5,68 +5,95 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <kernel/hw/video.h>
+#include <kernel/ll/io.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <kernel/ll/io.h>
-
-#include <kernel/hw/video.h>
-
 #include <utils/chars.h>
 #include <utils/mem.h>
 #include <utils/num.h>
 #include <utils/strings.h>
 
-#define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                                                                       \
-    switch (len)                                                                                                       \
-    {                                                                                                                  \
-    case LENGTH_NORMAL: int_to_string(buf, va_arg(ap, int), base); break;                                              \
-    case LENGTH_SHORT: int_to_string(buf, (short)(va_arg(ap, int)), base); break;                                      \
-    case LENGTH_VERY_SHORT: int_to_string(buf, (char)(va_arg(ap, int)), base); break;                                  \
-    case LENGTH_LONG: long_to_string(buf, va_arg(ap, long), base); break;                                              \
-    case LENGTH_VERY_LONG: long_long_to_string(buf, va_arg(ap, long long), base); break;                               \
-    }                                                                                                                  \
-                                                                                                                       \
-    if (zero_pad)                                                                                                      \
-    {                                                                                                                  \
-        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
-            screen_print_char('0');                                                                                    \
-    }                                                                                                                  \
+#define SWITCH_LENGTH_SIGNED(ap, len, buf, base)                   \
+    switch (len)                                                   \
+    {                                                              \
+    case LENGTH_NORMAL:                                            \
+        int_to_string(buf, va_arg(ap, int), base);                 \
+        break;                                                     \
+    case LENGTH_SHORT:                                             \
+        int_to_string(buf, (short)(va_arg(ap, int)), base);        \
+        break;                                                     \
+    case LENGTH_VERY_SHORT:                                        \
+        int_to_string(buf, (char)(va_arg(ap, int)), base);         \
+        break;                                                     \
+    case LENGTH_LONG:                                              \
+        long_to_string(buf, va_arg(ap, long), base);               \
+        break;                                                     \
+    case LENGTH_VERY_LONG:                                         \
+        long_long_to_string(buf, va_arg(ap, long long), base);     \
+        break;                                                     \
+    }                                                              \
+                                                                   \
+    if (zero_pad)                                                  \
+    {                                                              \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++) \
+            screen_print_char('0');                                \
+    }                                                              \
     screen_print_format_string("%s", buf)
 
-#define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                                                                     \
-    switch (len)                                                                                                       \
-    {                                                                                                                  \
-    case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
-    case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
-    case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
-    }                                                                                                                  \
-                                                                                                                       \
-    if (zero_pad)                                                                                                      \
-    {                                                                                                                  \
-        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
-            screen_print_char('0');                                                                                    \
-    }                                                                                                                  \
+#define SWITCH_LENGTH_UNSIGNED(ap, len, buf, base)                             \
+    switch (len)                                                               \
+    {                                                                          \
+    case LENGTH_NORMAL:                                                        \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_SHORT:                                                         \
+        uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); \
+        break;                                                                 \
+    case LENGTH_VERY_SHORT:                                                    \
+        uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base);  \
+        break;                                                                 \
+    case LENGTH_LONG:                                                          \
+        ulong_to_string(buf, va_arg(ap, unsigned long), base);                 \
+        break;                                                                 \
+    case LENGTH_VERY_LONG:                                                     \
+        ulong_long_to_string(buf, va_arg(ap, unsigned long long), base);       \
+        break;                                                                 \
+    }                                                                          \
+                                                                               \
+    if (zero_pad)                                                              \
+    {                                                                          \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)             \
+            screen_print_char('0');                                            \
+    }                                                                          \
     screen_print_format_string("%s", buf)
 
-#define SWITCH_LENGTH_UNSIGNED_UPR(ap, len, buf, base)                                                                 \
-    switch (len)                                                                                                       \
-    {                                                                                                                  \
-    case LENGTH_NORMAL: uint_to_string(buf, va_arg(ap, unsigned int), base); break;                                    \
-    case LENGTH_SHORT: uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); break;                   \
-    case LENGTH_VERY_SHORT: uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base); break;               \
-    case LENGTH_LONG: ulong_to_string(buf, va_arg(ap, unsigned long), base); break;                                    \
-    case LENGTH_VERY_LONG: ulong_long_to_string(buf, va_arg(ap, unsigned long long), base); break;                     \
-    }                                                                                                                  \
-                                                                                                                       \
-    if (zero_pad)                                                                                                      \
-    {                                                                                                                  \
-        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)                                                     \
-            screen_print_char('0');                                                                                    \
-    }                                                                                                                  \
+#define SWITCH_LENGTH_UNSIGNED_UPR(ap, len, buf, base)                         \
+    switch (len)                                                               \
+    {                                                                          \
+    case LENGTH_NORMAL:                                                        \
+        uint_to_string(buf, va_arg(ap, unsigned int), base);                   \
+        break;                                                                 \
+    case LENGTH_SHORT:                                                         \
+        uint_to_string(buf, (unsigned short)(va_arg(ap, unsigned int)), base); \
+        break;                                                                 \
+    case LENGTH_VERY_SHORT:                                                    \
+        uint_to_string(buf, (unsigned char)(va_arg(ap, unsigned int)), base);  \
+        break;                                                                 \
+    case LENGTH_LONG:                                                          \
+        ulong_to_string(buf, va_arg(ap, unsigned long), base);                 \
+        break;                                                                 \
+    case LENGTH_VERY_LONG:                                                     \
+        ulong_long_to_string(buf, va_arg(ap, unsigned long long), base);       \
+        break;                                                                 \
+    }                                                                          \
+                                                                               \
+    if (zero_pad)                                                              \
+    {                                                                          \
+        for (size_t i = 0; i < pad_len - str_get_length(buf); i++)             \
+            screen_print_char('0');                                            \
+    }                                                                          \
     screen_print_format_string("%s", buf)
 
 #define GET_VGA_POSITION_XY(x, y) (((y) * (VGA_WIDTH) + (x)) * 2)
@@ -143,7 +170,9 @@ void screen_print_format_string(const char *fmt, ...)
         {
             switch (*fmt)
             {
-            case '%': screen_print_char('%'); break;
+            case '%':
+                screen_print_char('%');
+                break;
             case '0':
                 zero_pad = 1;
                 ++fmt;
@@ -178,7 +207,9 @@ void screen_print_format_string(const char *fmt, ...)
                     screen_print_string(arg);
                 }
                 break;
-            case 'c': screen_print_char((char)(va_arg(ap, int))); break;
+            case 'c':
+                screen_print_char((char)(va_arg(ap, int)));
+                break;
             case 'l':
                 length = length == LENGTH_LONG ? LENGTH_VERY_LONG : LENGTH_LONG;
                 ++fmt;
@@ -188,17 +219,31 @@ void screen_print_format_string(const char *fmt, ...)
                 ++fmt;
                 continue;
             case 'i':
-            case 'd': SWITCH_LENGTH_SIGNED(ap, length, num_buf, 10); break;
-            case 'u': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 10); break;
-            case 'x': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16); break;
-            case 'X': SWITCH_LENGTH_UNSIGNED_UPR(ap, length, num_buf, 16); break;
+            case 'd':
+                SWITCH_LENGTH_SIGNED(ap, length, num_buf, 10);
+                break;
+            case 'u':
+                SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 10);
+                break;
+            case 'x':
+                SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16);
+                break;
+            case 'X':
+                SWITCH_LENGTH_UNSIGNED_UPR(ap, length, num_buf, 16);
+                break;
             case 'p':
                 screen_print_string("0x");
                 SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 16);
                 break;
-            case 'o': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 8); break;
-            case 'b': SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 2); break;
-            default: screen_print_format_string("%%%c", *fmt); break;
+            case 'o':
+                SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 8);
+                break;
+            case 'b':
+                SWITCH_LENGTH_UNSIGNED(ap, length, num_buf, 2);
+                break;
+            default:
+                screen_print_format_string("%%%c", *fmt);
+                break;
             }
         }
         else
@@ -242,7 +287,9 @@ void screen_print_char(char c)
                 screen_print_char(' ');
         }
         break;
-    case '\r': g_pos_x = 0; break;
+    case '\r':
+        g_pos_x = 0;
+        break;
     case '\b':
         if (g_pos_x > 0)
             --g_pos_x;

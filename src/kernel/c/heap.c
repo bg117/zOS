@@ -1,17 +1,13 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
-
+#include <kernel/hw/serial.h>
 #include <kernel/memory/heap.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
-
-#include <kernel/hw/serial.h>
-
+#include <kernel/misc/bit_macros.h>
+#include <kernel/misc/log_macros.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <utils/mem.h>
 #include <utils/type.h>
 

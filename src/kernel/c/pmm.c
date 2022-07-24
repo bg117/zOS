@@ -5,21 +5,17 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include <limits.h>
-#include <stdbool.h>
-#include <stdint.h>
-
+#include <kernel/hw/serial.h>
+#include <kernel/hw/video.h>
 #include <kernel/memory/memdefs.h>
 #include <kernel/memory/mmap.h>
 #include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
-
-#include <kernel/hw/serial.h>
-#include <kernel/hw/video.h>
-
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log_macros.h>
-
+#include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <utils/mem.h>
 
 #define PAGE_SIZE    0x1000
@@ -82,8 +78,8 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         if (i >= mmap_length)
         {
             --i; // if there are no usable areas then mark them as used
-            base_upper
-                = mmap[i].base + mmap[i].length; // and of course since it's the last entry, take up the full space
+            base_upper =
+                mmap[i].base + mmap[i].length; // and of course since it's the last entry, take up the full space
         }
         else
         {

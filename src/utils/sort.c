@@ -6,7 +6,6 @@
  */
 
 #include <stdint.h>
-
 #include <utils/mem.h>
 #include <utils/sort.h>
 
