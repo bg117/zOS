@@ -13,7 +13,8 @@ ASFLAGS := -f elf32
 CFLAGS += -fno-stack-check \
 		  -fno-strict-aliasing \
 		  -ffreestanding \
-		  -nostdlib
+		  -nostdlib \
+		  -std=gnu11
 
 CPPFLAGS := -I ${SRC_DIR}/include/common \
 			-MMD \
