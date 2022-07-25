@@ -46,8 +46,10 @@ static void log_heap(void)
 
 void heap_init(size_t init_size)
 {
+    MemoryAddress base = (MemoryAddress)&_eprog + 0xC0000000;
+
     g_total_pages = ALIGN(init_size, PAGE_SIZE) / PAGE_SIZE;
-    g_heap        = (BlockLinkedList *)(&_eprog + 0xC0000000);
+    g_heap        = (BlockLinkedList *)ALIGN(base, _Alignof(max_align_t));
     g_virt_base   = (VirtualAddress)g_heap;
 
     VirtualAddress virt_base = g_virt_base;
@@ -156,13 +158,19 @@ void heap_free(void *ptr)
 
 void split_node(BlockLinkedList *node, size_t size)
 {
-    BlockLinkedList *new_node = (BlockLinkedList *)((MemoryAddress)node + size + sizeof(BlockLinkedList));
+    static const size_t align        = _Alignof(max_align_t);
+    size_t              aligned_size = ALIGN(size, align);
 
-    new_node->size = node->size - size - sizeof(BlockLinkedList);
+    MemoryAddress base = (MemoryAddress)node + aligned_size + sizeof(BlockLinkedList);
+    base               = ALIGN(base, align);
+
+    BlockLinkedList *new_node = (BlockLinkedList *)base;
+
+    new_node->size = node->size - aligned_size - sizeof(BlockLinkedList);
     new_node->free = true;
     new_node->next = node->next;
 
-    node->size = size;
+    node->size = aligned_size;
     node->free = false;
     node->next = new_node;
 }

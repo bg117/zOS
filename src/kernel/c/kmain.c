@@ -39,7 +39,7 @@
         p;                                  \
     })
 
-static char *get_keyboard_input(void);
+static char *get_keyboard_input(char *buf, size_t max_buf_size);
 
 static int sort_mmap(const void *i, const void *j);
 
@@ -90,7 +90,8 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     while (1)
     {
         screen_print_string("> ");
-        char *input = get_keyboard_input();
+        char *input = calloc(MAX_KBD_BUF, sizeof *input);
+        get_keyboard_input(input, MAX_KBD_BUF);
 
         if (str_compare(input, "exit") == 0)
         {
@@ -141,11 +142,10 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 }
 
 // can probably be used if I make a command-line interpreter in the near future
-char *get_keyboard_input(void)
+char *get_keyboard_input(char *buf, size_t max_buf_size)
 {
-    char   *buf = calloc(MAX_KBD_BUF, sizeof *buf);
-    int     idx = 0;
-    int     top = 0;
+    size_t  idx = 0;
+    size_t  top = 0;
     ReadKey key = kbd_get_char();
 
     while (key.c != '\n')
@@ -204,7 +204,7 @@ char *get_keyboard_input(void)
             break;
         default:
             {
-                if (top >= MAX_KBD_BUF)
+                if (top >= max_buf_size)
                     break;
 
                 if (!ISPRINT(key.c))
