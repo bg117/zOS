@@ -38,15 +38,7 @@ enum ata_status
     ATA_STATUS_DRQ  = 0x08,
     ATA_STATUS_ERR  = 0x01
 };
-
-#define DELAY_READ_STAT(io)                         \
-    ({                                              \
-        uint8_t __stat__;                           \
-        for (size_t i = 0; i < 15; i++)             \
-            __stat__ = in_byte(io + ATA_IO_STATUS); \
-                                                    \
-        __stat__;                                   \
-    })
+uint8_t delay_400ns(int io);
 
 AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
 {
@@ -78,7 +70,7 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
     out_byte(port + ATA_IO_CMD, ATA_CMD_IDENTIFY);
 
     // read status port
-    uint8_t stat = DELAY_READ_STAT(port);
+    uint8_t stat = delay_400ns(port);
     if (stat == 0)
     {
         KSVLOG("error: device does not exist\n");
@@ -98,12 +90,12 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
     }
 
     // poll again until DRQ or ERR sets
-    while (!(TESTBIT(stat = in_byte(port + ATA_IO_STATUS), ATA_STATUS_DRQ) || TESTBIT(stat, ATA_STATUS_ERR)))
-        NOP;
+    while (!(TESTBIT(stat, ATA_STATUS_DRQ) || TESTBIT(stat, ATA_STATUS_ERR)))
+        stat = in_byte(port + ATA_IO_STATUS);
 
     // ready!
     uint16_t buf[256];
-    for (int i = 0; i < sizeof buf / sizeof *buf; i++)
+    for (size_t i = 0; i < sizeof buf / sizeof *buf; i++)
         buf[i] = in_word(port + ATA_IO_DATA);
 
     KSVLOG("successfully identified device: ata%d-%s\n",
@@ -117,4 +109,14 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
     info->bus                 = bus;
     info->device              = dev;
     return ATA_IDENTIFY_STATUS_OK;
+}
+
+uint8_t delay_400ns(int io)
+{
+    uint8_t stat;
+    // spec says to read 15 times from status port and only care about the last one
+    for (size_t i = 0; i < 15; i++)
+        stat = in_byte(io + ATA_IO_STATUS);
+
+    return stat;
 }

@@ -29,12 +29,12 @@ LDFLAGS := -Map ${OBJ_DIR}/${EXEC}.map \
 OBJCOPYFLAGS := -O binary \
 				--strip-unneeded
 
-SRCS_ASM := ${wildcard ${CURDIR}/asm/*.asm}
-SRCS_C   := ${wildcard ${CURDIR}/c/*.c}
+SRCS_ASM := ${wildcard ${CURDIR}/*.asm}
+SRCS_C   := ${wildcard ${CURDIR}/*.c}
 SRCS_H   := ${wildcard ${SRC_DIR}/include/common/kernel/*.h}
 
-OBJS_ASM := ${subst ${CURDIR}/asm,${OBJ_DIR},${SRCS_ASM:.asm=.k.asm.o}}
-OBJS_C   := ${subst ${CURDIR}/c,${OBJ_DIR},${SRCS_C:.c=.k.c.o}}
+OBJS_ASM := ${subst ${CURDIR},${OBJ_DIR},${SRCS_ASM:.asm=.k.asm.o}}
+OBJS_C   := ${subst ${CURDIR},${OBJ_DIR},${SRCS_C:.c=.k.c.o}}
 
 HDRS := ${OBJS_C:.o=.d}
 
@@ -70,7 +70,7 @@ ${FULLEXEC}.r: ${OBJS_ASM} ${OBJS_C}
 		-lutils \
 		-lgcc
 
-${OBJ_DIR}/%.k.c.o: ${CURDIR}/c/%.c
+${OBJ_DIR}/%.k.c.o: ${CURDIR}/%.c
 	@echo Compiling kernel: ${notdir $<}
 	@${CC} \
 		${CFLAGS} \
@@ -79,7 +79,7 @@ ${OBJ_DIR}/%.k.c.o: ${CURDIR}/c/%.c
 		-o $@ \
 		$<
 
-${OBJ_DIR}/%.k.asm.o: ${CURDIR}/asm/%.asm
+${OBJ_DIR}/%.k.asm.o: ${CURDIR}/%.asm
 	@echo Assembling kernel: ${notdir $<}
 	@${AS} \
 		${ASFLAGS} \
