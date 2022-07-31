@@ -7,7 +7,7 @@
 
 #include <kernel/hw/serial.h>
 #include <kernel/int/idt.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stdint.h>
 
 IdtEntry idt_make_entry(void (*isr)(void), uint16_t code_segment, uint8_t access_byte)
@@ -21,10 +21,11 @@ IdtEntry idt_make_entry(void (*isr)(void), uint16_t code_segment, uint8_t access
     entry.access_byte      = access_byte;
     entry.reserved         = 0;
 
-    KSLOG("creating entry: offset=0x%08X, segment=0x%04hX, access_byte=0x%02hhX\n",
-          entry.offset_upper_16 << 16 | entry.offset_lower_16,
-          entry.segment_selector,
-          entry.access_byte);
+    log_noprint(LOG_INFO,
+                "creating entry: offset=0x%08X, segment=0x%04hX, access_byte=0x%02hhX\n",
+                entry.offset_upper_16 << 16 | entry.offset_lower_16,
+                entry.segment_selector,
+                entry.access_byte);
 
     return entry;
 }

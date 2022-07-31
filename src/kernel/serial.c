@@ -128,6 +128,13 @@ void serial_write_format_string(const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
+    serial_write_vformat_string(fmt, ap);
+
+    va_end(ap);
+}
+
+void serial_write_vformat_string(const char *fmt, va_list ap)
+{
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
@@ -238,6 +245,4 @@ void serial_write_format_string(const char *fmt, ...)
         pad_len   = 0;
         ++fmt;
     }
-
-    va_end(ap);
 }

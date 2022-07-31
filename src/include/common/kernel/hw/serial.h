@@ -8,6 +8,8 @@
 #ifndef quuxSERIALHxuuq
 #define quuxSERIALHxuuq
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,6 +38,8 @@ void serial_write_string(const char *s);
  * @param ... Additional arguments to be used by the format string.
  */
 void serial_write_format_string(const char *fmt, ...);
+
+void serial_write_vformat_string(const char *fmt, va_list ap);
 
 #ifdef __cplusplus
 }

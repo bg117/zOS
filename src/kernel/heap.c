@@ -4,7 +4,7 @@
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stdalign.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -33,17 +33,6 @@ extern uint8_t _eprog;
 
 static void split_node(BlockLinkedList *node, size_t size);
 static void merge_free_blocks(void);
-static void log_heap(void)
-{
-    // log heap
-    BlockLinkedList *hd = g_heap;
-    KSLOG("heap:\n");
-    while (hd)
-    {
-        serial_write_format_string("\tblock %p:\n\t\tsize: %u\n\t\tfree: %s\n", hd, hd->size, hd->free ? "yes" : "no");
-        hd = hd->next;
-    }
-}
 
 void heap_init(size_t init_size)
 {
@@ -67,21 +56,19 @@ void heap_init(size_t init_size)
 
 void *heap_allocate(size_t size)
 {
-    KSLOG("allocating block of size %u\n", size);
+    log_noprint(LOG_INFO, "allocating block of size %u\n", size);
 
     if (size == 0)
     {
-        KSLOG("error: cannot allocate block of size 0\n");
+        log_noprint(LOG_ERR, "cannot allocate block of size 0\n");
         return NULL;
     }
 
     if (g_heap->size == 0)
     {
-        KSLOG("error: heap empty\n");
+        log_noprint(LOG_ERR, "heap empty\n");
         return NULL;
     }
-
-    log_heap();
 
     BlockLinkedList *p = g_heap;
     while (((p->size <= size) || !p->free) && p->next)
@@ -89,17 +76,17 @@ void *heap_allocate(size_t size)
 
     if (p->size == size)
     {
-        KSLOG("found block with exact size\n");
+        log_noprint(LOG_INFO, "found block with exact size\n");
         p->free = false;
     }
     else if (p->size > size + sizeof(BlockLinkedList))
     {
-        KSLOG("block too big, splitting node into two blocks\n");
+        log_noprint(LOG_WARN, "block too big, splitting node into two blocks\n");
         split_node(p, size);
     }
     else
     {
-        KSLOG("allocation size too big, resizing heap\n");
+        log_noprint(LOG_WARN, "allocation size too big, resizing heap\n");
 
         VirtualAddress virt_base     = g_virt_base + g_total_pages * PAGE_SIZE;
         size_t         additional_pg = ALIGN(size, PAGE_SIZE) / PAGE_SIZE;
@@ -115,17 +102,17 @@ void *heap_allocate(size_t size)
 
     MemoryAddress ret = (MemoryAddress)p + sizeof(BlockLinkedList);
 
-    KSLOG("returning block at address 0x%08X\n", ret);
+    log_noprint(LOG_INFO, "returning block at address 0x%08X\n", ret);
     return (void *)ret;
 }
 
 void *heap_reallocate(void *old_ptr, size_t new_size)
 {
-    KSLOG("reallocating block 0x%08X to new size of %u\n", (MemoryAddress)old_ptr, new_size);
+    log_noprint(LOG_INFO, "reallocating block 0x%08X to new size of %u\n", (MemoryAddress)old_ptr, new_size);
 
     if (new_size == 0)
     {
-        KSLOG("error: cannot reallocate block to size 0\n");
+        log_noprint(LOG_ERR, "cannot reallocate block to size 0\n");
         return NULL; // original pointer is unmodified
     }
 
@@ -142,19 +129,17 @@ void heap_free(void *ptr)
     {
         if ((void *)((MemoryAddress)p + sizeof(BlockLinkedList)) == ptr)
         {
-            KSLOG("found block at 0x%08X, freeing\n", (MemoryAddress)ptr);
+            log_noprint(LOG_INFO, "found block at 0x%08X, freeing\n", (MemoryAddress)ptr);
             p->free = true;
 
-            KSLOG("merging existing free blocks\n");
+            log_noprint(LOG_INFO, "merging existing free blocks\n");
             merge_free_blocks();
-
-            log_heap();
 
             return;
         }
     }
 
-    KSLOG("error: cannot find block at 0x%08X\n", (MemoryAddress)ptr);
+    log_noprint(LOG_ERR, "cannot find block at 0x%08X\n", (MemoryAddress)ptr);
 }
 
 void split_node(BlockLinkedList *node, size_t size)

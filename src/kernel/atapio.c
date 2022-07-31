@@ -10,7 +10,7 @@
 #include <kernel/hw/video.h>
 #include <kernel/ll/io.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stddef.h>
 
 #define ATA_CMD_IDENTIFY 0xEC
@@ -73,7 +73,7 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
     uint8_t stat = delay_400ns(port);
     if (stat == 0)
     {
-        KSVLOG("error: device does not exist\n");
+        log_all(LOG_ERR, "device does not exist\n");
         return ATA_IDENTIFY_STATUS_NONEXISTENT; // drive doesn't exist
     }
 
@@ -84,7 +84,7 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
         uint8_t lbamid = in_byte(port + ATA_IO_LBA_MID), lbahi = in_byte(ATA_PORT_PRIMARY + ATA_IO_LBA_HIGH);
         if (lbamid != 0 || lbahi != 0)
         {
-            KSVLOG("error: device is not an ATA device\n");
+            log_all(LOG_ERR, "error: device is not an ATA device\n");
             return ATA_IDENTIFY_STATUS_NOT_ATA;
         }
     }
@@ -98,9 +98,10 @@ AtaIdentifyStatus ata_identify(AtaBus bus, AtaDevice dev, AtaInfo *info)
     for (size_t i = 0; i < sizeof buf / sizeof *buf; i++)
         buf[i] = in_word(port + ATA_IO_DATA);
 
-    KSVLOG("successfully identified device: ata%d-%s\n",
-           bus == ATA_BUS_PRIMARY ? 0 : 1,
-           dev == ATA_DEVICE_MASTER ? "master" : "slave");
+    log_all(LOG_INFO,
+            "successfully identified device: ata%d-%s\n",
+            bus == ATA_BUS_PRIMARY ? 0 : 1,
+            dev == ATA_DEVICE_MASTER ? "master" : "slave");
 
     info->is_hard_disk        = TESTBIT(buf[0], 0);
     info->supports_lba48      = TESTBIT(buf[83], 1 << 10);

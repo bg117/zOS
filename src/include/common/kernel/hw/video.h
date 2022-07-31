@@ -8,6 +8,7 @@
 #ifndef quuxVIDEOHxuuq
 #define quuxVIDEOHxuuq
 
+#include <stdarg.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -70,6 +71,8 @@ void screen_print_string(const char *s);
  */
 void screen_print_format_string(const char *fmt, ...);
 
+void screen_print_vformat_string(const char *fmt, va_list ap);
+
 /**
  * @brief Scrolls the VGA buffer by one line.
  */
@@ -90,6 +93,10 @@ void screen_move_cursor(int x, int y);
  * @param y The pointer to the y-coordinate to be populated.
  */
 void screen_get_cursor_position(int *x, int *y);
+
+uint8_t screen_get_current_attribute_byte(void);
+
+void screen_set_current_attribute_byte(uint8_t attr);
 
 #ifdef __cplusplus
 }

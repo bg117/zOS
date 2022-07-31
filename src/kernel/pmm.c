@@ -12,7 +12,7 @@
 #include <kernel/memory/page.h>
 #include <kernel/memory/pmm.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -67,7 +67,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         if (mmap[i].type != 0x02)
             continue;
 
-        KSVLOG("found reserved area (%d), marking as used\n", i);
+        log_all(LOG_INFO, "found reserved area (%d), marking as used\n", i);
 
         uint32_t base_lower = mmap[i].base; // limited to 32 bits
         uint32_t base_upper;
@@ -100,7 +100,7 @@ void pmm_init(MemoryMapEntry *mmap, size_t mmap_length)
         }
     }
 
-    KSVLOG("marking kernel as used\n");
+    log_all(LOG_INFO, "marking kernel as used\n");
 
     // mark bitmap and kernel as used
     uint32_t reserved = (PhysicalAddress)(&_eprog) - (PhysicalAddress)(&_sprog);
@@ -129,14 +129,14 @@ void pmm_free_page(void *page)
 
 void *pmm_allocate_pages(int n)
 {
-    KSLOG("allocating %d physical page%s\n", n, n > 1 ? "s" : "");
+    log_noprint(LOG_INFO, "allocating %d physical page%s\n", n, n > 1 ? "s" : "");
 
     uint32_t bit;
     uint32_t idx = get_first_n_free_idx(n, &bit);
 
     if (idx == UINT32_MAX)
     {
-        KSLOG("error: cannot find %d page%s of contiguous memory\n", n, n > 1 ? "s" : "");
+        log_noprint(LOG_ERR, "cannot find %d page%s of contiguous memory\n", n, n > 1 ? "s" : "");
         return (void *)MAGIC_NUMBER; // impossible to be returned on normal operation; not page-aligned
     }
 
@@ -150,13 +150,13 @@ void *pmm_allocate_pages(int n)
     }
 
     void *offset = (void *)(PhysicalAddress)((idx * 64 + bit) * PAGE_SIZE);
-    KSLOG("returning page base 0x%08X\n", (PhysicalAddress)offset);
+    log_noprint(LOG_INFO, "returning page base 0x%08X\n", (PhysicalAddress)offset);
     return offset;
 }
 
 void pmm_free_pages(void *page_base, int n)
 {
-    KSLOG("freeing %d physical page%s\n", n, n > 1 ? "s" : "");
+    log_noprint(LOG_INFO, "freeing %d physical page%s\n", n, n > 1 ? "s" : "");
 
     PhysicalAddress base_addr = g_base;
     for (uint32_t i = 0; i < g_bitmap_size; i++, base_addr += PAGE_SIZE)
@@ -173,17 +173,18 @@ void pmm_free_pages(void *page_base, int n)
             }
             else
             {
-                KSLOG("warning: %d page%s starting from 0x%08X already free\n",
-                      n,
-                      n > 1 ? "s" : "",
-                      (PhysicalAddress)page_base);
+                log_noprint(LOG_WARN,
+                            "%d page%s starting from 0x%08X already free\n",
+                            n,
+                            n > 1 ? "s" : "",
+                            (PhysicalAddress)page_base);
             }
 
             return;
         }
     }
 
-    KSLOG("error: page 0x%08X cannot be found in the bitmap\n", (PhysicalAddress)page_base);
+    log_noprint(LOG_ERR, "page 0x%08X cannot be found in the bitmap\n", (PhysicalAddress)page_base);
 }
 
 enum page_status pmm_get_page_status(void *page)
@@ -203,7 +204,7 @@ enum page_status pmm_get_page_status(void *page)
         }
     }
 
-    KSLOG("warning: cannot get status of page 0x%08X\n", (PhysicalAddress)page);
+    log_noprint(LOG_WARN, "cannot get status of page 0x%08X\n", (PhysicalAddress)page);
     return PS_UNKNOWN;
 }
 

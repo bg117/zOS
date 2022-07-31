@@ -149,6 +149,16 @@ void screen_print_format_string(const char *fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
+    screen_print_vformat_string(fmt, ap);
+
+    va_end(ap);
+
+    g_move_cursor_chr = old_flag;
+    screen_move_cursor(g_pos_x, g_pos_y);
+}
+
+void screen_print_vformat_string(const char *fmt, va_list ap)
+{
     enum printf_state        state  = STATE_NORMAL;
     enum printf_length_state length = LENGTH_NORMAL;
 
@@ -258,11 +268,6 @@ void screen_print_format_string(const char *fmt, ...)
         pad_len   = 0;
         ++fmt;
     }
-
-    va_end(ap);
-
-    g_move_cursor_chr = old_flag;
-    screen_move_cursor(g_pos_x, g_pos_y);
 }
 
 void screen_print_char(char c)
@@ -358,4 +363,14 @@ void screen_get_cursor_position(int *x, int *y)
 {
     *x = g_pos_x;
     *y = g_pos_y;
+}
+
+uint8_t screen_get_current_attribute_byte(void)
+{
+    return g_char_color;
+}
+
+void screen_set_current_attribute_byte(uint8_t attr)
+{
+    g_char_color = attr;
 }

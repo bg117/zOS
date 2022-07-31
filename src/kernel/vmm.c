@@ -12,7 +12,7 @@
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stdbool.h>
 #include <utils/mem.h>
 
@@ -33,7 +33,7 @@ static VirtualAddress get_free_base(int n);
 
 void vmm_init(PhysicalAddress pgd_phys, VirtualAddress pgd_virt)
 {
-    KSVLOG("using initial kernel page directory located at 0x%08X\n", pgd_virt);
+    log_all(LOG_INFO, "using initial kernel page directory located at 0x%08X\n", pgd_virt);
 
     page_load_page_directory((PageDirectoryEntry *)pgd_phys);
     g_pgdir = (PageDirectoryEntry *)pgd_virt;
@@ -41,7 +41,9 @@ void vmm_init(PhysicalAddress pgd_phys, VirtualAddress pgd_virt)
 
 void vmm_switch(PageDirectoryEntry *pgd)
 {
-    KSLOG("switching to new page directory located at 0x%08X\n", (PhysicalAddress)vmm_get_phys((VirtualAddress)pgd));
+    log_noprint(LOG_INFO,
+                "switching to new page directory located at 0x%08X\n",
+                (PhysicalAddress)vmm_get_phys((VirtualAddress)pgd));
 
     page_load_page_directory((PageDirectoryEntry *)vmm_get_phys((VirtualAddress)pgd));
     g_pgdir = pgd;
@@ -61,17 +63,17 @@ void *vmm_allocate_pages(int n)
 {
     if (n == 0)
     {
-        KSLOG("error: trying to allocate 0 pages\n");
+        log_noprint(LOG_ERR, "trying to allocate 0 pages\n");
         return (void *)MAGIC_NUMBER;
     }
 
-    KSLOG("allocating %d page%s\n", n, n > 1 ? "s" : "");
+    log_noprint(LOG_INFO, "allocating %d page%s\n", n, n > 1 ? "s" : "");
 
     VirtualAddress base = get_free_base(n), addr = base;
 
     if (base == MAGIC_NUMBER)
     {
-        KSLOG("error: cannot find %d %s\n", n, n > 1 ? "contiguous pages" : "page");
+        log_noprint(LOG_ERR, "cannot find %d %s\n", n, n > 1 ? "contiguous pages" : "page");
         return (void *)MAGIC_NUMBER;
     }
 
@@ -85,11 +87,11 @@ void vmm_free_pages(void *page_base, int n)
 {
     if (n == 0)
     {
-        KSLOG("error: trying to free 0 pages\n");
+        log_noprint(LOG_ERR, "trying to free 0 pages\n");
         return;
     }
 
-    KSLOG("freeing %d page%s\n", n, n > 1 ? "s" : "");
+    log_noprint(LOG_INFO, "freeing %d page%s\n", n, n > 1 ? "s" : "");
 
     VirtualAddress base = (VirtualAddress)page_base;
     for (int i = 0; i < n; i++, base += PAGE_SIZE)
@@ -101,14 +103,14 @@ void vmm_free_pages(void *page_base, int n)
 
 void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 {
-    KSLOG("mapping page 0x%08X to physical address 0x%08X\n", virt, phys);
+    log_noprint(LOG_INFO, "mapping page 0x%08X to physical address 0x%08X\n", virt, phys);
 
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
     if (!TESTBIT(g_pgdir[dir_idx].access_byte, PGD_AX_PRESENT))
     {
-        KSLOG("page table not present, creating one\n");
+        log_noprint(LOG_URGENT, "page table not present, creating one\n");
 
         void *page_tab = pmm_allocate_page();
         g_pgdir[dir_idx] =
@@ -118,7 +120,7 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
     PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
     if (TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
     {
-        KSLOG("error: trying to map physical 0x%08X to used page 0x%08X\n", phys, virt);
+        log_noprint(LOG_ERR, "trying to map physical 0x%08X to used page 0x%08X\n", phys, virt);
         return;
     }
 
@@ -128,14 +130,14 @@ void vmm_map_page(PhysicalAddress phys, VirtualAddress virt)
 
 void vmm_unmap_page(VirtualAddress virt)
 {
-    KSLOG("unmapping page 0x%08X\n", virt);
+    log_noprint(LOG_INFO, "unmapping page 0x%08X\n", virt);
     uint32_t dir_idx = VADDR_GET_PAGE_DIR_IDX(virt);
     uint32_t tab_idx = VADDR_GET_PAGE_TAB_IDX(virt);
 
     PageTableEntry *page_tab = (PageTableEntry *)GET_RECURSIVE_PAGE_TAB(dir_idx);
 
     if (!TESTBIT(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED))
-        KSLOG("warning: address 0x%08X already unmapped, ignoring\n", virt);
+        log_noprint(LOG_WARN, "address 0x%08X already unmapped, ignoring\n", virt);
     else
         UNSETBITVAR(page_tab[tab_idx].page_frame_status, PGF_STATUS_USED);
 
@@ -153,7 +155,7 @@ void vmm_unmap_page(VirtualAddress virt)
     // if it is, we can safely free it
     if (is_empty)
     {
-        KSLOG("found empty page table, freeing\n");
+        log_noprint(LOG_INFO, "found empty page table, freeing\n");
         pmm_free_page((void *)(PhysicalAddress)(g_pgdir[dir_idx].address_upper_20 << 12));
         g_pgdir[dir_idx] = page_create_page_directory_entry(0, 0);
     }

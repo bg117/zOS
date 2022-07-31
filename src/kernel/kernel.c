@@ -24,7 +24,7 @@
 #include <kernel/memory/pmm.h>
 #include <kernel/memory/vmm.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <utils/strings.h>
@@ -77,47 +77,47 @@ static void default_irq_handler(InterruptInfo *info);
 
 void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
 {
-    KSVLOG("initializing the global descriptor table\n");
+    log_all(LOG_INFO, "initializing the global descriptor table\n");
     init_gdt();
 
-    KSVLOG("loading the GDT\n");
+    log_all(LOG_INFO, "loading the GDT\n");
     load_gdt();
 
-    KSVLOG("initializing the physical memory manager\n");
+    log_all(LOG_INFO, "initializing the physical memory manager\n");
     pmm_init(mmap, mmap_length);
 
-    KSVLOG("initializing the virtual memory manager\n");
+    log_all(LOG_INFO, "initializing the virtual memory manager\n");
     vmm_init((PhysicalAddress)&SYS_PGDIR - 0xC0000000, (VirtualAddress)&SYS_PGDIR);
 
-    KSVLOG("initializing the kernel heap\n");
+    log_all(LOG_INFO, "initializing the kernel heap\n");
     heap_init(8192);
 
-    KSVLOG("initializing the Programmable Interrupt Controller\n");
+    log_all(LOG_INFO, "initializing the Programmable Interrupt Controller\n");
     pic_init(PIC1_OFFSET, PIC2_OFFSET);
 
-    KSVLOG("initializing interrupt service routines\n");
+    log_all(LOG_INFO, "initializing interrupt service routines\n");
     isr_init(0x08);
 
-    KSVLOG("mapping default interrupt handler\n");
+    log_all(LOG_INFO, "mapping default interrupt handler\n");
     for (int i = 0; i < 256; i++)
         isr_map_interrupt_handler(i, default_interrupt_handler);
 
     isr_map_interrupt_handler(14, page_fault_handler);
 
-    KSVLOG("mapping default IRQ handlers\n");
+    log_all(LOG_INFO, "mapping default IRQ handlers\n");
     for (int i = 0; i < 16; i++)
         isr_map_interrupt_handler(i + PIC1_OFFSET, default_irq_handler);
 
     isr_load_idt();
 
-    KSVLOG("initializing hardware peripherals\n");
+    log_all(LOG_INFO, "initializing hardware peripherals\n");
     timer_init();
     kbd_init();
 
-    KSVLOG("enabling interrupts\n");
+    log_all(LOG_INFO, "enabling interrupts\n");
     core_set_interrupt_flag();
 
-    KSVLOG("identifying ata0-master\n");
+    log_all(LOG_INFO, "identifying ata0-master\n");
 
     // for the meantime we'll have to trust that the boot disk is ata0-master
     AtaInfo           ata_info;
@@ -129,20 +129,21 @@ void kernel_init(MemoryMapEntry *mmap, size_t mmap_length)
     }
 
     // log ATA information
-    KSVLOG("ata0-master:\n\tIs hard disk: %s\n\tSupports LBA48: %s\n\tTotal LBA28 sectors: %u\n\tTotal LBA48 sectors: "
-           "%llu\n",
-           ata_info.is_hard_disk ? "yes" : "no",
-           ata_info.supports_lba48 ? "yes" : "no",
-           ata_info.lba28_total_sectors,
-           ata_info.lba48_total_sectors);
+    log_all(LOG_INFO,
+            "ata0-master:\n\tIs hard disk: %s\n\tSupports LBA48: %s\n\tTotal LBA28 sectors: %u\n\tTotal LBA48 sectors: "
+            "%llu\n",
+            ata_info.is_hard_disk ? "yes" : "no",
+            ata_info.supports_lba48 ? "yes" : "no",
+            ata_info.lba28_total_sectors,
+            ata_info.lba48_total_sectors);
 }
 
 void kernel_deinit(void)
 {
-    KSVLOG("deinitializing the keyboard\n");
+    log_all(LOG_INFO, "deinitializing the keyboard\n");
     kbd_deinit();
 
-    KSVLOG("deinitializing the PIT\n");
+    log_all(LOG_INFO, "deinitializing the PIT\n");
     timer_deinit();
 }
 
@@ -171,18 +172,15 @@ void init_gdt(void)
 
 void kernel_panic(const char *file, int line, const char *msg)
 {
+    screen_print_string("--------------- KERNEL PANIC ---------------\n");
     bool nomsg = str_compare(msg, EMPTY_PANIC_MSG) == 0;
 
-    KSLOG("kernel panic thrown at %s:%d\n", file, line);
+    log_all(LOG_ERR, "kernel panic thrown at %s:%d\n", file, line);
     if (!nomsg)
-        KSLOG("message: %s\n", msg);
+        log_all(LOG_INFO, "message: %s\n", msg);
 
-    screen_print_string("--------------- KERNEL PANIC ---------------\n");
-    screen_print_format_string("A kernel panic occurred at line %d of %s.\n", line, file);
-    if (!nomsg)
-        screen_print_format_string("Extra information: %s\n", msg);
-
-    __asm__ volatile("nop; cli; hlt");
+    core_clear_interrupt_flag();
+    core_halt();
 }
 
 void load_gdt(void)
@@ -193,59 +191,24 @@ void load_gdt(void)
 
 void default_interrupt_handler(InterruptInfo *info)
 {
-    KSLOG("unhandled interrupt 0x%02X.\n", info->vector);
-    KSLOG("register dump:\n\t"
-          "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
-          "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
-          "cs=0x%04X ds=0x%04X ss=0x%04X\n",
-          info->eax,
-          info->ebx,
-          info->ecx,
-          info->edx,
-          info->esi,
-          info->edi,
-          info->ebp,
-          info->esp,
-          info->cs,
-          info->ds,
-          info->ss);
-
     screen_print_string("--------------- SYSTEM ERROR ---------------\n");
-    screen_print_string("The kernel threw a fit trying to handle an interrupt and couldn't continue.\n"); // ah yes.
-
-    screen_print_string("Check serial port COM1 for logs.\n");
-
-    screen_print_format_string("Interrupt index: 0x%02X\n", info->vector);
-    if (info->vector < 0x20)
-        screen_print_format_string("Identifier: %s\n\n", EXCEPTION_IDS[info->vector]);
-
-    screen_print_string("Register dump:\n");
-    screen_print_format_string("    EAX: 0x%08X     "
-                               "    EBX:    0x%08X\n"
-                               "    ECX: 0x%08X     "
-                               "    EDX:    0x%08X\n"
-                               "    ESI: 0x%08X     "
-                               "    EDI:    0x%08X\n"
-                               "    EBP: 0x%08X     "
-                               "    ESP:    0x%08X\n"
-                               "    EIP: 0x%08X     "
-                               "    EFLAGS: 0x%08X\n"
-                               "    CS: 0x%04X  "
-                               "    DS: 0x%04X  "
-                               "    SS: 0x%04X\n",
-                               info->eax,
-                               info->ebx,
-                               info->ecx,
-                               info->edx,
-                               info->esi,
-                               info->edi,
-                               info->ebp,
-                               info->esp,
-                               info->eip,
-                               info->eflags,
-                               info->cs,
-                               info->ds,
-                               info->ss);
+    log_all(LOG_ERR, "unhandled interrupt 0x%02X. Error code: 0x%02X\n", info->vector, info->error_code);
+    log_all(LOG_INFO,
+            "register dump:\n\t"
+            "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
+            "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
+            "cs=0x%04X ds=0x%04X ss=0x%04X\n",
+            info->eax,
+            info->ebx,
+            info->ecx,
+            info->edx,
+            info->esi,
+            info->edi,
+            info->ebp,
+            info->esp,
+            info->cs,
+            info->ds,
+            info->ss);
 
     core_clear_interrupt_flag();
     core_halt();
@@ -255,29 +218,26 @@ static void page_fault_handler(InterruptInfo *info)
 {
     uint32_t cr2;
     __asm__ volatile("movl %%cr2, %0" : "=r"(cr2) :); // get value of CR2 (contains the address of page fault)
-    KSLOG("page fault@0x%08X. Error code: 0x%X\n", cr2, info->error_code);
-    KSLOG("register dump:\n\t"
-          "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
-          "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
-          "eip=0x%08X cs=0x%04X      ds=0x%04X      ss=0x%04X\n",
-          info->eax,
-          info->ebx,
-          info->ecx,
-          info->edx,
-          info->esi,
-          info->edi,
-          info->ebp,
-          info->esp,
-          info->eip,
-          info->cs,
-          info->ds,
-          info->ss);
 
-    screen_print_string("--------------- SYSTEM ERROR ---------------\n");
-    screen_print_format_string(
-        "A process tried to access address 0x%08X and caused a page fault.\nError code: 0x%02X\n",
-        cr2,
-        info->error_code);
+    screen_print_string("---------------- PAGE FAULT ----------------\n");
+    log_all(LOG_ERR, "page fault at address 0x%08X. Error code: 0x%X\n", cr2, info->error_code);
+    log_all(LOG_INFO,
+            "register dump:\n\t"
+            "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"
+            "esi=0x%08X edi=0x%08X ebp=0x%08X esp=0x%08X\n\t"
+            "eip=0x%08X cs=0x%04X      ds=0x%04X      ss=0x%04X\n",
+            info->eax,
+            info->ebx,
+            info->ecx,
+            info->edx,
+            info->esi,
+            info->edi,
+            info->ebp,
+            info->esp,
+            info->eip,
+            info->cs,
+            info->ds,
+            info->ss);
 
     // temporary
     core_clear_interrupt_flag();

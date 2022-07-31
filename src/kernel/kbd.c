@@ -13,7 +13,7 @@
 #include <kernel/int/pic.h>
 #include <kernel/ll/io.h>
 #include <kernel/misc/bit_macros.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 
 static const char US_SCANCODES[128] = {
     0,    27,   '1', '2', '3', '4', '5', '6', '7',  '8', '9', '0', '-', '=', '\b', /* Backspace */
@@ -90,7 +90,7 @@ static void kbd_handler(InterruptInfo *);
 
 void kbd_init(void)
 {
-    KSVLOG("mapping IRQ 1 handler\n");
+    log_all(LOG_INFO, "mapping IRQ 1 handler\n");
     isr_map_interrupt_handler(1 + pic_get_pic1_offset(), kbd_handler);
 
     g_last_char     = 0;
@@ -102,7 +102,7 @@ void kbd_init(void)
 
 void kbd_deinit(void)
 {
-    KSVLOG("unmapping IRQ 1 handler\n");
+    log_all(LOG_INFO, "unmapping IRQ 1 handler\n");
     isr_unmap_interrupt_handler(1 + pic_get_pic1_offset());
 }
 
@@ -141,7 +141,7 @@ void kbd_handler(InterruptInfo *info)
         is_ready = 1;
     }
 
-    KSLOG("read key with scancode=0x%hhX\n", read);
+    log_noprint(LOG_INFO, "read key with scancode=0x%hhX\n", read);
 
     if ((read & 0x80))
     {

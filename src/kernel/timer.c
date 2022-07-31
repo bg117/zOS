@@ -12,7 +12,7 @@
 #include <kernel/int/isr.h>
 #include <kernel/int/pic.h>
 #include <kernel/ll/io.h>
-#include <kernel/misc/log_macros.h>
+#include <kernel/misc/log.h>
 #include <stdint.h>
 
 static volatile uint64_t g_timer_ticks;
@@ -24,7 +24,7 @@ static void pit_handler(InterruptInfo *);
 
 void timer_init(void)
 {
-    KSVLOG("mapping IRQ 0 handler\n");
+    log_all(LOG_INFO, "mapping IRQ 0 handler\n");
     isr_map_interrupt_handler(0 + pic_get_pic1_offset(), pit_handler);
 
     timer_set_cycle(100);
@@ -35,7 +35,7 @@ void timer_init(void)
 
 void timer_deinit(void)
 {
-    KSVLOG("unmapping IRQ 0 handler\n");
+    log_all(LOG_INFO, "unmapping IRQ 0 handler\n");
     isr_unmap_interrupt_handler(0 + pic_get_pic1_offset());
 }
 
@@ -53,7 +53,7 @@ void timer_set_cycle(int hz)
 
 void timer_wait(int ms)
 {
-    KSLOG("waiting %d ms\n", ms);
+    log_noprint(LOG_INFO, "waiting %d ms\n", ms);
 
     uint64_t ticks_final = g_timer_ticks + ms / 1000 * g_cycles;
     while (g_timer_ticks < ticks_final)
