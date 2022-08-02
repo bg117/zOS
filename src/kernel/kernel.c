@@ -25,6 +25,7 @@
 #include <kernel/memory/vmm.h>
 #include <kernel/misc/bit_macros.h>
 #include <kernel/misc/log.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <utils/strings.h>
@@ -170,14 +171,26 @@ void init_gdt(void)
                               GDT_OF_GRANULARITY | GDT_OF_32BIT);
 }
 
-void kernel_panic(const char *file, int line, const char *msg)
+void kernel_panic(const char *file, int line, const char *fmt, ...)
 {
     screen_print_string("--------------- KERNEL PANIC ---------------\n");
-    bool nomsg = str_compare(msg, EMPTY_PANIC_MSG) == 0;
+    bool nomsg = str_compare(fmt, EMPTY_PANIC_MSG) == 0;
 
     log_all(LOG_ERR, "kernel panic thrown at %s:%d\n", file, line);
-    if (!nomsg)
-        log_all(LOG_INFO, "message: %s\n", msg);
+    if (nomsg)
+    {
+        core_clear_interrupt_flag();
+        core_halt();
+    }
+
+    va_list ap;
+    va_start(ap, fmt);
+
+    size_t str = str_vformat(fmt, NULL, ap);
+    char   buf[str];
+
+    str_vformat(fmt, buf, ap);
+    log_all(LOG_INFO, "%s\n", buf);
 
     core_clear_interrupt_flag();
     core_halt();
@@ -192,7 +205,11 @@ void load_gdt(void)
 void default_interrupt_handler(InterruptInfo *info)
 {
     screen_print_string("--------------- SYSTEM ERROR ---------------\n");
-    log_all(LOG_ERR, "unhandled interrupt 0x%02X. Error code: 0x%02X\n", info->vector, info->error_code);
+    log_all(LOG_ERR,
+            "unhandled interrupt 0x%02X (%s). Error code: 0x%02X\n",
+            info->vector,
+            info->vector < 32 ? EXCEPTION_IDS[info->vector] : "unknown",
+            info->error_code);
     log_all(LOG_INFO,
             "register dump:\n\t"
             "eax=0x%08X ebx=0x%08X ecx=0x%08X edx=0x%08X\n\t"

@@ -8,6 +8,8 @@
 #ifndef quuxTIMERHxuuq
 #define quuxTIMERHxuuq
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,13 +23,6 @@ void timer_init(void);
  * @brief Deinitializes the PIC (unmaps its handler).
  */
 void timer_deinit(void);
-
-/**
- * @brief Sets how many cycles it takes for 1 second.
- *
- * @param hz The new frequency of the PIT.
- */
-void timer_set_cycle(int hz);
 
 /**
  * @brief Waits for the specified amount of time (in milliseconds).

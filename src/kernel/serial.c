@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <utils/chars.h>
+#include <utils/mem.h>
 #include <utils/num.h>
 #include <utils/strings.h>
 
@@ -146,6 +147,7 @@ void serial_write_vformat_string(const char *fmt, va_list ap)
 
     while (*fmt)
     {
+        mem_fill32(num_buf, 0, 256 / 4);
         if (*fmt == '%')
         {
             ++fmt;

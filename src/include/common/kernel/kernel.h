@@ -17,7 +17,7 @@ extern "C" {
 
 typedef struct memory_map_entry MemoryMapEntry;
 
-static const char *const EMPTY_PANIC_MSG = "\377\377\v[&*!PANIC:NONE!]\377\377\v" /* ??? what */;
+static const char *const EMPTY_PANIC_MSG = "\033;0\033;" /* ??? what */;
 
 /**
  * @brief Initializes the kernel.
@@ -40,11 +40,12 @@ void kernel_deinit(void);
  * @param line The line number in which the panic was thrown.
  * @param msg (Optional) The message to display. Pass EMPTY_PANIC_MSG to
  *            disregard.
+ * @param ... The arguments to use with the format string.
  */
-void kernel_panic(const char *file, int line, const char *msg);
+void kernel_panic(const char *file, int line, const char *fmt, ...);
 
-#define PANIC(msg) kernel_panic(str_get_last_occ("/" __FILE__, '/') + 1, __LINE__, msg)
-#define NPANIC()   PANIC(EMPTY_PANIC_MSG)
+#define PANIC(msg, ...) kernel_panic(__FILE__, __LINE__, msg, ##__VA_ARGS__)
+#define NPANIC()        PANIC(EMPTY_PANIC_MSG)
 
 #ifdef __cplusplus
 }

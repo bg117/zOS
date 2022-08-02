@@ -74,12 +74,6 @@ else ifeq (${CMP_SERIAL_STDOUT},${filter ${CMP_SERIAL_STDOUT},no })
 	endif
 endif
 
-ifeq (${OS},Windows_NT)
-	BOCHSRC := bochsrc_win32.bxrc
-else
-	BOCHSRC := bochsrc_unix.bxrc
-endif
-
 ALL_TARGETS := all help build clean run-qemu run-bochs check-dirs
 
 .PHONY: ${ALL_TARGETS}
@@ -111,7 +105,7 @@ run-bochs:
 	@echo Running zOS on Bochs...
 	@bochs \
 		-q \
-		-f ${BOCHSRC}
+		-f bochsrc.bxrc
 
 check-dirs:
 	@echo Checking if build directories exist...

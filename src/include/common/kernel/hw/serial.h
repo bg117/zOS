@@ -39,6 +39,14 @@ void serial_write_string(const char *s);
  */
 void serial_write_format_string(const char *fmt, ...);
 
+/**
+ * @brief Appends a format string to the serial
+ *        port, and expands its arguments.
+ *
+ * @param fmt The format string which specifies what to write to
+              the serial port.
+ * @param ap The variadic argument list to use.
+ */
 void serial_write_vformat_string(const char *fmt, va_list ap);
 
 #ifdef __cplusplus

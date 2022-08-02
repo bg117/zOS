@@ -34,7 +34,7 @@ static char *get_keyboard_input(char *buf, size_t max_buf_size);
 static int sort_mmap(const void *i, const void *j);
 
 // main
-int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap_length, VgaFontGlyph *vga_font_info)
+int kmain(uint8_t drive_number, FatInfo *fi, VgaFontGlyph *vga_font_info, uint16_t mmap_length, MemoryMapEntry *mmap)
 {
     (void)drive_number;
     (void)fi;
@@ -48,8 +48,8 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     for (int i = 0; i < mmap_length; i++)
     {
         log_all(LOG_INFO,
-                "%d: Base=0x%016llX, Length=0x%016llX, Type=%u, AcpiExtAttrs=%u\n",
-                i,
+                "%d) base=0x%016llX,len=0x%016llX,type=%u,ext=%u\n",
+                i + 1,
                 mmap[i].base,
                 mmap[i].length,
                 mmap[i].type,
@@ -58,8 +58,6 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
 
     log_all(LOG_INFO, "initializing the kernel\n");
     kernel_init(mmap, mmap_length);
-
-    screen_print_string("zOS version 0.01\nMade with \003 by bg117\n");
 
     // PMM contiguous memory test
     void *ten_pages = pmm_allocate_pages(10);
@@ -76,6 +74,9 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
     void *t = heap_allocate(20 * sizeof(void *));
 
     heap_free(p);
+
+    screen_clear();
+    screen_print_string("zOS version 0.01\n\n");
 
     while (1)
     {
@@ -94,9 +95,26 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
         }
         else if (str_compare(input, "help") == 0)
         {
-            screen_print_string("Help\n\tclear: clears the screen\n\texit: exits the operating system, heap_freeing "
-                                "all resources in the "
-                                "process\n\thelp: show this help message\n");
+            screen_print_string(
+                "Help\n\tclear: clears the screen\n\texit: exits the operating system, freeing "
+                "all resources in the "
+                "process\n\tpf: trigger page fault handler (FOR DEBUGGING PURPOSES ONLY)\n\texcept: trigger "
+                "exception handler (FOR DEBUGGING PURPOSES ONLY)\n\thelp: show this help message\n");
+        }
+        else if (str_compare(input, "pf") == 0)
+        {
+            screen_print_string("Triggering page fault handler...\n");
+
+            // for debugging BS only
+            volatile const char *const volatile KILL_ME = (const char *const volatile)1; // not mapped
+            (void)*KILL_ME;
+        }
+        else if (str_compare(input, "except") == 0)
+        {
+            screen_print_string("Triggering unhandled exception handler...\n");
+
+            // for debugging BS only
+            __asm__ volatile("int $0x03");
         }
         else
         {
@@ -107,8 +125,7 @@ int kmain(uint8_t drive_number, FatInfo *fi, MemoryMapEntry *mmap, uint16_t mmap
         continue;
 
     other:
-        screen_print_format_string("Input: \"%s\"\n", input);
-        log_all(LOG_ERR, "function not yet implemented\n");
+        log_all(LOG_ERR, "cannot execute \"%s\". Try \"help\"\n", input);
         heap_free(input);
     }
 

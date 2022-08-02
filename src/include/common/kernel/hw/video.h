@@ -71,6 +71,14 @@ void screen_print_string(const char *s);
  */
 void screen_print_format_string(const char *fmt, ...);
 
+/**
+ * @brief Writes a format string to the VGA buffer, and expands its
+ *        arguments.
+ *
+ * @param fmt The format string which specifies what to write to
+              the VGA buffer.
+ * @param ap The variadic argument list to use.
+ */
 void screen_print_vformat_string(const char *fmt, va_list ap);
 
 /**
@@ -94,8 +102,18 @@ void screen_move_cursor(int x, int y);
  */
 void screen_get_cursor_position(int *x, int *y);
 
+/**
+ * @brief Gets the current attribute byte of the VGA.
+ *
+ * @return The current attribute byte.
+ */
 uint8_t screen_get_current_attribute_byte(void);
 
+/**
+ * @brief Sets the current attribute byte of the VGA.
+ *
+ * @param attr The new attribute byte to use.
+ */
 void screen_set_current_attribute_byte(uint8_t attr);
 
 #ifdef __cplusplus
