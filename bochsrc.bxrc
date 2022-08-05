@@ -1,0 +1,6 @@
+ata0-slave: path=build/zos-dev-build.img, type=disk
+boot: disk
+megs: 128
+display_library: x, options=gui_debug
+com1: enabled=1, mode=term
+magic_break: enabled=1
